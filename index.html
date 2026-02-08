@@ -14,11 +14,12 @@
     --border2:#2b3a5e;
     --text:#e8eefc;
     --muted:#a9b7d6;
+    --accent:#3a55a1;
   }
   *{ box-sizing:border-box; }
   body{
     margin:0;
-    font-family:system-ui, -apple-system, Segoe UI, Roboto, Arial;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
     background: radial-gradient(1200px 600px at 20% -10%, #1a2340, var(--bg));
     color:var(--text);
   }
@@ -72,7 +73,7 @@
     color:var(--muted);
   }
 
-  /* Results / Items */
+  /* Lists */
   .results,.list{ display:grid; gap:12px; margin-top:12px; }
   .item{
     display:grid;
@@ -95,12 +96,14 @@
   .actions{ display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
   .btnSmall{ padding:10px 12px; font-size:14px; border-radius:12px; }
   .danger{ border-color:#7a2b2b; }
+  .linkBtn{ border-color:var(--accent); }
 
   /* Layout */
   .gridMain{ display:grid; grid-template-columns: 1fr 1fr; gap:14px; }
+  .gridTop{ display:grid; grid-template-columns: 1fr 1fr; gap:14px; }
   @media (max-width: 920px){
     h1{ font-size:34px; }
-    .gridMain{ grid-template-columns: 1fr; }
+    .gridMain, .gridTop{ grid-template-columns:1fr; }
   }
   @media (max-width: 520px){
     .wrap{ padding:14px; }
@@ -127,12 +130,36 @@
   }
   .tab.active{
     background:#152042;
-    border-color:#3a55a1;
+    border-color:var(--accent);
   }
 
   /* Stats row */
   .statsRow{ display:flex; gap:10px; flex-wrap:wrap; justify-content:space-between; }
   .statsRow .pill{ flex:1; justify-content:center; }
+
+  /* Rating */
+  .ratingRow { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+  .ratingBtn{
+    border:1px solid var(--border2);
+    background:#0e1526;
+    color:var(--text);
+    border-radius:999px;
+    padding:7px 10px;
+    font-size:14px;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+  }
+  .ratingBtn.active{
+    background:#152042;
+    border-color:var(--accent);
+  }
+  .burnedIcon{
+    width:22px;
+    height:22px;
+    vertical-align:middle;
+  }
 
   /* Modal */
   .backdrop{
@@ -157,7 +184,7 @@
   .seasonGrid{ display:grid; gap:10px; margin-top:12px; }
   .seasonRow{
     display:grid;
-    grid-template-columns: 1fr 140px;
+    grid-template-columns: 1fr 160px;
     gap:10px;
     align-items:center;
     border:1px solid var(--border);
@@ -171,6 +198,23 @@
     .seasonRow{ grid-template-columns: 1fr; }
     .modalFooter button{ width:100%; }
   }
+
+  /* Top cards */
+  .topCardBody{
+    display:grid;
+    grid-template-columns: 80px 1fr;
+    gap:12px;
+    align-items:center;
+    margin-top:12px;
+  }
+  .topPoster{
+    width:80px; height:120px;
+    border-radius:14px;
+    background:#1b2640;
+    object-fit:cover;
+  }
+  .topTitle{ font-weight:900; font-size:22px; line-height:1.1; }
+  .topMeta{ color:var(--muted); font-size:13px; margin-top:5px; }
 </style>
 </head>
 
@@ -214,11 +258,34 @@
     </div>
   </div>
 
+  <!-- TOP PICKS -->
+  <div class="gridTop">
+    <div class="card">
+      <div class="row" style="justify-content:space-between;">
+        <div class="title" style="font-size:24px;">Top Movie This Year</div>
+        <div class="pill" id="topMovieRating">—</div>
+      </div>
+      <div id="topMovieBody" class="muted" style="margin-top:12px;">Rate movies to see a top pick.</div>
+    </div>
+
+    <div class="card">
+      <div class="row" style="justify-content:space-between;">
+        <div class="title" style="font-size:24px;">Top TV Show This Year</div>
+        <div class="pill" id="topTVRating">—</div>
+      </div>
+      <div id="topTVBody" class="muted" style="margin-top:12px;">Rate TV shows to see a top pick.</div>
+    </div>
+  </div>
+
   <div class="gridMain">
     <!-- WATCHLIST -->
     <div class="card">
       <div class="row" style="justify-content:space-between;">
         <div class="title" style="font-size:24px;">Watchlist</div>
+        <select id="watchlistSort" style="min-width:200px;">
+          <option value="recent" selected>Recently added</option>
+          <option value="title">Title (A–Z)</option>
+        </select>
       </div>
 
       <div class="tabs" id="watchlistTabs">
@@ -233,6 +300,10 @@
     <div class="card">
       <div class="row" style="justify-content:space-between;">
         <div class="title" style="font-size:24px;">Watched</div>
+        <select id="watchedSort" style="min-width:200px;">
+          <option value="recent" selected>Recently added</option>
+          <option value="title">Title (A–Z)</option>
+        </select>
       </div>
 
       <div class="tabs" id="watchedTabs">
@@ -267,24 +338,15 @@
 
 <script>
 /* ===================== CONFIG ===================== */
-const TMDB_BEARER = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJlOWY5NGVkYTNjMzFmMmQ2NWFjM2Y1OWNmMTBhN2VlNiIsIm5iZiI6MTc3MDUxMTY4MS4wNDQsInN1YiI6IjY5ODdkZDQxNjM5ZGJlZWQwNjhjOGQzYiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.JjpO38-YZKSOX_PXz9zEYiW4zUDpTlFkwPf4XNIOB74"; // <-- paste your token here
+const TMDB_BEARER = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJlOWY5NGVkYTNjMzFmMmQ2NWFjM2Y1OWNmMTBhN2VlNiIsIm5iZiI6MTc3MDUxMTY4MS4wNDQsInN1YiI6IjY5ODdkZDQxNjM5ZGJlZWQwNjhjOGQzYiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.JjpO38-YZKSOX_PXz9zEYiW4zUDpTlFkwPf4XNIOB74"; // paste your token here
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const POSTER_BASE = "https://image.tmdb.org/t/p/w154";
+const BURNED_ICON_PATH = "assets/burned-popcorn.png";
 
 /* ===================== STATE ===================== */
-const STORAGE_KEY = "yearly_tracker_v2_tabs_modal";
+const STORAGE_KEY = "yearly_tracker_v3_all_updates";
 let state = loadState();
 
-/**
- * state schema:
- * {
- *   watchlist: [{id, media_type:'movie'|'tv', title, year, poster_path}]
- *   watched:   [
- *     movie: {id, media_type:'movie', title, year, poster_path, runtime_minutes}
- *     tv:    {id, media_type:'tv', title, year, poster_path, avg_episode_minutes, seasons_watched: { [seasonNumber]: episodesWatched }, seasons_meta: { [seasonNumber]: episodeCount } }
- *   ]
- * }
- */
 function loadState(){
   try{
     const s = JSON.parse(localStorage.getItem(STORAGE_KEY));
@@ -303,6 +365,26 @@ function minutesToHM(total){
 }
 function mediaLabel(t){ return t === "movie" ? "Movie" : "TV"; }
 
+/* ===================== MIGRATION (for older saved items) ===================== */
+(function migrate(){
+  let changed = false;
+
+  for(const x of state.watchlist){
+    if(typeof x.added_at !== "number"){ x.added_at = Date.now(); changed = true; }
+  }
+  for(const x of state.watched){
+    if(typeof x.added_at !== "number"){ x.added_at = Date.now(); changed = true; }
+    if(!("rating" in x)){ x.rating = null; changed = true; }
+    if(x.media_type === "tv"){
+      if(!x.seasons_watched) { x.seasons_watched = {}; changed = true; }
+      if(!x.seasons_meta) { x.seasons_meta = {}; changed = true; }
+      if(typeof x.avg_episode_minutes !== "number") { x.avg_episode_minutes = 45; changed = true; }
+    }
+  }
+
+  if(changed) saveState();
+})();
+
 /* ===================== API ===================== */
 async function tmdbFetch(path){
   const res = await fetch(`${TMDB_BASE}${path}`, {
@@ -310,6 +392,34 @@ async function tmdbFetch(path){
   });
   if(!res.ok) throw new Error(`TMDB ${res.status}`);
   return res.json();
+}
+
+/* ===================== HELPERS ===================== */
+function posterOrBlank(p){
+  return p ? `<img class="poster" src="${POSTER_BASE}${p}" alt="">` : `<div class="poster"></div>`;
+}
+function ratingToBadgeHTML(r){
+  const n = Number(r);
+  if(!Number.isFinite(n) || r === null) return "—";
+  if(n === 0) return `<img src="${BURNED_ICON_PATH}" class="burnedIcon" alt="Burned">`;
+  return "🍿".repeat(Math.max(1, Math.min(5, n)));
+}
+function totalWatchedEpisodes(tvItem){
+  const map = tvItem.seasons_watched || {};
+  return Object.values(map).reduce((a,b)=>a+(Number(b)||0), 0);
+}
+function applySort(list, mode){
+  const arr = [...list];
+  if(mode === "title"){
+    arr.sort((a,b)=> (a.title||"").localeCompare(b.title||""));
+  } else {
+    arr.sort((a,b)=> (b.added_at||0) - (a.added_at||0));
+  }
+  return arr;
+}
+function isInAnyList(media_type, id){
+  const k = `${media_type}:${id}`;
+  return state.watchlist.some(x=>uniqKey(x)===k) || state.watched.some(x=>uniqKey(x)===k);
 }
 
 /* ===================== UI ELEMENTS ===================== */
@@ -321,11 +431,18 @@ const elTimeMovies = document.getElementById("timeMovies");
 const elTimeTV = document.getElementById("timeTV");
 const elTimeTotal = document.getElementById("timeTotal");
 
+const elTopMovieBody = document.getElementById("topMovieBody");
+const elTopTVBody = document.getElementById("topTVBody");
+const elTopMovieRating = document.getElementById("topMovieRating");
+const elTopTVRating = document.getElementById("topTVRating");
+
 const elWatchlistList = document.getElementById("watchlistList");
 const elWatchedList = document.getElementById("watchedList");
 
 let watchlistTab = "movie";
 let watchedTab = "movie";
+let watchlistSort = "recent";
+let watchedSort = "recent";
 
 /* ===================== SEARCH UX ===================== */
 document.getElementById("searchBtn").addEventListener("click", runSearch);
@@ -384,7 +501,7 @@ async function runSearch(){
         </div>
         <div class="actions">
           <button class="btnSmall" data-act="watchlist" ${exists ? "disabled":""}>+ Watchlist</button>
-          <button class="btnSmall" data-act="watched" ${exists ? "disabled":""}>✓ Watched</button>
+          <button class="btnSmall linkBtn" data-act="watched" ${exists ? "disabled":""}>✓ Watched</button>
         </div>
       `;
 
@@ -408,21 +525,15 @@ async function runSearch(){
   }
 }
 
-function isInAnyList(media_type, id){
-  const k = `${media_type}:${id}`;
-  return state.watchlist.some(x=>uniqKey(x)===k) || state.watched.some(x=>uniqKey(x)===k);
-}
-
 /* ===================== ADD / MOVE ===================== */
 function addToWatchlist(item){
   const k = uniqKey(item);
   if(state.watchlist.some(x=>uniqKey(x)===k) || state.watched.some(x=>uniqKey(x)===k)) return;
-  state.watchlist.unshift(item);
+  state.watchlist.unshift({ ...item, added_at: Date.now() });
   saveState();
 }
 
 async function addToWatchedFlow(item){
-  // remove from watchlist if present
   const k = uniqKey(item);
   state.watchlist = state.watchlist.filter(x => uniqKey(x) !== k);
 
@@ -430,48 +541,47 @@ async function addToWatchedFlow(item){
     const details = await tmdbFetch(`/movie/${item.id}?language=en-US`);
     state.watched.unshift({
       ...item,
-      runtime_minutes: details.runtime || 0
+      runtime_minutes: details.runtime || 0,
+      rating: null,
+      added_at: Date.now()
     });
     saveState();
     return;
   }
 
-  // TV: open modal to pick seasons/episodes (default season 1 = 1 episode)
   const details = await tmdbFetch(`/tv/${item.id}?language=en-US`);
-
   const avgEp = Array.isArray(details.episode_run_time) && details.episode_run_time.length
     ? Math.round(details.episode_run_time.reduce((a,b)=>a+b,0) / details.episode_run_time.length)
     : 45;
 
-  // seasons meta from details.seasons (has episode_count)
   const seasons_meta = {};
   (details.seasons || [])
-    .filter(s => typeof s.season_number === "number" && s.season_number > 0) // ignore season 0 specials for now
+    .filter(s => typeof s.season_number === "number" && s.season_number > 0)
     .forEach(s => { seasons_meta[s.season_number] = s.episode_count || 0; });
 
   const baseTV = {
     ...item,
     avg_episode_minutes: avgEp,
     seasons_meta,
-    seasons_watched: {}
+    seasons_watched: {},
+    rating: null,
+    added_at: Date.now()
   };
 
-  // default: season 1, 1 ep (if exists)
+  // default: season 1 = 1 episode if exists
   if(seasons_meta[1] > 0) baseTV.seasons_watched[1] = 1;
 
-  // show modal to confirm/edit before saving
   const finalTV = await openTVModal(baseTV);
   if(finalTV){
     state.watched.unshift(finalTV);
     saveState();
   } else {
-    // user canceled: put it back into watchlist
-    state.watchlist.unshift({ id:item.id, media_type:item.media_type, title:item.title, year:item.year, poster_path:item.poster_path });
+    state.watchlist.unshift({ id:item.id, media_type:item.media_type, title:item.title, year:item.year, poster_path:item.poster_path, added_at: Date.now() });
     saveState();
   }
 }
 
-/* ===================== TABS ===================== */
+/* ===================== TABS + SORT ===================== */
 document.getElementById("watchlistTabs").addEventListener("click", (e)=>{
   const tab = e.target.closest(".tab");
   if(!tab) return;
@@ -492,24 +602,34 @@ function setActiveTab(containerId, active){
     t.classList.toggle("active", t.dataset.tab === active);
   });
 }
+document.getElementById("watchlistSort").addEventListener("change", (e)=>{
+  watchlistSort = e.target.value;
+  renderWatchlist();
+});
+document.getElementById("watchedSort").addEventListener("change", (e)=>{
+  watchedSort = e.target.value;
+  renderWatched();
+});
 
 /* ===================== RENDER ===================== */
-function posterOrBlank(p){
-  return p ? `<img class="poster" src="${POSTER_BASE}${p}" alt="">` : `<div class="poster"></div>`;
-}
-
 function renderAll(){
   renderTotals();
+  renderTopPicks();
   renderWatchlist();
   renderWatched();
 }
 
 function renderWatchlist(){
-  const list = state.watchlist.filter(i => i.media_type === watchlistTab);
+  const list = applySort(
+    state.watchlist.filter(i => i.media_type === watchlistTab),
+    watchlistSort
+  );
+
   if(list.length === 0){
     elWatchlistList.innerHTML = `<div class="muted">No ${watchlistTab === "movie" ? "movies" : "TV shows"} in watchlist.</div>`;
     return;
   }
+
   elWatchlistList.innerHTML = "";
   list.forEach(item=>{
     const div = document.createElement("div");
@@ -521,7 +641,7 @@ function renderWatchlist(){
         <div class="meta">${mediaLabel(item.media_type)} • ${item.year || "—"}</div>
       </div>
       <div class="actions">
-        <button class="btnSmall" data-act="watched">✓ Watched</button>
+        <button class="btnSmall linkBtn" data-act="watched">✓ Watched</button>
         <button class="btnSmall danger" data-act="remove">Remove</button>
       </div>
     `;
@@ -542,11 +662,16 @@ function renderWatchlist(){
 }
 
 function renderWatched(){
-  const list = state.watched.filter(i => i.media_type === watchedTab);
+  const list = applySort(
+    state.watched.filter(i => i.media_type === watchedTab),
+    watchedSort
+  );
+
   if(list.length === 0){
     elWatchedList.innerHTML = `<div class="muted">No watched ${watchedTab === "movie" ? "movies" : "TV shows"} yet.</div>`;
     return;
   }
+
   elWatchedList.innerHTML = "";
   list.forEach(item=>{
     const div = document.createElement("div");
@@ -558,12 +683,27 @@ function renderWatched(){
         <div>
           <div class="title">${item.title}</div>
           <div class="meta">${item.year || "—"} • ${item.runtime_minutes || 0} min</div>
+
+          <div class="meta" style="margin-top:8px;">Your rating: <span class="pill" style="display:inline-flex; padding:6px 10px;">${ratingToBadgeHTML(item.rating)}</span></div>
+          <div class="ratingRow">
+            <button class="ratingBtn" data-rate="0" title="Burned / terrible">
+              <img src="${BURNED_ICON_PATH}" class="burnedIcon" alt="Burned">
+            </button>
+            <button class="ratingBtn" data-rate="1">🍿</button>
+            <button class="ratingBtn" data-rate="2">🍿🍿</button>
+            <button class="ratingBtn" data-rate="3">🍿🍿🍿</button>
+            <button class="ratingBtn" data-rate="4">🍿🍿🍿🍿</button>
+            <button class="ratingBtn" data-rate="5">🍿🍿🍿🍿🍿</button>
+          </div>
         </div>
         <div class="actions">
           <button class="btnSmall" data-act="toWatchlist">↩ Watchlist</button>
           <button class="btnSmall danger" data-act="remove">Remove</button>
         </div>
       `;
+
+      wireRatingButtons(div, item);
+
     } else {
       const totalEps = totalWatchedEpisodes(item);
       div.innerHTML = `
@@ -571,19 +711,33 @@ function renderWatched(){
         <div>
           <div class="title">${item.title}</div>
           <div class="meta">${item.year || "—"} • ${totalEps} ep × ${item.avg_episode_minutes || 0}m</div>
+
+          <div class="meta" style="margin-top:8px;">Your rating: <span class="pill" style="display:inline-flex; padding:6px 10px;">${ratingToBadgeHTML(item.rating)}</span></div>
+          <div class="ratingRow">
+            <button class="ratingBtn" data-rate="0" title="Burned / terrible">
+              <img src="${BURNED_ICON_PATH}" class="burnedIcon" alt="Burned">
+            </button>
+            <button class="ratingBtn" data-rate="1">🍿</button>
+            <button class="ratingBtn" data-rate="2">🍿🍿</button>
+            <button class="ratingBtn" data-rate="3">🍿🍿🍿</button>
+            <button class="ratingBtn" data-rate="4">🍿🍿🍿🍿</button>
+            <button class="ratingBtn" data-rate="5">🍿🍿🍿🍿🍿</button>
+          </div>
+
           <div class="muted" style="margin-top:6px;">Tap “Edit” to update seasons/episodes.</div>
         </div>
         <div class="actions">
-          <button class="btnSmall" data-act="edit">Edit</button>
+          <button class="btnSmall linkBtn" data-act="edit">Edit</button>
           <button class="btnSmall" data-act="toWatchlist">↩ Watchlist</button>
           <button class="btnSmall danger" data-act="remove">Remove</button>
         </div>
       `;
 
+      wireRatingButtons(div, item);
+
       div.querySelector('[data-act="edit"]').addEventListener("click", async ()=>{
         const updated = await openTVModal(item, true);
         if(updated){
-          // replace in watched
           state.watched = state.watched.map(x => uniqKey(x)===uniqKey(item) ? updated : x);
           saveState();
           renderAll();
@@ -592,9 +746,8 @@ function renderWatched(){
     }
 
     div.querySelector('[data-act="toWatchlist"]').addEventListener("click", ()=>{
-      // remove from watched, add to watchlist
       state.watched = state.watched.filter(x => uniqKey(x) !== uniqKey(item));
-      state.watchlist.unshift({ id:item.id, media_type:item.media_type, title:item.title, year:item.year, poster_path:item.poster_path });
+      state.watchlist.unshift({ id:item.id, media_type:item.media_type, title:item.title, year:item.year, poster_path:item.poster_path, added_at: Date.now() });
       saveState();
       renderAll();
     });
@@ -609,9 +762,17 @@ function renderWatched(){
   });
 }
 
-function totalWatchedEpisodes(tvItem){
-  const map = tvItem.seasons_watched || {};
-  return Object.values(map).reduce((a,b)=>a+(Number(b)||0), 0);
+function wireRatingButtons(container, item){
+  const btns = container.querySelectorAll("[data-rate]");
+  btns.forEach(b=>{
+    const r = Number(b.dataset.rate);
+    if(item.rating === r) b.classList.add("active");
+    b.addEventListener("click", ()=>{
+      item.rating = r;
+      saveState();
+      renderAll();
+    });
+  });
 }
 
 function renderTotals(){
@@ -632,6 +793,62 @@ function renderTotals(){
   elTimeTotal.textContent = minutesToHM(movieMin + tvMin);
 }
 
+function renderTopPicks(){
+  // Top Movie: highest rating (1..5). Ignore null. Include 0 as "burned" but only show if nothing else.
+  const movies = state.watched.filter(x=>x.media_type==="movie" && x.rating !== null);
+  const tvs = state.watched.filter(x=>x.media_type==="tv" && x.rating !== null);
+
+  const bestMovie = pickBestRated(movies);
+  const bestTV = pickBestRated(tvs);
+
+  if(bestMovie){
+    elTopMovieRating.innerHTML = ratingToBadgeHTML(bestMovie.rating);
+    elTopMovieBody.innerHTML = `
+      <div class="topCardBody">
+        ${bestMovie.poster_path ? `<img class="topPoster" src="${POSTER_BASE}${bestMovie.poster_path}" alt="">` : `<div class="topPoster"></div>`}
+        <div>
+          <div class="topTitle">${bestMovie.title}</div>
+          <div class="topMeta">${bestMovie.year || "—"} • ${bestMovie.runtime_minutes || 0} min</div>
+          <div class="topMeta">Rating: ${ratingToBadgeHTML(bestMovie.rating)}</div>
+        </div>
+      </div>
+    `;
+  } else {
+    elTopMovieRating.textContent = "—";
+    elTopMovieBody.innerHTML = `Rate watched movies to see a top pick.`;
+  }
+
+  if(bestTV){
+    elTopTVRating.innerHTML = ratingToBadgeHTML(bestTV.rating);
+    elTopTVBody.innerHTML = `
+      <div class="topCardBody">
+        ${bestTV.poster_path ? `<img class="topPoster" src="${POSTER_BASE}${bestTV.poster_path}" alt="">` : `<div class="topPoster"></div>`}
+        <div>
+          <div class="topTitle">${bestTV.title}</div>
+          <div class="topMeta">${bestTV.year || "—"} • ${totalWatchedEpisodes(bestTV)} episodes watched</div>
+          <div class="topMeta">Rating: ${ratingToBadgeHTML(bestTV.rating)}</div>
+        </div>
+      </div>
+    `;
+  } else {
+    elTopTVRating.textContent = "—";
+    elTopTVBody.innerHTML = `Rate watched TV shows to see a top pick.`;
+  }
+}
+
+function pickBestRated(list){
+  if(!list.length) return null;
+  // Prefer highest rating; tie-break by most recently added.
+  const sorted = [...list].sort((a,b)=>{
+    const ra = Number(a.rating);
+    const rb = Number(b.rating);
+    if(rb !== ra) return rb - ra;
+    return (b.added_at||0) - (a.added_at||0);
+  });
+  // If everything is rating 0 (burned), still show that (it’s still “top” by rating rules).
+  return sorted[0] || null;
+}
+
 /* ===================== TV MODAL ===================== */
 const backdrop = document.getElementById("tvModalBackdrop");
 const titleEl = document.getElementById("tvModalTitle");
@@ -641,15 +858,13 @@ const btnClose = document.getElementById("tvModalClose");
 const btnCancel = document.getElementById("tvModalCancel");
 const btnSave = document.getElementById("tvModalSave");
 
-function openTVModal(tvItem, isEdit=false){
+function openTVModal(tvItem){
   return new Promise((resolve)=>{
-    // clone (don’t mutate original unless saved)
     const working = JSON.parse(JSON.stringify(tvItem));
 
     titleEl.textContent = `${working.title} — Episodes Watched`;
     subEl.textContent = "Enter how many episodes you watched per season (0..episode count).";
 
-    // build season rows
     gridEl.innerHTML = "";
     const seasonNumbers = Object.keys(working.seasons_meta || {})
       .map(n=>parseInt(n,10))
@@ -668,14 +883,25 @@ function openTVModal(tvItem, isEdit=false){
       row.className = "seasonRow";
       row.innerHTML = `
         <div>
-          <div style="font-weight:700;">Season ${sn}</div>
+          <div style="font-weight:800; display:flex; gap:10px; align-items:center; justify-content:space-between;">
+            <span>Season ${sn}</span>
+            <button type="button" class="btnSmall" data-fill="season" style="padding:8px 10px;">Mark whole season</button>
+          </div>
           <div class="muted">${epCount} episodes</div>
         </div>
         <div>
           <input type="number" min="0" max="${epCount}" step="1" value="${current}" aria-label="Season ${sn} episodes watched">
         </div>
       `;
+
       const input = row.querySelector("input");
+      const fillBtn = row.querySelector('[data-fill="season"]');
+
+      fillBtn.addEventListener("click", ()=>{
+        input.value = epCount;
+        working.seasons_watched[sn] = epCount;
+      });
+
       input.addEventListener("input", ()=>{
         let v = parseInt(input.value || "0", 10);
         if(!Number.isFinite(v)) v = 0;
@@ -683,6 +909,7 @@ function openTVModal(tvItem, isEdit=false){
         input.value = v;
         working.seasons_watched[sn] = v;
       });
+
       gridEl.appendChild(row);
     });
 
@@ -706,8 +933,8 @@ function openTVModal(tvItem, isEdit=false){
 
     btnClose.onclick = ()=>close(null);
     btnCancel.onclick = ()=>close(null);
+
     btnSave.onclick = ()=>{
-      // remove zeros to keep storage tidy
       const cleaned = {};
       for(const [sn, v] of Object.entries(working.seasons_watched || {})){
         const n = parseInt(sn,10);
@@ -715,8 +942,6 @@ function openTVModal(tvItem, isEdit=false){
         if(val > 0) cleaned[n] = val;
       }
       working.seasons_watched = cleaned;
-
-      // if user saved 0 episodes total, keep it but it will show 0
       close(working);
     };
 
