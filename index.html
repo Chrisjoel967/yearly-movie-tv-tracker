@@ -313,17 +313,34 @@
     @media (max-width: 900px){
       h1{ font-size:32px; }
     }
-    @media (max-width: 540px){
-      .wrap{ padding:14px; }
-      input,select,button{ font-size:15px; }
-      .row > *{ width:100%; }
-      .searchWrap{ width:100%; }
-      .searchWrap input{ padding-right:54px; }
-      .clearX{ right:10px; }
-      .modalTop{ grid-template-columns: 90px 1fr; }
-      .modalPoster{ width:90px; height:135px; }
-      .modalActions{ grid-column: 1 / -1; flex-direction:row; flex-wrap:wrap; }
-      .modalActions button{ flex:1; min-width:140px; }
+  @media (max-width: 540px) {
+  .modal {
+    width: 100%;
+    max-width: 500px; /* or any smaller value */
+    padding: 12px;
+  }
+
+  .modalTop {
+    grid-template-columns: 90px 1fr;
+  }
+
+  .modalPoster {
+    width: 90px;
+    height: 135px;
+  }
+
+  .modalActions {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .modalActions button {
+    flex: 1;
+    min-width: 140px;
+  }
+}
+
     }
   </style>
 </head>
@@ -1004,6 +1021,10 @@ document.getElementById("peopleTabs").addEventListener("click", (e)=>{
   peopleTab = tab.dataset.tab;
   document.querySelectorAll("#peopleTabs .tab").forEach(t=>t.classList.toggle("active", t.dataset.tab===peopleTab));
   renderPeople();
+  const ratingLine = (listType === "watched")
+  ? `<div class="meta">Your rating: <b>${ratingToText(item.rating)}</b></div>`
+  : ``;
+
 });
 
 document.getElementById("watchlistSort").addEventListener("change", (e)=>{ watchlistSort = e.target.value; renderWatchlist(); });
@@ -1500,4 +1521,5 @@ window.addEventListener("load", ()=>{
 </script>
 </body>
 </html>
+
 
