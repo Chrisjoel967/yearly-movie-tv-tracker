@@ -228,6 +228,9 @@
       border-radius:18px;
       box-shadow: var(--shadow);
       overflow:hidden;
+      max-height: calc(100vh - 28px);
+      display:flex;
+      flex-direction:column;
     }
     .modalTop{
       display:grid;
@@ -236,6 +239,9 @@
       padding:14px;
       border-bottom:1px solid var(--border);
       background:linear-gradient(180deg, #ffffff, #fbfcff);
+      position:sticky;
+      top:0;
+      z-index:10;
     }
     .modalPoster{
       width:120px; height:180px;
@@ -263,7 +269,13 @@
       color:var(--danger);
     }
 
-    .modalBody{ padding:14px; display:grid; gap:14px; }
+    .modalBody{
+      padding:14px;
+      display:grid;
+      gap:14px;
+      overflow:auto;
+      -webkit-overflow-scrolling: touch;
+    }
     .subCard{
       border:1px solid var(--border);
       border-radius:16px;
@@ -309,38 +321,36 @@
       line-height:1.2;
     }
 
+    /* Home panel */
+    .homeGrid{ display:grid; gap:12px; margin-top:12px; }
+    .homeRowTitle{ font-weight:950; font-size:18px; margin:0 0 6px; }
+    .homeNote{ margin-top:6px; }
+
+    /* Footer sync card */
+    .footerCard{
+      margin-top:18px;
+    }
+
     /* Responsive */
     @media (max-width: 900px){
       h1{ font-size:32px; }
     }
-  @media (max-width: 540px) {
-  .modal {
-    width: 100%;
-    max-width: 500px; /* or any smaller value */
-    padding: 12px;
-  }
-
-  .modalTop {
-    grid-template-columns: 90px 1fr;
-  }
-
-  .modalPoster {
-    width: 90px;
-    height: 135px;
-  }
-
-  .modalActions {
-    grid-column: 1 / -1;
-    flex-direction: row;
-    flex-wrap: wrap;
-  }
-
-  .modalActions button {
-    flex: 1;
-    min-width: 140px;
-  }
-}
-
+    @media (max-width: 540px){
+      .wrap{ padding:14px; }
+      input,select,button{ font-size:15px; }
+      .row > *{ width:100%; }
+      .searchWrap{ width:100%; }
+      .searchWrap input{ padding-right:54px; }
+      .clearX{ right:10px; }
+      .modalTop{ grid-template-columns: 90px 1fr; }
+      .modalPoster{ width:90px; height:135px; }
+      .modalActions{
+        grid-column: 1 / -1;
+        flex-direction:row;
+        flex-wrap:wrap;
+      }
+      .modalActions button{ flex:1; min-width:140px; }
+      .modalActions select{ width:100%; }
     }
   </style>
 </head>
@@ -349,27 +359,32 @@
 <div class="wrap">
   <h1>Yearly Movie & TV Tracker</h1>
 
-  <div class="card">
-    <div class="row" style="justify-content:space-between;">
-      <div class="muted">
-        Sync status: <span id="syncStatus">Starting…</span><br/>
-        <span id="debugBox" class="muted">Debug: —</span>
-      </div>
-      <div class="muted">Last saved: <span id="lastSaved">—</span></div>
-    </div>
-  </div>
-
   <!-- Top Tabs -->
   <div class="topTabs" id="topTabs">
-    <div class="topTab active" data-section="searchSec">Search</div>
+    <div class="topTab active" data-section="homeSec">Home</div>
+    <div class="topTab" data-section="searchSec">Search</div>
     <div class="topTab" data-section="watchlistSec">Watchlist</div>
     <div class="topTab" data-section="watchedSec">Watched</div>
     <div class="topTab" data-section="peopleSec">People</div>
     <div class="topTab" data-section="statsSec">Stats</div>
   </div>
 
+  <!-- HOME -->
+  <div class="section active" id="homeSec">
+    <div class="card">
+      <div class="row" style="justify-content:space-between;">
+        <div>
+          <div style="font-weight:950;font-size:22px;">Recently Added</div>
+          <div class="muted homeNote">Last 5 items you added (Watchlist + Watched).</div>
+        </div>
+      </div>
+
+      <div id="homeRecent" class="homeGrid"></div>
+    </div>
+  </div>
+
   <!-- SEARCH -->
-  <div class="section active" id="searchSec">
+  <div class="section" id="searchSec">
     <div class="card">
       <div class="row">
         <div class="searchWrap">
@@ -474,6 +489,17 @@
       </div>
     </div>
   </div>
+
+  <!-- SYNC STATUS MOVED TO BOTTOM -->
+  <div class="card footerCard">
+    <div class="row" style="justify-content:space-between;">
+      <div class="muted">
+        Sync status: <span id="syncStatus">Starting…</span><br/>
+        <span id="debugBox" class="muted">Debug: —</span>
+      </div>
+      <div class="muted">Last saved: <span id="lastSaved">—</span></div>
+    </div>
+  </div>
 </div>
 
 <!-- DETAILS MODAL -->
@@ -486,21 +512,19 @@
         <div id="detailsMeta" class="modalMeta">—</div>
       </div>
       <div class="modalActions">
-  <button id="detailsAddWatchlist" class="btnPrimary">+ Watchlist</button>
-  <button id="detailsAddWatched" class="btnPrimary">✓ Watched</button>
+        <button id="detailsAddWatchlist" class="btnPrimary">+ Watchlist</button>
+        <button id="detailsAddWatched" class="btnPrimary">✓ Watched</button>
 
-  <select id="detailsRating" title="Your rating" style="min-width:160px;">
-    <option value="">Your rating: —</option>
-    <option value="1">🍿</option>
-    <option value="2">🍿🍿</option>
-    <option value="3">🍿🍿🍿</option>
-    <option value="4">🍿🍿🍿🍿</option>
-    <option value="5">🍿🍿🍿🍿🍿</option>
-  </select>
+        <select id="detailsRating" title="Your rating" style="min-width:160px;">
+          <option value="">Your rating: —</option>
+          <option value="1">🍿</option>
+          <option value="2">🍿🍿</option>
+          <option value="3">🍿🍿🍿</option>
+          <option value="4">🍿🍿🍿🍿</option>
+          <option value="5">🍿🍿🍿🍿🍿</option>
+        </select>
 
-  <button id="detailsClose" class="btnDanger">Close</button>
-</div>
-
+        <button id="detailsClose" class="btnDanger">← Back</button>
       </div>
     </div>
 
@@ -547,6 +571,8 @@ const elSyncStatus = document.getElementById("syncStatus");
 const elLastSaved  = document.getElementById("lastSaved");
 const elDebugBox   = document.getElementById("debugBox");
 
+const elHomeRecent = document.getElementById("homeRecent");
+
 const elResults = document.getElementById("results");
 const elSearchInput = document.getElementById("searchInput");
 const elSearchMode = document.getElementById("searchMode");
@@ -568,7 +594,7 @@ let peopleTab = "actors";
 let watchlistSort = "recent";
 let watchedSort = "recent";
 
-let sb = null; // ✅ IMPORTANT: do NOT name this "supabase" (prevents "already declared" crash)
+let sb = null; // do NOT name this "supabase"
 let saveTimer = null;
 
 function debug(msg){ if(elDebugBox) elDebugBox.textContent = "Debug: " + msg; }
@@ -577,6 +603,10 @@ function setLastSaved(ts){
   if(!ts){ elLastSaved.textContent = "—"; return; }
   const d = new Date(ts);
   elLastSaved.textContent = d.toLocaleString();
+}
+
+function closeAllMenus(){
+  document.querySelectorAll("[data-menu]").forEach(m=>m.style.display="none");
 }
 
 function loadLocalState(){
@@ -596,8 +626,8 @@ function baseState(){
     watchlist: [],
     watched: [],
     people: {
-      actors: [],     // {id,name,profile_path}
-      directors: []   // {id,name,profile_path}
+      actors: [],
+      directors: []
     }
   };
 }
@@ -788,7 +818,7 @@ async function runSearch(){
     }
 
     elResults.innerHTML = blocks.filter(Boolean).join("");
-    wireResultActions(); // attach events after HTML inserted
+    wireResultActions();
   }catch(err){
     elResults.innerHTML = `<div class="muted">Error: ${String(err.message||err)}</div>`;
   }
@@ -871,10 +901,7 @@ function renderPeopleResults(people){
 
 /* ===================== RESULT EVENTS ===================== */
 function wireResultActions(){
-  // Close menus on outside click
-  document.addEventListener("click", ()=> {
-    document.querySelectorAll("[data-menu]").forEach(m=>m.style.display="none");
-  }, { once:true });
+  document.addEventListener("click", closeAllMenus, { once:true });
 
   document.querySelectorAll(".item").forEach(card=>{
     const kebab = card.querySelector('[data-open="menu"]');
@@ -883,20 +910,18 @@ function wireResultActions(){
       kebab.addEventListener("click", (e)=>{
         e.stopPropagation();
         const open = menu.style.display === "block";
-        document.querySelectorAll("[data-menu]").forEach(m=>m.style.display="none");
+        closeAllMenus();
         menu.style.display = open ? "none" : "block";
       });
     }
 
-    const openDetails = card.querySelectorAll('[data-open="details"]');
-    openDetails.forEach(x=>x.addEventListener("click", async (e)=>{
+    card.querySelectorAll('[data-open="details"]').forEach(x=>x.addEventListener("click", async (e)=>{
       e.stopPropagation();
       if(card.dataset.kind !== "title") return;
       await openDetailsModalFromCard(card);
     }));
 
-    const openPerson = card.querySelectorAll('[data-open="person"]');
-    openPerson.forEach(x=>x.addEventListener("click", async (e)=>{
+    card.querySelectorAll('[data-open="person"]').forEach(x=>x.addEventListener("click", async (e)=>{
       e.stopPropagation();
       if(card.dataset.kind !== "person") return;
       await openPersonModalFromCard(card);
@@ -953,7 +978,7 @@ function wireResultActions(){
   });
 }
 
-/* ===================== LIST ACTIONS (WATCHLIST/WATCHED) ===================== */
+/* ===================== LIST ACTIONS ===================== */
 function addToWatchlist(item){
   const k = uniqKey(item);
   if(state.watchlist.some(x=>uniqKey(x)===k) || state.watched.some(x=>uniqKey(x)===k)) return;
@@ -996,7 +1021,6 @@ async function addToWatchedFlow(item){
     added_at: Date.now()
   };
 
-  // Default: mark 1 episode of season 1 if exists
   if(seasons_meta[1] > 0) tvItem.seasons_watched[1] = 1;
 
   state.watched.unshift(tvItem);
@@ -1021,20 +1045,66 @@ document.getElementById("peopleTabs").addEventListener("click", (e)=>{
   peopleTab = tab.dataset.tab;
   document.querySelectorAll("#peopleTabs .tab").forEach(t=>t.classList.toggle("active", t.dataset.tab===peopleTab));
   renderPeople();
-  const ratingLine = (listType === "watched")
-  ? `<div class="meta">Your rating: <b>${ratingToText(item.rating)}</b></div>`
-  : ``;
-
 });
 
 document.getElementById("watchlistSort").addEventListener("change", (e)=>{ watchlistSort = e.target.value; renderWatchlist(); });
 document.getElementById("watchedSort").addEventListener("change", (e)=>{ watchedSort = e.target.value; renderWatched(); });
 
 function renderAll(){
+  renderHome();
   renderWatchlist();
   renderWatched();
   renderPeople();
   renderTotals();
+}
+
+function renderHome(){
+  const combined = []
+    .concat(state.watchlist.map(x=>({ ...x, __list:"watchlist" })))
+    .concat(state.watched.map(x=>({ ...x, __list:"watched" })))
+    .sort((a,b)=>(b.added_at||0)-(a.added_at||0))
+    .slice(0,5);
+
+  if(combined.length === 0){
+    elHomeRecent.innerHTML = `<div class="muted">Nothing yet. Add something using the Search tab.</div>`;
+    return;
+  }
+
+  elHomeRecent.innerHTML = combined.map(item=>{
+    const poster = item.poster_path ? (IMG_SMALL + item.poster_path) : "";
+    const badge = item.__list === "watched" ? `✓ Watched` : `+ Watchlist`;
+    const extra = item.__list === "watched" ? ` • Rating: ${ratingToText(item.rating)}` : ``;
+    return `
+      <div class="item" data-kind="title" data-id="${item.id}" data-media="${item.media_type}" data-name="${escapeHtml(item.title||"")}" data-year="${escapeHtml(item.year||"")}" data-poster="${escapeHtml(item.poster_path||"")}">
+        <button class="posterBtn" data-open="details" aria-label="Open details">
+          <img class="poster" src="${poster || ""}" alt="" onerror="this.style.display='none'">
+        </button>
+        <div>
+          <div class="title" data-open="details">${escapeHtml(item.title||"—")}</div>
+          <div class="meta">${badge} • ${escapeHtml(item.media_type.toUpperCase())} • ${escapeHtml(item.year||"—")}${extra}</div>
+        </div>
+        <button class="kebab" data-open="menu" aria-label="Menu">⋮</button>
+        <div class="menu" data-menu>
+          <button data-act="details">Details</button>
+          ${item.__list === "watchlist"
+            ? `<button data-act="toWatched">✓ Mark Watched</button>`
+            : `
+              <button data-act="toWatchlist">↩ Move to Watchlist</button>
+              <button data-act="rate:1">Rate: 🍿</button>
+              <button data-act="rate:2">Rate: 🍿🍿</button>
+              <button data-act="rate:3">Rate: 🍿🍿🍿</button>
+              <button data-act="rate:4">Rate: 🍿🍿🍿🍿</button>
+              <button data-act="rate:5">Rate: 🍿🍿🍿🍿🍿</button>
+              <button data-act="rate:clear">Rate: —</button>
+            `
+          }
+          <button class="dangerItem" data-act="remove">Remove</button>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  wireListCards(elHomeRecent, "home");
 }
 
 function renderWatchlist(){
@@ -1081,7 +1151,6 @@ function renderPeople(){
     </div>
   `).join("");
 
-  // wire
   elPeopleList.querySelectorAll(".item").forEach(card=>{
     const kebab = card.querySelector('[data-open="menu"]');
     const menu = card.querySelector("[data-menu]");
@@ -1089,7 +1158,7 @@ function renderPeople(){
     kebab.addEventListener("click", (e)=>{
       e.stopPropagation();
       const open = menu.style.display === "block";
-      document.querySelectorAll("[data-menu]").forEach(m=>m.style.display="none");
+      closeAllMenus();
       menu.style.display = open ? "none" : "block";
     });
 
@@ -1119,9 +1188,7 @@ function renderPeople(){
     });
   });
 
-  document.addEventListener("click", ()=> {
-    document.querySelectorAll("[data-menu]").forEach(m=>m.style.display="none");
-  }, { once:true });
+  document.addEventListener("click", closeAllMenus, { once:true });
 }
 
 function listCardHtml(item, listType){
@@ -1148,23 +1215,21 @@ function listCardHtml(item, listType){
       </div>
 
       <button class="kebab" data-open="menu" aria-label="Menu">⋮</button>
-     <div class="menu" data-menu>
-  <button data-act="details">Details</button>
-  ${listType === "watchlist"
-    ? `<button data-act="toWatched">✓ Mark Watched</button>`
-    : `
-      <button data-act="toWatchlist">↩ Move to Watchlist</button>
-      <button data-act="rate:1">Rate: 🍿</button>
-      <button data-act="rate:2">Rate: 🍿🍿</button>
-      <button data-act="rate:3">Rate: 🍿🍿🍿</button>
-      <button data-act="rate:4">Rate: 🍿🍿🍿🍿</button>
-      <button data-act="rate:5">Rate: 🍿🍿🍿🍿🍿</button>
-      <button data-act="rate:clear">Rate: —</button>
-    `
-  }
-  <button class="dangerItem" data-act="remove">Remove</button>
-</div>
-
+      <div class="menu" data-menu>
+        <button data-act="details">Details</button>
+        ${listType === "watchlist"
+          ? `<button data-act="toWatched">✓ Mark Watched</button>`
+          : `
+            <button data-act="toWatchlist">↩ Move to Watchlist</button>
+            <button data-act="rate:1">Rate: 🍿</button>
+            <button data-act="rate:2">Rate: 🍿🍿</button>
+            <button data-act="rate:3">Rate: 🍿🍿🍿</button>
+            <button data-act="rate:4">Rate: 🍿🍿🍿🍿</button>
+            <button data-act="rate:5">Rate: 🍿🍿🍿🍿🍿</button>
+            <button data-act="rate:clear">Rate: —</button>
+          `
+        }
+        <button class="dangerItem" data-act="remove">Remove</button>
       </div>
     </div>
   `;
@@ -1175,74 +1240,80 @@ function wireListCards(container, listType){
     const kebab = card.querySelector('[data-open="menu"]');
     const menu = card.querySelector("[data-menu]");
 
-    kebab.addEventListener("click", (e)=>{
-      e.stopPropagation();
-      const open = menu.style.display === "block";
-      document.querySelectorAll("[data-menu]").forEach(m=>m.style.display="none");
-      menu.style.display = open ? "none" : "block";
-    });
+    if(kebab && menu){
+      kebab.addEventListener("click", (e)=>{
+        e.stopPropagation();
+        const open = menu.style.display === "block";
+        closeAllMenus();
+        menu.style.display = open ? "none" : "block";
+      });
+    }
 
     card.querySelectorAll('[data-open="details"]').forEach(x=>x.addEventListener("click", async (e)=>{
       e.stopPropagation();
       await openDetailsModalFromCard(card);
     }));
 
-    menu.querySelectorAll("button").forEach(btn=>{
-      btn.addEventListener("click", async (e)=>{
-        e.stopPropagation();
-        menu.style.display="none";
+    if(menu){
+      menu.querySelectorAll("button").forEach(btn=>{
+        btn.addEventListener("click", async (e)=>{
+          e.stopPropagation();
+          menu.style.display="none";
 
-        const media_type = card.dataset.media;
-        const id = Number(card.dataset.id);
-        const title = card.dataset.name;
-        const year = card.dataset.year || "";
-        const poster_path = card.dataset.poster || "";
-        const k = `${media_type}:${id}`;
+          const media_type = card.dataset.media;
+          const id = Number(card.dataset.id);
+          const title = card.dataset.name;
+          const year = card.dataset.year || "";
+          const poster_path = card.dataset.poster || "";
+          const k = `${media_type}:${id}`;
 
-        if(btn.dataset.act === "details"){
-          await openDetailsModalFromCard(card);
-          return;
-        }
-
-        if(listType === "watchlist"){
-          if(btn.dataset.act === "toWatched"){
-            await addToWatchedFlow({ id, media_type, title, year, poster_path });
+          if(btn.dataset.act === "details"){
+            await openDetailsModalFromCard(card);
+            return;
           }
-          if(btn.dataset.act === "remove"){
-            state.watchlist = state.watchlist.filter(x=>uniqKey(x)!==k);
-          }
-        } else {
-          if(btn.dataset.act === "toWatchlist"){
-            state.watched = state.watched.filter(x=>uniqKey(x)!==k);
-            state.watchlist.unshift({ id, media_type, title, year, poster_path, added_at: Date.now() });
-            // Rating actions
-if(btn.dataset.act && btn.dataset.act.startsWith("rate:")){
-  const val = btn.dataset.act.split(":")[1];
-  const w = state.watched.find(x => uniqKey(x) === k);
-  if(w){
-    w.rating = (val === "clear") ? null : Number(val);
-    scheduleRemoteSave();
-    eliminateMenus();
-    renderAll();
-  }
-  return;
-}
 
+          // ✅ rating actions MUST be handled before other branches
+          if(btn.dataset.act && btn.dataset.act.startsWith("rate:")){
+            const val = btn.dataset.act.split(":")[1];
+            const w = state.watched.find(x => uniqKey(x) === k);
+            if(w){
+              w.rating = (val === "clear") ? null : Number(val);
+              scheduleRemoteSave();
+              renderAll();
+            }
+            return;
           }
-          if(btn.dataset.act === "remove"){
-            state.watched = state.watched.filter(x=>uniqKey(x)!==k);
-          }
-        }
 
-        scheduleRemoteSave();
-        renderAll();
+          // watchlist actions
+          if(state.watchlist.some(x=>uniqKey(x)===k)){
+            if(btn.dataset.act === "toWatched"){
+              await addToWatchedFlow({ id, media_type, title, year, poster_path });
+            } else if(btn.dataset.act === "remove"){
+              state.watchlist = state.watchlist.filter(x=>uniqKey(x)!==k);
+            }
+            scheduleRemoteSave();
+            renderAll();
+            return;
+          }
+
+          // watched actions
+          if(state.watched.some(x=>uniqKey(x)===k)){
+            if(btn.dataset.act === "toWatchlist"){
+              state.watched = state.watched.filter(x=>uniqKey(x)!==k);
+              state.watchlist.unshift({ id, media_type, title, year, poster_path, added_at: Date.now() });
+            } else if(btn.dataset.act === "remove"){
+              state.watched = state.watched.filter(x=>uniqKey(x)!==k);
+            }
+            scheduleRemoteSave();
+            renderAll();
+            return;
+          }
+        });
       });
-    });
+    }
   });
 
-  document.addEventListener("click", ()=> {
-    document.querySelectorAll("[data-menu]").forEach(m=>m.style.display="none");
-  }, { once:true });
+  document.addEventListener("click", closeAllMenus, { once:true });
 }
 
 function renderTotals(){
@@ -1269,6 +1340,7 @@ const simCarousel = document.getElementById("simCarousel");
 const btnDetailsClose = document.getElementById("detailsClose");
 const btnDetailsWatchlist = document.getElementById("detailsAddWatchlist");
 const btnDetailsWatched = document.getElementById("detailsAddWatched");
+const detailsRating = document.getElementById("detailsRating");
 
 let currentDetails = null;
 
@@ -1288,8 +1360,14 @@ async function openDetailsModalFromCard(card){
   const title = card.dataset.name;
   const year = card.dataset.year || "";
   const poster_path = card.dataset.poster || "";
-
   await openDetailsModal({ id, media_type, title, year, poster_path });
+}
+
+function syncDetailsRatingUI(media_type, id){
+  const k = `${media_type}:${id}`;
+  const w = state.watched.find(x=>uniqKey(x)===k);
+  detailsRating.disabled = !w;
+  detailsRating.value = w && w.rating ? String(w.rating) : "";
 }
 
 async function openDetailsModal(item){
@@ -1297,7 +1375,6 @@ async function openDetailsModal(item){
   document.body.style.overflow = "hidden";
   detailsBackdrop.style.display = "flex";
 
-  // basic fill while loading
   detailsTitle.textContent = item.title || "—";
   detailsMeta.textContent = `${item.media_type.toUpperCase()} • ${item.year || "—"}`;
   detailsPoster.src = item.poster_path ? (IMG_POSTER + item.poster_path) : "";
@@ -1310,6 +1387,9 @@ async function openDetailsModal(item){
   btnDetailsWatchlist.disabled = exists;
   btnDetailsWatched.disabled = exists;
 
+  // rating dropdown: enabled only if already in watched
+  syncDetailsRatingUI(item.media_type, item.id);
+
   btnDetailsWatchlist.onclick = ()=>{
     addToWatchlist(item);
     btnDetailsWatchlist.disabled = true;
@@ -1320,6 +1400,17 @@ async function openDetailsModal(item){
     await addToWatchedFlow(item);
     btnDetailsWatchlist.disabled = true;
     btnDetailsWatched.disabled = true;
+    // now rating becomes enabled (it exists in watched)
+    syncDetailsRatingUI(item.media_type, item.id);
+    renderAll();
+  };
+
+  detailsRating.onchange = ()=>{
+    const k = `${item.media_type}:${item.id}`;
+    const w = state.watched.find(x=>uniqKey(x)===k);
+    if(!w) return;
+    w.rating = detailsRating.value ? Number(detailsRating.value) : null;
+    scheduleRemoteSave();
     renderAll();
   };
 
@@ -1338,20 +1429,17 @@ async function openDetailsModal(item){
 
     detailsOverview.textContent = details.overview || "—";
 
-    // Cast carousel
     const cast = (credits.cast||[]).slice(0, 12);
     castCarousel.innerHTML = cast.length
       ? cast.map(p=>carPersonHtml(p)).join("")
       : `<div class="muted">No cast found.</div>`;
 
-    // Directors carousel
     const crew = credits.crew || [];
     const directors = crew.filter(c=>c.job === "Director").slice(0, 10);
     dirCarousel.innerHTML = directors.length
       ? directors.map(p=>carPersonHtml(p, true)).join("")
       : `<div class="muted">No directors found.</div>`;
 
-    // Similar carousel
     const sim = (similar.results||[]).filter(r => r.poster_path).slice(0, 12);
     simCarousel.innerHTML = sim.length
       ? sim.map(r=>{
@@ -1362,7 +1450,6 @@ async function openDetailsModal(item){
         }).join("")
       : `<div class="muted">No similar titles found.</div>`;
 
-    // Wire clicks
     castCarousel.querySelectorAll("[data-person]").forEach(btn=>{
       btn.addEventListener("click", async ()=>{
         const pid = Number(btn.dataset.person);
@@ -1421,7 +1508,7 @@ function carTitleHtml(item){
   `;
 }
 
-/* ===================== PERSON FILMOGRAPHY (simple: pushes to Search results) ===================== */
+/* ===================== PERSON FILMOGRAPHY ===================== */
 async function openPersonModalFromCard(card){
   const pid = Number(card.dataset.personId);
   const name = card.dataset.personName || "";
@@ -1430,7 +1517,6 @@ async function openPersonModalFromCard(card){
 }
 
 async function openPersonFilmography(personId, name, profile_path){
-  // Switch to Search tab and show their credits as results (clean + simple)
   document.querySelectorAll(".topTab").forEach(t=>t.classList.toggle("active", t.dataset.section==="searchSec"));
   document.querySelectorAll(".section").forEach(s=>s.classList.toggle("active", s.id==="searchSec"));
 
@@ -1442,7 +1528,6 @@ async function openPersonFilmography(personId, name, profile_path){
       .concat((credits.cast||[]).map(x=>({ ...x, creditType:"Cast" })))
       .concat((credits.crew||[]).map(x=>({ ...x, creditType:(x.job||"Crew") })));
 
-    // keep only movies/tv with posters, sort by popularity
     const list = all
       .filter(x => (x.media_type==="movie" || x.media_type==="tv"))
       .filter(x => x.poster_path)
@@ -1456,7 +1541,7 @@ async function openPersonFilmography(personId, name, profile_path){
             <div style="font-weight:950;font-size:20px;">${escapeHtml(name||"Person")}</div>
             <div class="muted">Top filmography (tap ⋮ to add titles)</div>
           </div>
-          <button id="backToSearch">Back to Search</button>
+          <button id="backToSearch">Clear</button>
         </div>
       </div>
     `;
@@ -1521,5 +1606,3 @@ window.addEventListener("load", ()=>{
 </script>
 </body>
 </html>
-
-
