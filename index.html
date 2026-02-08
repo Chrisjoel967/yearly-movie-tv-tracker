@@ -32,7 +32,6 @@
     border-radius:18px;
     padding:16px;
   }
-  .stack{ display:grid; gap:14px; }
 
   .row{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
   input, select, button{
@@ -137,28 +136,43 @@
   .statsRow{ display:flex; gap:10px; flex-wrap:wrap; justify-content:space-between; }
   .statsRow .pill{ flex:1; justify-content:center; }
 
-  /* Rating */
-  .ratingRow { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
-  .ratingBtn{
-    border:1px solid var(--border2);
-    background:#0e1526;
-    color:var(--text);
-    border-radius:999px;
-    padding:7px 10px;
-    font-size:14px;
-    cursor:pointer;
+  /* Compact rating dropdown */
+  .ratingWrap{ display:inline-flex; align-items:center; gap:10px; margin-top:10px; position:relative; }
+  .ratingPill{
     display:inline-flex;
     align-items:center;
-    gap:6px;
+    gap:10px;
+    border:1px solid var(--border2);
+    background:#0e1526;
+    border-radius:999px;
+    padding:8px 12px;
+    font-size:14px;
+    cursor:pointer;
+    user-select:none;
   }
-  .ratingBtn.active{
+  .ratingMenu{
+    position:absolute;
+    top:42px;
+    left:0;
+    background:#0e1526;
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:8px;
+    display:none;
+    z-index:10;
+    min-width:220px;
+  }
+  .ratingMenu button{
+    width:100%;
+    text-align:left;
+    padding:10px 12px;
+    border-radius:12px;
+    border:1px solid transparent;
+    background:transparent;
+  }
+  .ratingMenu button:hover{
     background:#152042;
     border-color:var(--accent);
-  }
-  .burnedIcon{
-    width:22px;
-    height:22px;
-    vertical-align:middle;
   }
 
   /* Modal */
@@ -338,13 +352,12 @@
 
 <script>
 /* ===================== CONFIG ===================== */
-const TMDB_BEARER = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJlOWY5NGVkYTNjMzFmMmQ2NWFjM2Y1OWNmMTBhN2VlNiIsIm5iZiI6MTc3MDUxMTY4MS4wNDQsInN1YiI6IjY5ODdkZDQxNjM5ZGJlZWQwNjhjOGQzYiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.JjpO38-YZKSOX_PXz9zEYiW4zUDpTlFkwPf4XNIOB74"; // paste your token here
+const TMDB_BEARER = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJlOWY5NGVkYTNjMzFmMmQ2NWFjM2Y1OWNmMTBhN2VlNiIsIm5iZiI6MTc3MDUxMTY4MS4wNDQsInN1YiI6IjY5ODdkZDQxNjM5ZGJlZWQwNjhjOGQzYiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.JjpO38-YZKSOX_PXz9zEYiW4zUDpTlFkwPf4XNIOB74"; // paste token here
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const POSTER_BASE = "https://image.tmdb.org/t/p/w154";
-const BURNED_ICON_PATH = "assets/burned-popcorn.png";
 
 /* ===================== STATE ===================== */
-const STORAGE_KEY = "yearly_tracker_v3_all_updates";
+const STORAGE_KEY = "yearly_tracker_v4_compact_rating";
 let state = loadState();
 
 function loadState(){
@@ -365,7 +378,7 @@ function minutesToHM(total){
 }
 function mediaLabel(t){ return t === "movie" ? "Movie" : "TV"; }
 
-/* ===================== MIGRATION (for older saved items) ===================== */
+/* ===================== MIGRATION ===================== */
 (function migrate(){
   let changed = false;
 
@@ -374,7 +387,10 @@ function mediaLabel(t){ return t === "movie" ? "Movie" : "TV"; }
   }
   for(const x of state.watched){
     if(typeof x.added_at !== "number"){ x.added_at = Date.now(); changed = true; }
+    // ratings now are 1..5 only (null if not rated)
+    if(x.rating === 0){ x.rating = 1; changed = true; }
     if(!("rating" in x)){ x.rating = null; changed = true; }
+
     if(x.media_type === "tv"){
       if(!x.seasons_watched) { x.seasons_watched = {}; changed = true; }
       if(!x.seasons_meta) { x.seasons_meta = {}; changed = true; }
@@ -398,10 +414,9 @@ async function tmdbFetch(path){
 function posterOrBlank(p){
   return p ? `<img class="poster" src="${POSTER_BASE}${p}" alt="">` : `<div class="poster"></div>`;
 }
-function ratingToBadgeHTML(r){
+function ratingToText(r){
   const n = Number(r);
   if(!Number.isFinite(n) || r === null) return "—";
-  if(n === 0) return `<img src="${BURNED_ICON_PATH}" class="burnedIcon" alt="Burned">`;
   return "🍿".repeat(Math.max(1, Math.min(5, n)));
 }
 function totalWatchedEpisodes(tvItem){
@@ -469,7 +484,7 @@ async function runSearch(){
     return;
   }
 
-  elResults.innerHTML = `<div class="muted">Searching…</div>`;
+  elResults.innerHTML = `<div class="muted">/controller Searching…</div>`;
   try{
     const type = elTypeFilter.value;
     const data = await tmdbFetch(`/search/${type}?query=${encodeURIComponent(q)}&include_adult=false&language=en-US&page=1`);
@@ -497,7 +512,7 @@ async function runSearch(){
         ${poster ? `<img class="poster" src="${poster}" alt="">` : `<div class="poster"></div>`}
         <div>
           <div class="title">${title}</div>
-          <div class="meta">${mediaLabel(media_type)} • ${year || "—"} • Rating: ${Number.isFinite(r.vote_average) ? r.vote_average.toFixed(1) : "—"}</div>
+          <div class="meta">${mediaLabel(media_type)} • ${year || "—"} • TMDB: ${Number.isFinite(r.vote_average) ? r.vote_average.toFixed(1) : "—"}</div>
         </div>
         <div class="actions">
           <button class="btnSmall" data-act="watchlist" ${exists ? "disabled":""}>+ Watchlist</button>
@@ -568,7 +583,6 @@ async function addToWatchedFlow(item){
     added_at: Date.now()
   };
 
-  // default: season 1 = 1 episode if exists
   if(seasons_meta[1] > 0) baseTV.seasons_watched[1] = 1;
 
   const finalTV = await openTVModal(baseTV);
@@ -610,6 +624,57 @@ document.getElementById("watchedSort").addEventListener("change", (e)=>{
   watchedSort = e.target.value;
   renderWatched();
 });
+
+/* ===================== COMPACT RATING (selected only) ===================== */
+function buildRatingUI(item){
+  const current = ratingToText(item.rating);
+  const wrap = document.createElement("div");
+  wrap.className = "ratingWrap";
+  wrap.innerHTML = `
+    <div class="muted">Your rating:</div>
+    <div class="ratingPill" data-open="1" title="Click to change rating">
+      <span data-current>${current}</span>
+      <span class="muted">▾</span>
+    </div>
+    <div class="ratingMenu" role="menu">
+      <button type="button" data-rate="1">🍿</button>
+      <button type="button" data-rate="2">🍿🍿</button>
+      <button type="button" data-rate="3">🍿🍿🍿</button>
+      <button type="button" data-rate="4">🍿🍿🍿🍿</button>
+      <button type="button" data-rate="5">🍿🍿🍿🍿🍿</button>
+      <button type="button" data-rate="">Clear rating</button>
+    </div>
+  `;
+
+  const pill = wrap.querySelector(".ratingPill");
+  const menu = wrap.querySelector(".ratingMenu");
+  const currentSpan = wrap.querySelector("[data-current]");
+
+  function closeMenu(){ menu.style.display = "none"; }
+  function openMenu(){ menu.style.display = "block"; }
+
+  pill.addEventListener("click", (e)=>{
+    e.stopPropagation();
+    menu.style.display = (menu.style.display === "block") ? "none" : "block";
+  });
+
+  menu.querySelectorAll("[data-rate]").forEach(btn=>{
+    btn.addEventListener("click", (e)=>{
+      e.stopPropagation();
+      const val = btn.dataset.rate;
+      item.rating = (val === "") ? null : Number(val);
+      saveState();
+      currentSpan.textContent = ratingToText(item.rating);
+      closeMenu();
+      renderAll();
+    });
+  });
+
+  // click outside closes
+  document.addEventListener("click", closeMenu, { once:true });
+
+  return wrap;
+}
 
 /* ===================== RENDER ===================== */
 function renderAll(){
@@ -683,18 +748,6 @@ function renderWatched(){
         <div>
           <div class="title">${item.title}</div>
           <div class="meta">${item.year || "—"} • ${item.runtime_minutes || 0} min</div>
-
-          <div class="meta" style="margin-top:8px;">Your rating: <span class="pill" style="display:inline-flex; padding:6px 10px;">${ratingToBadgeHTML(item.rating)}</span></div>
-          <div class="ratingRow">
-            <button class="ratingBtn" data-rate="0" title="Burned / terrible">
-              <img src="${BURNED_ICON_PATH}" class="burnedIcon" alt="Burned">
-            </button>
-            <button class="ratingBtn" data-rate="1">🍿</button>
-            <button class="ratingBtn" data-rate="2">🍿🍿</button>
-            <button class="ratingBtn" data-rate="3">🍿🍿🍿</button>
-            <button class="ratingBtn" data-rate="4">🍿🍿🍿🍿</button>
-            <button class="ratingBtn" data-rate="5">🍿🍿🍿🍿🍿</button>
-          </div>
         </div>
         <div class="actions">
           <button class="btnSmall" data-act="toWatchlist">↩ Watchlist</button>
@@ -702,7 +755,9 @@ function renderWatched(){
         </div>
       `;
 
-      wireRatingButtons(div, item);
+      // compact rating UI (selected only)
+      const info = div.children[1];
+      info.appendChild(buildRatingUI(item));
 
     } else {
       const totalEps = totalWatchedEpisodes(item);
@@ -711,19 +766,6 @@ function renderWatched(){
         <div>
           <div class="title">${item.title}</div>
           <div class="meta">${item.year || "—"} • ${totalEps} ep × ${item.avg_episode_minutes || 0}m</div>
-
-          <div class="meta" style="margin-top:8px;">Your rating: <span class="pill" style="display:inline-flex; padding:6px 10px;">${ratingToBadgeHTML(item.rating)}</span></div>
-          <div class="ratingRow">
-            <button class="ratingBtn" data-rate="0" title="Burned / terrible">
-              <img src="${BURNED_ICON_PATH}" class="burnedIcon" alt="Burned">
-            </button>
-            <button class="ratingBtn" data-rate="1">🍿</button>
-            <button class="ratingBtn" data-rate="2">🍿🍿</button>
-            <button class="ratingBtn" data-rate="3">🍿🍿🍿</button>
-            <button class="ratingBtn" data-rate="4">🍿🍿🍿🍿</button>
-            <button class="ratingBtn" data-rate="5">🍿🍿🍿🍿🍿</button>
-          </div>
-
           <div class="muted" style="margin-top:6px;">Tap “Edit” to update seasons/episodes.</div>
         </div>
         <div class="actions">
@@ -733,10 +775,11 @@ function renderWatched(){
         </div>
       `;
 
-      wireRatingButtons(div, item);
+      const info = div.children[1];
+      info.appendChild(buildRatingUI(item));
 
       div.querySelector('[data-act="edit"]').addEventListener("click", async ()=>{
-        const updated = await openTVModal(item, true);
+        const updated = await openTVModal(item);
         if(updated){
           state.watched = state.watched.map(x => uniqKey(x)===uniqKey(item) ? updated : x);
           saveState();
@@ -762,19 +805,6 @@ function renderWatched(){
   });
 }
 
-function wireRatingButtons(container, item){
-  const btns = container.querySelectorAll("[data-rate]");
-  btns.forEach(b=>{
-    const r = Number(b.dataset.rate);
-    if(item.rating === r) b.classList.add("active");
-    b.addEventListener("click", ()=>{
-      item.rating = r;
-      saveState();
-      renderAll();
-    });
-  });
-}
-
 function renderTotals(){
   let movieMin = 0;
   let tvMin = 0;
@@ -794,7 +824,6 @@ function renderTotals(){
 }
 
 function renderTopPicks(){
-  // Top Movie: highest rating (1..5). Ignore null. Include 0 as "burned" but only show if nothing else.
   const movies = state.watched.filter(x=>x.media_type==="movie" && x.rating !== null);
   const tvs = state.watched.filter(x=>x.media_type==="tv" && x.rating !== null);
 
@@ -802,14 +831,14 @@ function renderTopPicks(){
   const bestTV = pickBestRated(tvs);
 
   if(bestMovie){
-    elTopMovieRating.innerHTML = ratingToBadgeHTML(bestMovie.rating);
+    elTopMovieRating.textContent = ratingToText(bestMovie.rating);
     elTopMovieBody.innerHTML = `
       <div class="topCardBody">
         ${bestMovie.poster_path ? `<img class="topPoster" src="${POSTER_BASE}${bestMovie.poster_path}" alt="">` : `<div class="topPoster"></div>`}
         <div>
           <div class="topTitle">${bestMovie.title}</div>
           <div class="topMeta">${bestMovie.year || "—"} • ${bestMovie.runtime_minutes || 0} min</div>
-          <div class="topMeta">Rating: ${ratingToBadgeHTML(bestMovie.rating)}</div>
+          <div class="topMeta">Rating: ${ratingToText(bestMovie.rating)}</div>
         </div>
       </div>
     `;
@@ -819,14 +848,14 @@ function renderTopPicks(){
   }
 
   if(bestTV){
-    elTopTVRating.innerHTML = ratingToBadgeHTML(bestTV.rating);
+    elTopTVRating.textContent = ratingToText(bestTV.rating);
     elTopTVBody.innerHTML = `
       <div class="topCardBody">
         ${bestTV.poster_path ? `<img class="topPoster" src="${POSTER_BASE}${bestTV.poster_path}" alt="">` : `<div class="topPoster"></div>`}
         <div>
           <div class="topTitle">${bestTV.title}</div>
           <div class="topMeta">${bestTV.year || "—"} • ${totalWatchedEpisodes(bestTV)} episodes watched</div>
-          <div class="topMeta">Rating: ${ratingToBadgeHTML(bestTV.rating)}</div>
+          <div class="topMeta">Rating: ${ratingToText(bestTV.rating)}</div>
         </div>
       </div>
     `;
@@ -838,16 +867,44 @@ function renderTopPicks(){
 
 function pickBestRated(list){
   if(!list.length) return null;
-  // Prefer highest rating; tie-break by most recently added.
   const sorted = [...list].sort((a,b)=>{
     const ra = Number(a.rating);
     const rb = Number(b.rating);
     if(rb !== ra) return rb - ra;
     return (b.added_at||0) - (a.added_at||0);
   });
-  // If everything is rating 0 (burned), still show that (it’s still “top” by rating rules).
   return sorted[0] || null;
 }
+
+/* ===================== TABS INIT + SORT INIT ===================== */
+function setActiveTab(containerId, active){
+  const c = document.getElementById(containerId);
+  c.querySelectorAll(".tab").forEach(t=>{
+    t.classList.toggle("active", t.dataset.tab === active);
+  });
+}
+document.getElementById("watchlistTabs").addEventListener("click", (e)=>{
+  const tab = e.target.closest(".tab");
+  if(!tab) return;
+  watchlistTab = tab.dataset.tab;
+  setActiveTab("watchlistTabs", watchlistTab);
+  renderWatchlist();
+});
+document.getElementById("watchedTabs").addEventListener("click", (e)=>{
+  const tab = e.target.closest(".tab");
+  if(!tab) return;
+  watchedTab = tab.dataset.tab;
+  setActiveTab("watchedTabs", watchedTab);
+  renderWatched();
+});
+document.getElementById("watchlistSort").addEventListener("change", (e)=>{
+  watchlistSort = e.target.value;
+  renderWatchlist();
+});
+document.getElementById("watchedSort").addEventListener("change", (e)=>{
+  watchedSort = e.target.value;
+  renderWatched();
+});
 
 /* ===================== TV MODAL ===================== */
 const backdrop = document.getElementById("tvModalBackdrop");
