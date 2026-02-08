@@ -176,6 +176,18 @@
   </div>
 
   <div class="card">
+  <div class="row" style="justify-content:space-between;">
+    <div class="muted">Sync status: <span id="syncStatus">Starting…</span></div>
+    <div class="muted">Last saved: <span id="lastSaved">—</span></div>
+  </div>
+</div>
+
+<!-- DEBUG (temporary) -->
+<div class="card">
+  <div class="muted" id="debugBox">Debug: —</div>
+</div>
+
+  <div class="card">
     <div class="row">
       <div class="searchWrap">
         <input id="searchInput" placeholder="Search a movie or TV show…" />
@@ -949,3 +961,4 @@ initSync();
 </script>
 </body>
 </html>
+
