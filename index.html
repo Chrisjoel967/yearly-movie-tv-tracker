@@ -469,9 +469,21 @@
         <div id="detailsMeta" class="modalMeta">—</div>
       </div>
       <div class="modalActions">
-        <button id="detailsAddWatchlist" class="btnPrimary">+ Watchlist</button>
-        <button id="detailsAddWatched" class="btnPrimary">✓ Watched</button>
-        <button id="detailsClose" class="btnDanger">Close</button>
+  <button id="detailsAddWatchlist" class="btnPrimary">+ Watchlist</button>
+  <button id="detailsAddWatched" class="btnPrimary">✓ Watched</button>
+
+  <select id="detailsRating" title="Your rating" style="min-width:160px;">
+    <option value="">Your rating: —</option>
+    <option value="1">🍿</option>
+    <option value="2">🍿🍿</option>
+    <option value="3">🍿🍿🍿</option>
+    <option value="4">🍿🍿🍿🍿</option>
+    <option value="5">🍿🍿🍿🍿🍿</option>
+  </select>
+
+  <button id="detailsClose" class="btnDanger">Close</button>
+</div>
+
       </div>
     </div>
 
@@ -1115,13 +1127,23 @@ function listCardHtml(item, listType){
       </div>
 
       <button class="kebab" data-open="menu" aria-label="Menu">⋮</button>
-      <div class="menu" data-menu>
-        <button data-act="details">Details</button>
-        ${listType === "watchlist"
-          ? `<button data-act="toWatched">✓ Mark Watched</button>`
-          : `<button data-act="toWatchlist">↩ Move to Watchlist</button>`
-        }
-        <button class="dangerItem" data-act="remove">Remove</button>
+     <div class="menu" data-menu>
+  <button data-act="details">Details</button>
+  ${listType === "watchlist"
+    ? `<button data-act="toWatched">✓ Mark Watched</button>`
+    : `
+      <button data-act="toWatchlist">↩ Move to Watchlist</button>
+      <button data-act="rate:1">Rate: 🍿</button>
+      <button data-act="rate:2">Rate: 🍿🍿</button>
+      <button data-act="rate:3">Rate: 🍿🍿🍿</button>
+      <button data-act="rate:4">Rate: 🍿🍿🍿🍿</button>
+      <button data-act="rate:5">Rate: 🍿🍿🍿🍿🍿</button>
+      <button data-act="rate:clear">Rate: —</button>
+    `
+  }
+  <button class="dangerItem" data-act="remove">Remove</button>
+</div>
+
       </div>
     </div>
   `;
@@ -1172,6 +1194,19 @@ function wireListCards(container, listType){
           if(btn.dataset.act === "toWatchlist"){
             state.watched = state.watched.filter(x=>uniqKey(x)!==k);
             state.watchlist.unshift({ id, media_type, title, year, poster_path, added_at: Date.now() });
+            // Rating actions
+if(btn.dataset.act && btn.dataset.act.startsWith("rate:")){
+  const val = btn.dataset.act.split(":")[1];
+  const w = state.watched.find(x => uniqKey(x) === k);
+  if(w){
+    w.rating = (val === "clear") ? null : Number(val);
+    scheduleRemoteSave();
+    eliminateMenus();
+    renderAll();
+  }
+  return;
+}
+
           }
           if(btn.dataset.act === "remove"){
             state.watched = state.watched.filter(x=>uniqKey(x)!==k);
@@ -1465,3 +1500,4 @@ window.addEventListener("load", ()=>{
 </script>
 </body>
 </html>
+
