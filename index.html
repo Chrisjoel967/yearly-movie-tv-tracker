@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>My Yearly Movies & TV Tracker</title>
+  <style>
+    body { font-family: system-ui, Arial; margin: 0; background:#0b0f17; color:#e8eefc; }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 20px; }
+    h1 { margin: 0 0 12px; font-size: 22px; }
+    .card { background:#121a2a; border:1px solid #23314f; border-radius: 14px; padding: 14px; }
+    .row { display:flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+    input, select, button { border-radius: 10px; border:1px solid #2b3a5e; background:#0e1526; color:#e8eefc; padding: 10px; }
+    input { flex: 1; min-width: 220px; }
+    button { cursor:pointer; }
+    button:hover { filter: brightness(1.08); }
+    .muted { color:#a9b7d6; font-size: 12px; }
+    .results { margin-top: 12px; display:grid; gap:10px; }
+    .result { display:grid; grid-template-columns: 56px 1fr auto; gap:10px; align-items:center; padding:10px; border-radius: 12px; border:1px solid #23314f; background:#0f1729; }
+    .poster { width:56px; height:84px; border-radius:10px; background:#1b2640; object-fit: cover; }
+    .title { font-weight: 700; }
+    .meta { font-size: 12px; color:#a9b7d6; margin-top: 2px; }
+    .pill { font-size: 12px; padding: 6px 10px; border-radius: 999px; border: 1px solid #2b3a5e; background:#0e1526; }
+    .grid2 { display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+    @media (max-width: 760px){ .grid2{ grid-template-columns: 1fr; } }
+    .list { margin-top: 12px; display:grid; gap:10px; }
+    .item { display:grid; grid-template-columns: 56px 1fr auto; gap:10px; align-items:center; padding:10px; border-radius: 12px; border:1px solid #23314f; background:#0f1729; }
+    .actions { display:flex; gap: 8px; flex-wrap: wrap; justify-content:flex-end; }
+    .danger { border-color:#7a2b2b; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Yearly Movie & TV Tracker</h1>
+
+    <div class="card">
+      <div class="row">
+        <input id="searchInput" placeholder="Search a movie or TV show..." />
+        <select id="typeFilter">
+          <option value="multi">Movies + TV</option>
+          <option value="movie">Movies only</option>
+          <option value="tv">TV only</option>
+        </select>
+        <button id="searchBtn">Search</button>
+      </div>
+      <div class="muted" style="margin-top:8px;">
+        Uses TMDB search. Pick a title → add to Watchlist or Watched. Watched items can include a date.
+      </div>
+
+      <div id="results" class="results"></div>
+    </div>
+
+    <div class="grid2" style="margin-top:14px;">
+      <div class="card">
+        <div class="row" style="justify-content:space-between;">
+          <div>
+            <div class="title">Time Watched (Total)</div>
+            <div class="muted">Movies = runtime. TV = total watched episodes × avg episode runtime.</div>
+          </div>
+          <div class="pill" id="timeTotal">0h 0m</div>
+        </div>
+        <div class="muted" style="margin-top:8px;">
+          Tip: For TV shows, the tracker stores an “episodes watched” count.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="row" style="justify-content:space-between;">
+          <div>
+            <div class="title">Quick Actions</div>
+            <div class="muted">Export / Import your data.</div>
+          </div>
+          <div class="actions">
+            <button id="exportBtn">Export JSON</button>
+            <button id="importBtn">Import JSON</button>
+            <button id="clearBtn" class="danger">Clear All</button>
+          </div>
+        </div>
+        <input id="importFile" type="file" accept="application/json" style="display:none;" />
+      </div>
+    </div>
+
+    <div class="grid2" style="margin-top:14px;">
+      <div class="card">
+        <div class="title">Watchlist</div>
+        <div id="watchlist" class="list"></div>
+      </div>
+
+      <div class="card">
+        <div class="title">Watched</div>
+        <div id="watched" class="list"></div>
+      </div>
+    </div>
+
+    <div class="muted" style="margin-top:14px;">
+      Setup: paste your TMDB token in the code (TMDB_BEARER). Then you can host this on GitHub Pages.
+    </div>
+  </div>
+
+<script>
+/** =========================
+ *  CONFIG
+ *  ========================= */
+const TMDB_BEARER = "1c5d2cfc6faf7da0822a029b81317ec9"; // <-- required
+const TMDB_BASE = "https://api.themoviedb.org/3";
+const POSTER_BASE = "https://image.tmdb.org/t/p/w154";
+
+/** =========================
+ *  STORAGE
+ *  ========================= */
+const STORAGE_KEY = "yearly_tracker_v1";
+function loadState(){
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || { watchlist: [], watched: [] }; }
+  catch { return { watchlist: [], watched: [] }; }
+}
+function saveState(state){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
+let state = loadState();
+
+/** =========================
+ *  HELPERS
+ *  ========================= */
+function fmtYear(dateStr){
+  if(!dateStr) return "—";
+  return dateStr.slice(0,4);
+}
+function mediaLabel(type){
+  return type === "movie" ? "Movie" : type === "tv" ? "TV" : type;
+}
+function minutesToHM(totalMinutes){
+  const h = Math.floor(totalMinutes / 60);
+  const m = totalMinutes % 60;
+  return `${h}h ${m}m`;
+}
+function uniqKey(item){ return `${item.media_type}:${item.id}`; }
+
+async function tmdbFetch(path){
+  const res = await fetch(`${TMDB_BASE}${path}`, {
+    headers: { Authorization: `Bearer ${TMDB_BEARER}`, "Content-Type": "application/json;charset=utf-8" }
+  });
+  if(!res.ok) throw new Error(`TMDB error ${res.status}`);
+  return res.json();
+}
+
+/** =========================
+ *  SEARCH
+ *  ========================= */
+const elSearchInput = document.getElementById("searchInput");
+const elTypeFilter = document.getElementById("typeFilter");
+const elResults = document.getElementById("results");
+
+document.getElementById("searchBtn").addEventListener("click", runSearch);
+elSearchInput.addEventListener("keydown", (e)=>{ if(e.key==="Enter") runSearch(); });
+
+let searchAbort = { aborted:false };
+async function runSearch(){
+  const q = elSearchInput.value.trim();
+  if(!q) return;
+  if(TMDB_BEARER.includes("PASTE_YOUR")) {
+    alert("Paste your TMDB token into TMDB_BEARER first.");
+    return;
+  }
+
+  // cancel previous
+  searchAbort.aborted = true;
+  searchAbort = { aborted:false };
+
+  elResults.innerHTML = `<div class="muted">Searching…</div>`;
+  try {
+    const type = elTypeFilter.value;
+    const data = await tmdbFetch(`/search/${type}?query=${encodeURIComponent(q)}&include_adult=false&language=en-US&page=1`);
+    if(searchAbort.aborted) return;
+
+    const results = (data.results || [])
+      .filter(r => (r.media_type ? (r.media_type==="movie" || r.media_type==="tv") : true))
+      .slice(0, 10);
+
+    if(results.length === 0){
+      elResults.innerHTML = `<div class="muted">No results found.</div>`;
+      return;
+    }
+
+    elResults.innerHTML = "";
+    results.forEach(r => {
+      const media_type = r.media_type || type; // if type is movie or tv
+      const title = media_type === "movie" ? r.title : r.name;
+      const year = media_type === "movie" ? fmtYear(r.release_date) : fmtYear(r.first_air_date);
+      const poster = r.poster_path ? `${POSTER_BASE}${r.poster_path}` : "";
+      const already = isInAnyList(media_type, r.id);
+
+      const div = document.createElement("div");
+      div.className = "result";
+      div.innerHTML = `
+        ${poster ? `<img class="poster" src="${poster}" alt="">` : `<div class="poster"></div>`}
+        <div>
+          <div class="title">${title}</div>
+          <div class="meta">${mediaLabel(media_type)} • ${year} • Rating: ${r.vote_average?.toFixed?.(1) ?? "—"}</div>
+        </div>
+        <div class="actions">
+          <button data-act="watchlist" ${already ? "disabled":""}>+ Watchlist</button>
+          <button data-act="watched" ${already ? "disabled":""}>✓ Watched</button>
+        </div>
+      `;
+
+      div.querySelectorAll("button").forEach(btn=>{
+        btn.addEventListener("click", async ()=>{
+          if(btn.disabled) return;
+          if(btn.dataset.act === "watchlist") addToWatchlist({ id:r.id, media_type, title, year, poster_path:r.poster_path });
+          if(btn.dataset.act === "watched") await addToWatchedFlow({ id:r.id, media_type, title, year, poster_path:r.poster_path });
+          renderAll();
+        });
+      });
+
+      elResults.appendChild(div);
+    });
+
+  } catch (err){
+    elResults.innerHTML = `<div class="muted">Error: ${String(err.message || err)}</div>`;
+  }
+}
+
+function isInAnyList(media_type, id){
+  const k = `${media_type}:${id}`;
+  return state.watchlist.some(x=>uniqKey(x)===k) || state.watched.some(x=>uniqKey(x)===k);
+}
+
+/** =========================
+ *  ADD / UPDATE ITEMS
+ *  ========================= */
+function addToWatchlist(item){
+  state.watchlist.unshift({ ...item, added_at: new Date().toISOString() });
+  saveState(state);
+}
+
+async function addToWatchedFlow(item){
+  // Fetch runtime details for accurate time totals
+  let runtimeMinutes = 0;
+
+  if(item.media_type === "movie"){
+    const details = await tmdbFetch(`/movie/${item.id}?language=en-US`);
+    runtimeMinutes = details.runtime || 0;
+    state.watched.unshift({
+      ...item,
+      watched_on: "",           // user can set
+      runtime_minutes: runtimeMinutes,
+      episodes_watched: 0,      // not used for movies
+      avg_episode_minutes: 0
+    });
+  } else {
+    const details = await tmdbFetch(`/tv/${item.id}?language=en-US`);
+    const runtimes = details.episode_run_time || [];
+    const avgEp = runtimes.length ? Math.round(runtimes.reduce((a,b)=>a+b,0)/runtimes.length) : 45;
+    state.watched.unshift({
+      ...item,
+      watched_on: "",
+      runtime_minutes: 0,
+      episodes_watched: 1,      // default 1 episode watched
+      avg_episode_minutes: avgEp
+    });
+  }
+
+  // Remove from watchlist if it existed
+  const k = uniqKey(item);
+  state.watchlist = state.watchlist.filter(x => uniqKey(x) !== k);
+
+  saveState(state);
+}
+
+/** =========================
+ *  RENDER LISTS + TOTAL TIME
+ *  ========================= */
+const elWatchlist = document.getElementById("watchlist");
+const elWatched = document.getElementById("watched");
+const elTimeTotal = document.getElementById("timeTotal");
+
+function renderAll(){
+  renderWatchlist();
+  renderWatched();
+  renderTotals();
+}
+
+function posterOrBlank(p){
+  return p ? `<img class="poster" src="${POSTER_BASE}${p}" alt="">` : `<div class="poster"></div>`;
+}
+
+function renderWatchlist(){
+  if(state.watchlist.length === 0){
+    elWatchlist.innerHTML = `<div class="muted">Nothing here yet. Search above and add some.</div>`;
+    return;
+  }
+  elWatchlist.innerHTML = "";
+  state.watchlist.forEach(item=>{
+    const div = document.createElement("div");
+    div.className = "item";
+    div.innerHTML = `
+      ${posterOrBlank(item.poster_path)}
+      <div>
+        <div class="title">${item.title}</div>
+        <div class="meta">${mediaLabel(item.media_type)} • ${item.year}</div>
+      </div>
+      <div class="actions">
+        <button data-act="markWatched">✓ Watched</button>
+        <button data-act="remove" class="danger">Remove</button>
+      </div>
+    `;
+    div.querySelector('[data-act="markWatched"]').addEventListener("click", async ()=>{
+      await addToWatchedFlow(item);
+      renderAll();
+    });
+    div.querySelector('[data-act="remove"]').addEventListener("click", ()=>{
+      state.watchlist = state.watchlist.filter(x => uniqKey(x) !== uniqKey(item));
+      saveState(state);
+      renderAll();
+    });
+    elWatchlist.appendChild(div);
+  });
+}
+
+function renderWatched(){
+  if(state.watched.length === 0){
+    elWatched.innerHTML = `<div class="muted">No watched items yet.</div>`;
+    return;
+  }
+  elWatched.innerHTML = "";
+  state.watched.forEach(item=>{
+    const isTV = item.media_type === "tv";
+    const timeText = isTV
+      ? `${item.episodes_watched || 0} ep × ${item.avg_episode_minutes || 0}m`
+      : `${item.runtime_minutes || 0}m`;
+
+    const div = document.createElement("div");
+    div.className = "item";
+    div.innerHTML = `
+      ${posterOrBlank(item.poster_path)}
+      <div>
+        <div class="title">${item.title}</div>
+        <div class="meta">${mediaLabel(item.media_type)} • ${item.year} • ${timeText}</div>
+        <div class="row" style="margin-top:8px;">
+          <label class="muted">Watched date:</label>
+          <input type="date" value="${item.watched_on || ""}" style="min-width:160px; flex:0;" />
+          ${isTV ? `
+            <label class="muted">Episodes watched:</label>
+            <input type="number" min="0" step="1" value="${item.episodes_watched || 0}" style="width:110px; flex:0;" />
+          ` : ""}
+        </div>
+      </div>
+      <div class="actions">
+        <button data-act="moveBack">↩ Watchlist</button>
+        <button data-act="remove" class="danger">Remove</button>
+      </div>
+    `;
+
+    const dateInput = div.querySelector('input[type="date"]');
+    dateInput.addEventListener("change", ()=>{
+      item.watched_on = dateInput.value;
+      saveState(state);
+      renderTotals();
+    });
+
+    if(isTV){
+      const epInput = div.querySelector('input[type="number"]');
+      epInput.addEventListener("change", ()=>{
+        item.episodes_watched = Math.max(0, parseInt(epInput.value || "0", 10));
+        saveState(state);
+        renderTotals();
+        renderWatched(); // refresh the line text
+      });
+    }
+
+    div.querySelector('[data-act="moveBack"]').addEventListener("click", ()=>{
+      state.watched = state.watched.filter(x => uniqKey(x) !== uniqKey(item));
+      state.watchlist.unshift({ id:item.id, media_type:item.media_type, title:item.title, year:item.year, poster_path:item.poster_path, added_at: new Date().toISOString() });
+      saveState(state);
+      renderAll();
+    });
+
+    div.querySelector('[data-act="remove"]').addEventListener("click", ()=>{
+      state.watched = state.watched.filter(x => uniqKey(x) !== uniqKey(item));
+      saveState(state);
+      renderAll();
+    });
+
+    elWatched.appendChild(div);
+  });
+}
+
+function renderTotals(){
+  let totalMinutes = 0;
+
+  for(const item of state.watched){
+    if(item.media_type === "movie"){
+      totalMinutes += (item.runtime_minutes || 0);
+    } else {
+      totalMinutes += (item.episodes_watched || 0) * (item.avg_episode_minutes || 0);
+    }
+  }
+
+  elTimeTotal.textContent = minutesToHM(totalMinutes);
+}
+
+/** =========================
+ *  EXPORT / IMPORT / CLEAR
+ *  ========================= */
+document.getElementById("exportBtn").addEventListener("click", ()=>{
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type:"application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "yearly-tracker-export.json";
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+const importFile = document.getElementById("importFile");
+document.getElementById("importBtn").addEventListener("click", ()=> importFile.click());
+importFile.addEventListener("change", async ()=>{
+  const file = importFile.files?.[0];
+  if(!file) return;
+  const text = await file.text();
+  try {
+    const parsed = JSON.parse(text);
+    if(!parsed.watchlist || !parsed.watched) throw new Error("Invalid format");
+    state = parsed;
+    saveState(state);
+    renderAll();
+    alert("Imported!");
+  } catch(e){
+    alert("Import failed: " + e.message);
+  } finally {
+    importFile.value = "";
+  }
+});
+
+document.getElementById("clearBtn").addEventListener("click", ()=>{
+  if(!confirm("Clear all watchlist & watched data?")) return;
+  state = { watchlist: [], watched: [] };
+  saveState(state);
+  renderAll();
+});
+
+/** init */
+renderAll();
+</script>
+</body>
+</html>
