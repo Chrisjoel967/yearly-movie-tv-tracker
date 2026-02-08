@@ -5,194 +5,72 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Yearly Movie & TV Tracker</title>
 
+<!-- Supabase (must load BEFORE our script) -->
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
-  :root{
-    --bg:#0b0f17; --card:#11182a; --card2:#0f1729;
-    --border:#23314f; --border2:#2b3a5e;
-    --text:#e8eefc; --muted:#a9b7d6;
-    --accent:#3a55a1;
-  }
-  *{ box-sizing:border-box; }
   body{
     margin:0;
     font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
-    background: radial-gradient(1200px 600px at 20% -10%, #1a2340, var(--bg));
-    color:var(--text);
+    background:#0b0f17;
+    color:#e8eefc;
   }
-  .wrap{ max-width:1100px; margin:0 auto; padding:20px; }
-  h1{ margin:0 0 14px; font-size:42px; letter-spacing:.2px; }
-
+  .wrap{ max-width:1100px; margin:auto; padding:20px; }
   .card{
-    background:linear-gradient(180deg, #131c31, var(--card));
-    border:1px solid var(--border);
+    background:#11182a;
+    border:1px solid #23314f;
     border-radius:18px;
     padding:16px;
+    margin-bottom:14px;
   }
-  .row{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
-  input, select, button{
-    background:#0e1526; border:1px solid var(--border2);
-    color:var(--text); border-radius:12px;
-    padding:11px 12px; font-size:16px;
+  .row{ display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  input,select,button{
+    background:#0e1526;
+    border:1px solid #2b3a5e;
+    color:#e8eefc;
+    border-radius:12px;
+    padding:10px 12px;
+    font-size:16px;
   }
   button{ cursor:pointer; }
-  button:hover{ filter:brightness(1.08); }
-  button:disabled{ opacity:.55; cursor:not-allowed; }
-  .muted{ color:var(--muted); font-size:13px; }
-  .pill{
-    display:inline-flex; gap:8px; align-items:center;
-    border:1px solid var(--border2); background:#0e1526;
-    border-radius:999px; padding:8px 12px; font-size:14px;
-    white-space:nowrap;
-  }
-
-  .searchWrap{ position:relative; flex:1; min-width:240px; }
-  .searchWrap input{ width:100%; padding-right:46px; }
-  .clearX{
-    position:absolute; right:10px; top:50%;
-    transform:translateY(-50%);
-    border:none; background:transparent;
-    padding:6px 8px; font-size:22px; color:var(--muted);
-  }
-
-  .results,.list{ display:grid; gap:12px; margin-top:12px; }
+  .muted{ color:#a9b7d6; font-size:14px; }
+  .results{ display:grid; gap:12px; margin-top:12px; }
   .item{
-    display:grid; grid-template-columns: 64px 1fr auto;
-    gap:12px; align-items:center;
-    background:linear-gradient(180deg, #121a2f, var(--card2));
-    border:1px solid var(--border);
-    border-radius:16px; padding:12px;
+    display:grid;
+    grid-template-columns:64px 1fr auto;
+    gap:12px;
+    background:#0f1729;
+    border:1px solid #23314f;
+    border-radius:14px;
+    padding:12px;
+    align-items:center;
   }
-  .poster{
-    width:64px; height:96px; border-radius:12px;
-    background:#1b2640; object-fit:cover;
-  }
-  .title{ font-weight:800; font-size:22px; line-height:1.1; }
-  .meta{ color:var(--muted); font-size:13px; margin-top:3px; }
-  .actions{ display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
-  .btnSmall{ padding:10px 12px; font-size:14px; border-radius:12px; }
-  .danger{ border-color:#7a2b2b; }
-  .linkBtn{ border-color:var(--accent); }
-
-  .gridMain{ display:grid; grid-template-columns: 1fr 1fr; gap:14px; }
-  .gridTop{ display:grid; grid-template-columns: 1fr 1fr; gap:14px; }
-  @media (max-width: 920px){
-    h1{ font-size:34px; }
-    .gridMain, .gridTop{ grid-template-columns:1fr; }
-  }
-  @media (max-width: 520px){
-    .wrap{ padding:14px; }
-    input,select,button{ font-size:15px; }
-    .item{ grid-template-columns: 56px 1fr; }
-    .item .actions{ grid-column: 1 / -1; justify-content:flex-start; }
-    .poster{ width:56px; height:84px; }
-    .title{ font-size:20px; }
-    .btnSmall{ width:100%; }
-    .row > * { width:100%; }
-    .row select, .row button{ width:100%; }
-  }
-
-  .tabs{ display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
-  .tab{
-    border:1px solid var(--border2); background:#0e1526;
-    border-radius:999px; padding:9px 12px;
-    font-size:14px; cursor:pointer; user-select:none;
-  }
-  .tab.active{ background:#152042; border-color:var(--accent); }
-
-  .statsRow{ display:flex; gap:10px; flex-wrap:wrap; justify-content:space-between; }
-  .statsRow .pill{ flex:1; justify-content:center; }
-
-  .ratingWrap{ display:inline-flex; align-items:center; gap:10px; margin-top:10px; position:relative; }
-  .ratingPill{
-    display:inline-flex; align-items:center; gap:10px;
-    border:1px solid var(--border2); background:#0e1526;
-    border-radius:999px; padding:8px 12px;
-    font-size:14px; cursor:pointer; user-select:none;
-  }
-  .ratingMenu{
-    position:absolute; top:42px; left:0;
-    background:#0e1526; border:1px solid var(--border);
-    border-radius:14px; padding:8px; display:none;
-    z-index:10; min-width:220px;
-  }
-  .ratingMenu button{
-    width:100%; text-align:left; padding:10px 12px;
-    border-radius:12px; border:1px solid transparent; background:transparent;
-  }
-  .ratingMenu button:hover{ background:#152042; border-color:var(--accent); }
-
-  .backdrop{
-    position:fixed; inset:0; background:rgba(0,0,0,.55);
-    display:none; align-items:center; justify-content:center;
-    padding:18px; z-index:999;
-  }
-  .modal{
-    width:min(720px, 100%);
-    background:linear-gradient(180deg, #131c31, #0f1729);
-    border:1px solid var(--border);
-    border-radius:18px; padding:16px;
-  }
-  .modalHeader{ display:flex; justify-content:space-between; gap:12px; align-items:flex-start; }
-  .modalTitle{ font-size:22px; font-weight:800; }
-  .closeBtn{ border:none; background:transparent; color:var(--muted); font-size:26px; padding:0 6px; cursor:pointer; }
-  .seasonGrid{ display:grid; gap:10px; margin-top:12px; }
-  .seasonRow{
-    display:grid; grid-template-columns: 1fr 160px; gap:10px;
-    align-items:center; border:1px solid var(--border);
-    background:#0e1526; border-radius:14px; padding:10px;
-  }
-  .seasonRow input{ width:100%; }
-  .modalFooter{ display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap; margin-top:14px; }
-  @media (max-width:520px){
-    .seasonRow{ grid-template-columns: 1fr; }
-    .modalFooter button{ width:100%; }
-  }
-
-  .topCardBody{
-    display:grid; grid-template-columns: 80px 1fr;
-    gap:12px; align-items:center; margin-top:12px;
-  }
-  .topPoster{
-    width:80px; height:120px; border-radius:14px;
-    background:#1b2640; object-fit:cover;
-  }
-  .topTitle{ font-weight:900; font-size:22px; line-height:1.1; }
-  .topMeta{ color:var(--muted); font-size:13px; margin-top:5px; }
+  .poster{ width:64px; height:96px; border-radius:10px; background:#1b2640; object-fit:cover; }
+  .title{ font-size:20px; font-weight:800; }
 </style>
-
-<!-- Supabase JS (UMD) -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
 <div class="wrap">
   <h1>Yearly Movie & TV Tracker</h1>
 
+  <!-- Sync status -->
   <div class="card">
-    <div class="row" style="justify-content:space-between;">
+    <div class="row">
       <div class="muted">Sync status: <span id="syncStatus">Starting…</span></div>
       <div class="muted">Last saved: <span id="lastSaved">—</span></div>
     </div>
   </div>
 
+  <!-- Debug -->
   <div class="card">
-  <div class="row" style="justify-content:space-between;">
-    <div class="muted">Sync status: <span id="syncStatus">Starting…</span></div>
-    <div class="muted">Last saved: <span id="lastSaved">—</span></div>
+    <div class="muted" id="debugBox">Debug: —</div>
   </div>
-</div>
 
-<!-- DEBUG (temporary) -->
-<div class="card">
-  <div class="muted" id="debugBox">Debug: —</div>
-</div>
-
+  <!-- Search -->
   <div class="card">
     <div class="row">
-      <div class="searchWrap">
-        <input id="searchInput" placeholder="Search a movie or TV show…" />
-        <button class="clearX" id="clearSearch" aria-label="Clear search">✕</button>
-      </div>
+      <input id="searchInput" placeholder="Search movie or TV…" style="flex:1"/>
       <select id="typeFilter">
         <option value="multi">Movies + TV</option>
         <option value="movie">Movies only</option>
@@ -200,795 +78,70 @@
       </select>
       <button id="searchBtn">Search</button>
     </div>
-    <div class="muted" style="margin-top:8px;">
-      Search TMDB → add to <b>Watchlist</b> or <b>Watched</b>. TV “Watched” opens a seasons/episodes picker.
-    </div>
     <div id="results" class="results"></div>
-  </div>
-
-  <div class="card">
-    <div class="statsRow">
-      <div class="pill"><b>Movies</b> <span id="timeMovies">0h 0m</span></div>
-      <div class="pill"><b>TV</b> <span id="timeTV">0h 0m</span></div>
-      <div class="pill"><b>Total</b> <span id="timeTotal">0h 0m</span></div>
-    </div>
-    <div class="muted" style="margin-top:10px;">
-      Movies = runtime · TV = total watched episodes × avg episode runtime
-    </div>
-  </div>
-
-  <div class="gridTop">
-    <div class="card">
-      <div class="row" style="justify-content:space-between;">
-        <div class="title" style="font-size:24px;">Top Movie This Year</div>
-        <div class="pill" id="topMovieRating">—</div>
-      </div>
-      <div id="topMovieBody" class="muted" style="margin-top:12px;">Rate movies to see a top pick.</div>
-    </div>
-
-    <div class="card">
-      <div class="row" style="justify-content:space-between;">
-        <div class="title" style="font-size:24px;">Top TV Show This Year</div>
-        <div class="pill" id="topTVRating">—</div>
-      </div>
-      <div id="topTVBody" class="muted" style="margin-top:12px;">Rate TV shows to see a top pick.</div>
-    </div>
-  </div>
-
-  <div class="gridMain">
-    <div class="card">
-      <div class="row" style="justify-content:space-between;">
-        <div class="title" style="font-size:24px;">Watchlist</div>
-        <select id="watchlistSort" style="min-width:200px;">
-          <option value="recent" selected>Recently added</option>
-          <option value="title">Title (A–Z)</option>
-        </select>
-      </div>
-
-      <div class="tabs" id="watchlistTabs">
-        <div class="tab active" data-tab="movie">Movies</div>
-        <div class="tab" data-tab="tv">TV Shows</div>
-      </div>
-
-      <div id="watchlistList" class="list"></div>
-    </div>
-
-    <div class="card">
-      <div class="row" style="justify-content:space-between;">
-        <div class="title" style="font-size:24px;">Watched</div>
-        <select id="watchedSort" style="min-width:200px;">
-          <option value="recent" selected>Recently added</option>
-          <option value="title">Title (A–Z)</option>
-        </select>
-      </div>
-
-      <div class="tabs" id="watchedTabs">
-        <div class="tab active" data-tab="movie">Movies</div>
-        <div class="tab" data-tab="tv">TV Shows</div>
-      </div>
-
-      <div id="watchedList" class="list"></div>
-    </div>
-  </div>
-</div>
-
-<div class="backdrop" id="tvModalBackdrop">
-  <div class="modal" role="dialog" aria-modal="true">
-    <div class="modalHeader">
-      <div>
-        <div class="modalTitle" id="tvModalTitle">TV Episodes</div>
-        <div class="muted" id="tvModalSub">Pick how many episodes you watched per season.</div>
-      </div>
-      <button class="closeBtn" id="tvModalClose" aria-label="Close">✕</button>
-    </div>
-    <div class="seasonGrid" id="seasonGrid"></div>
-    <div class="modalFooter">
-      <button class="btnSmall danger" id="tvModalCancel">Cancel</button>
-      <button class="btnSmall" id="tvModalSave">Save</button>
-    </div>
   </div>
 </div>
 
 <script>
-/* ===================== CONFIG ===================== */
-// TMDB
-const TMDB_BEARER = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJlOWY5NGVkYTNjMzFmMmQ2NWFjM2Y1OWNmMTBhN2VlNiIsIm5iZiI6MTc3MDUxMTY4MS4wNDQsInN1YiI6IjY5ODdkZDQxNjM5ZGJlZWQwNjhjOGQzYiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.JjpO38-YZKSOX_PXz9zEYiW4zUDpTlFkwPf4XNIOB74"; // paste token here
+/* ================= CONFIG ================= */
+
+// TMDB (v4 Read Access Token)
+const TMDB_BEARER =
+"eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJlOWY5NGVkYTNjMzFmMmQ2NWFjM2Y1OWNmMTBhN2VlNiIsIm5iZiI6MTc3MDUxMTY4MS4wNDQsInN1YiI6IjY5ODdkZDQxNjM5ZGJlZWQwNjhjOGQzYiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.JjpO38-YZKSOX_PXz9zEYiW4zUDpTlFkwPf4XNIOB74";
+
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const POSTER_BASE = "https://image.tmdb.org/t/p/w154";
 
 // Supabase
 const SUPABASE_URL = "https://bgnvmzvrmavzztplzlcg.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJnbnZtenZybWF2enp0cGx6bGNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5NjA3MjEsImV4cCI6MjA4NDUzNjcyMX0.fBqfl2Mk8FX_epBwYJ7dBJl5SwyGQyjVfrfiKsrT-xc";
+const SUPABASE_ANON_KEY =
+"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJnbnZtenZybWF2enp0cGx6bGNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5NjA3MjEsImV4cCI6MjA4NDUzNjcyMX0.fBqfl2Mk8FX_epBwYJ7dBJl5SwyGQyjVfrfiKsrT-xc";
+
 const SUPA_TABLE = "tracker_state";
 const SUPA_ID = "main";
 
-/* ===================== STATE ===================== */
-const LOCAL_KEY = "yearly_tracker_synced_cache";
-let state = loadLocalState();
-let watchlistTab = "movie";
-let watchedTab = "movie";
-let watchlistSort = "recent";
-let watchedSort = "recent";
-let saveTimer = null;
-
-const elSyncStatus = document.getElementById("syncStatus");
-const elLastSaved = document.getElementById("lastSaved");
-
-function loadLocalState(){
-  try{
-    const s = JSON.parse(localStorage.getItem(LOCAL_KEY));
-    return s || { watchlist: [], watched: [] };
-  }catch{
-    return { watchlist: [], watched: [] };
-  }
-}
-function saveLocalState(){
-  localStorage.setItem(LOCAL_KEY, JSON.stringify(state));
-}
-
-/* ===================== SUPABASE CLIENT ===================== */
-let supabase = null;
-function canUseSupabase(){
-  return SUPABASE_URL && SUPABASE_ANON_KEY &&
-    !SUPABASE_URL.includes("PASTE_YOUR") &&
-    !SUPABASE_ANON_KEY.includes("PASTE_YOUR");
-}
-function setSyncStatus(msg){ elSyncStatus.textContent = msg; }
-function setLastSaved(ts){
-  if(!ts) { elLastSaved.textContent = "—"; return; }
-  const d = new Date(ts);
-  elLastSaved.textContent = d.toLocaleString();
-}
-
-/* ===================== HELPERS ===================== */
-function uniqKey(item){ return `${item.media_type}:${item.id}`; }
-function minutesToHM(total){ return `${Math.floor(total/60)}h ${total%60}m`; }
-function mediaLabel(t){ return t === "movie" ? "Movie" : "TV"; }
-function posterOrBlank(p){
-  return p ? `<img class="poster" src="${POSTER_BASE}${p}" alt="">` : `<div class="poster"></div>`;
-}
-function ratingToText(r){
-  const n = Number(r);
-  if(!Number.isFinite(n) || r === null) return "—";
-  return "🍿".repeat(Math.max(1, Math.min(5, n)));
-}
-function totalWatchedEpisodes(tvItem){
-  const map = tvItem.seasons_watched || {};
-  return Object.values(map).reduce((a,b)=>a+(Number(b)||0), 0);
-}
-function applySort(list, mode){
-  const arr = [...list];
-  if(mode === "title") arr.sort((a,b)=> (a.title||"").localeCompare(b.title||""));
-  else arr.sort((a,b)=> (b.added_at||0) - (a.added_at||0));
-  return arr;
-}
-function isInAnyList(media_type, id){
-  const k = `${media_type}:${id}`;
-  return state.watchlist.some(x=>uniqKey(x)===k) || state.watched.some(x=>uniqKey(x)===k);
-}
-
-/* ===================== MIGRATION ===================== */
-function migrate(){
-  let changed = false;
-  for(const x of state.watchlist){
-    if(typeof x.added_at !== "number"){ x.added_at = Date.now(); changed = true; }
-  }
-  for(const x of state.watched){
-    if(typeof x.added_at !== "number"){ x.added_at = Date.now(); changed = true; }
-    if(!("rating" in x)){ x.rating = null; changed = true; }
-    if(x.rating === 0){ x.rating = 1; changed = true; }
-    if(x.media_type === "tv"){
-      if(!x.seasons_watched){ x.seasons_watched = {}; changed = true; }
-      if(!x.seasons_meta){ x.seasons_meta = {}; changed = true; }
-      if(typeof x.avg_episode_minutes !== "number"){ x.avg_episode_minutes = 45; changed = true; }
-    }
-  }
-  if(changed) saveLocalState();
-}
-
-/* ===================== SYNC (LOAD + SAVE) ===================== */
-async function initSync(){
-  migrate();
-
-  if(!canUseSupabase()){
-    setSyncStatus("Local only (add Supabase keys to sync)");
-    setLastSaved(null);
-    renderAll();
-    return;
-  }
-
-  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  setSyncStatus("Connecting…");
-
-  // Load remote state (if exists). If not, create it from local.
-  try{
-    const { data, error } = await supabase
-      .from(SUPA_TABLE)
-      .select("state, updated_at")
-      .eq("id", SUPA_ID)
-      .maybeSingle();
-
-    if(error) throw error;
-
-    if(data && data.state){
-      // Use remote as source of truth
-      state = data.state;
-      migrate();
-      saveLocalState();
-      setSyncStatus("Synced");
-      setLastSaved(data.updated_at);
-    } else {
-      // Create the row using local cache
-      const { error: upErr } = await supabase
-        .from(SUPA_TABLE)
-        .upsert({ id: SUPA_ID, state }, { onConflict: "id" });
-      if(upErr) throw upErr;
-      setSyncStatus("Synced (created)");
-      setLastSaved(Date.now());
-    }
-  }catch(err){
-    console.error(err);
-    setSyncStatus("Sync error (using local)");
-  }
-
-  renderAll();
-}
-
-// Debounced save after changes
-function scheduleRemoteSave(){
-  saveLocalState();
-
-  if(!supabase) return; // local only
-  setSyncStatus("Saving…");
-
-  if(saveTimer) clearTimeout(saveTimer);
-  saveTimer = setTimeout(async ()=>{
-    try{
-      const { data, error } = await supabase
-        .from(SUPA_TABLE)
-        .upsert({ id: SUPA_ID, state }, { onConflict: "id" })
-        .select("updated_at")
-        .single();
-
-      if(error) throw error;
-      setSyncStatus("Synced");
-      setLastSaved(data.updated_at);
-    }catch(err){
-      console.error(err);
-      setSyncStatus("Sync error (saved locally)");
-    }
-  }, 700);
-}
-
-/* ===================== API ===================== */
-async function tmdbFetch(path){
-  const res = await fetch(`${TMDB_BASE}${path}`, {
-    headers: { Authorization: `Bearer ${TMDB_BEARER}`, "Content-Type":"application/json;charset=utf-8" }
-  });
-  if(!res.ok) throw new Error(`TMDB ${res.status}`);
-  return res.json();
-}
-
-/* ===================== SEARCH ===================== */
-const elSearchInput = document.getElementById("searchInput");
+/* ================= STATE ================= */
+const elSync = document.getElementById("syncStatus");
+const elSaved = document.getElementById("lastSaved");
+const elDebug = document.getElementById("debugBox");
 const elResults = document.getElementById("results");
-const elTypeFilter = document.getElementById("typeFilter");
 
-document.getElementById("searchBtn").addEventListener("click", runSearch);
-elSearchInput.addEventListener("keydown", (e)=>{ if(e.key==="Enter") runSearch(); });
-document.getElementById("clearSearch").addEventListener("click", ()=>{
-  elSearchInput.value = "";
-  elResults.innerHTML = "";
-  elSearchInput.focus();
-});
-elSearchInput.addEventListener("input", ()=>{
-  if(elSearchInput.value.trim()==="") elResults.innerHTML = "";
-});
+let supabase;
+let state = { watchlist: [], watched: [] };
 
-async function runSearch(){
-  const q = elSearchInput.value.trim();
-  if(!q) return;
-
-  if(TMDB_BEARER.includes("PASTE_YOUR")){
-    elResults.innerHTML = `<div class="muted">Paste your TMDB v4 token into TMDB_BEARER first.</div>`;
-    return;
-  }
-
-  elResults.innerHTML = `<div class="muted">Searching…</div>`;
-  try{
-    const type = elTypeFilter.value;
-    const data = await tmdbFetch(`/search/${type}?query=${encodeURIComponent(q)}&include_adult=false&language=en-US&page=1`);
-    const results = (data.results||[])
-      .filter(r => (r.media_type ? (r.media_type==="movie" || r.media_type==="tv") : true))
-      .slice(0, 10);
-
-    if(results.length === 0){
-      elResults.innerHTML = `<div class="muted">No results found.</div>`;
-      return;
-    }
-
-    elResults.innerHTML = "";
-    results.forEach(r=>{
-      const media_type = r.media_type || type;
-      const title = media_type === "movie" ? r.title : r.name;
-      const year = media_type === "movie" ? (r.release_date||"").slice(0,4) : (r.first_air_date||"").slice(0,4);
-      const poster = r.poster_path ? `${POSTER_BASE}${r.poster_path}` : "";
-
-      const exists = isInAnyList(media_type, r.id);
-
-      const div = document.createElement("div");
-      div.className = "item";
-      div.innerHTML = `
-        ${poster ? `<img class="poster" src="${poster}" alt="">` : `<div class="poster"></div>`}
-        <div>
-          <div class="title">${title}</div>
-          <div class="meta">${mediaLabel(media_type)} • ${year || "—"} • TMDB: ${Number.isFinite(r.vote_average) ? r.vote_average.toFixed(1) : "—"}</div>
-        </div>
-        <div class="actions">
-          <button class="btnSmall" data-act="watchlist" ${exists ? "disabled":""}>+ Watchlist</button>
-          <button class="btnSmall linkBtn" data-act="watched" ${exists ? "disabled":""}>✓ Watched</button>
-        </div>
-      `;
-
-      div.querySelector('[data-act="watchlist"]').addEventListener("click", ()=>{
-        if(exists) return;
-        addToWatchlist({ id:r.id, media_type, title, year, poster_path:r.poster_path });
-        renderAll();
-      });
-
-      div.querySelector('[data-act="watched"]').addEventListener("click", async ()=>{
-        if(exists) return;
-        await addToWatchedFlow({ id:r.id, media_type, title, year, poster_path:r.poster_path });
-        renderAll();
-      });
-
-      elResults.appendChild(div);
-    });
-
-  }catch(err){
-    elResults.innerHTML = `<div class="muted">Error: ${String(err.message||err)}</div>`;
-  }
-}
-
-/* ===================== ADD / MOVE ===================== */
-function addToWatchlist(item){
-  const k = uniqKey(item);
-  if(state.watchlist.some(x=>uniqKey(x)===k) || state.watched.some(x=>uniqKey(x)===k)) return;
-  state.watchlist.unshift({ ...item, added_at: Date.now() });
-  scheduleRemoteSave();
-}
-
-async function addToWatchedFlow(item){
-  const k = uniqKey(item);
-  state.watchlist = state.watchlist.filter(x => uniqKey(x) !== k);
-
-  if(item.media_type === "movie"){
-    const details = await tmdbFetch(`/movie/${item.id}?language=en-US`);
-    state.watched.unshift({
-      ...item,
-      runtime_minutes: details.runtime || 0,
-      rating: null,
-      added_at: Date.now()
-    });
-    scheduleRemoteSave();
-    return;
-  }
-
-  const details = await tmdbFetch(`/tv/${item.id}?language=en-US`);
-  const avgEp = Array.isArray(details.episode_run_time) && details.episode_run_time.length
-    ? Math.round(details.episode_run_time.reduce((a,b)=>a+b,0) / details.episode_run_time.length)
-    : 45;
-
-  const seasons_meta = {};
-  (details.seasons || [])
-    .filter(s => typeof s.season_number === "number" && s.season_number > 0)
-    .forEach(s => { seasons_meta[s.season_number] = s.episode_count || 0; });
-
-  const baseTV = {
-    ...item,
-    avg_episode_minutes: avgEp,
-    seasons_meta,
-    seasons_watched: {},
-    rating: null,
-    added_at: Date.now()
-  };
-
-  if(seasons_meta[1] > 0) baseTV.seasons_watched[1] = 1;
-
-  const finalTV = await openTVModal(baseTV);
-  if(finalTV){
-    state.watched.unshift(finalTV);
-    scheduleRemoteSave();
-  } else {
-    state.watchlist.unshift({ id:item.id, media_type:item.media_type, title:item.title, year:item.year, poster_path:item.poster_path, added_at: Date.now() });
-    scheduleRemoteSave();
-  }
-}
-
-/* ===================== TABS + SORT ===================== */
-function setActiveTab(containerId, active){
-  const c = document.getElementById(containerId);
-  c.querySelectorAll(".tab").forEach(t=> t.classList.toggle("active", t.dataset.tab === active));
-}
-document.getElementById("watchlistTabs").addEventListener("click", (e)=>{
-  const tab = e.target.closest(".tab"); if(!tab) return;
-  watchlistTab = tab.dataset.tab;
-  setActiveTab("watchlistTabs", watchlistTab);
-  renderWatchlist();
-});
-document.getElementById("watchedTabs").addEventListener("click", (e)=>{
-  const tab = e.target.closest(".tab"); if(!tab) return;
-  watchedTab = tab.dataset.tab;
-  setActiveTab("watchedTabs", watchedTab);
-  renderWatched();
-});
-document.getElementById("watchlistSort").addEventListener("change", (e)=>{ watchlistSort = e.target.value; renderWatchlist(); });
-document.getElementById("watchedSort").addEventListener("change", (e)=>{ watchedSort = e.target.value; renderWatched(); });
-
-/* ===================== RENDER ===================== */
-const elTimeMovies = document.getElementById("timeMovies");
-const elTimeTV = document.getElementById("timeTV");
-const elTimeTotal = document.getElementById("timeTotal");
-
-const elTopMovieBody = document.getElementById("topMovieBody");
-const elTopTVBody = document.getElementById("topTVBody");
-const elTopMovieRating = document.getElementById("topMovieRating");
-const elTopTVRating = document.getElementById("topTVRating");
-
-const elWatchlistList = document.getElementById("watchlistList");
-const elWatchedList = document.getElementById("watchedList");
-
-function renderAll(){
-  renderTotals();
-  renderTopPicks();
-  renderWatchlist();
-  renderWatched();
-}
-
-function renderWatchlist(){
-  const list = applySort(state.watchlist.filter(i => i.media_type === watchlistTab), watchlistSort);
-  if(list.length === 0){
-    elWatchlistList.innerHTML = `<div class="muted">No ${watchlistTab === "movie" ? "movies" : "TV shows"} in watchlist.</div>`;
-    return;
-  }
-  elWatchlistList.innerHTML = "";
-  list.forEach(item=>{
-    const div = document.createElement("div");
-    div.className = "item";
-    div.innerHTML = `
-      ${posterOrBlank(item.poster_path)}
-      <div>
-        <div class="title">${item.title}</div>
-        <div class="meta">${mediaLabel(item.media_type)} • ${item.year || "—"}</div>
-      </div>
-      <div class="actions">
-        <button class="btnSmall linkBtn" data-act="watched">✓ Watched</button>
-        <button class="btnSmall danger" data-act="remove">Remove</button>
-      </div>
-    `;
-    div.querySelector('[data-act="watched"]').addEventListener("click", async ()=>{
-      await addToWatchedFlow(item);
-      renderAll();
-    });
-    div.querySelector('[data-act="remove"]').addEventListener("click", ()=>{
-      state.watchlist = state.watchlist.filter(x => uniqKey(x) !== uniqKey(item));
-      scheduleRemoteSave();
-      renderAll();
-    });
-    elWatchlistList.appendChild(div);
-  });
-}
-
-function buildRatingUI(item){
-  const wrap = document.createElement("div");
-  wrap.className = "ratingWrap";
-  wrap.innerHTML = `
-    <div class="muted">Your rating:</div>
-    <div class="ratingPill" title="Click to change rating">
-      <span data-current>${ratingToText(item.rating)}</span>
-      <span class="muted">▾</span>
-    </div>
-    <div class="ratingMenu" role="menu">
-      <button type="button" data-rate="1">🍿</button>
-      <button type="button" data-rate="2">🍿🍿</button>
-      <button type="button" data-rate="3">🍿🍿🍿</button>
-      <button type="button" data-rate="4">🍿🍿🍿🍿</button>
-      <button type="button" data-rate="5">🍿🍿🍿🍿🍿</button>
-      <button type="button" data-rate="">Clear rating</button>
-    </div>
-  `;
-  const pill = wrap.querySelector(".ratingPill");
-  const menu = wrap.querySelector(".ratingMenu");
-  const currentSpan = wrap.querySelector("[data-current]");
-
-  function closeMenu(){ menu.style.display = "none"; }
-  pill.addEventListener("click", (e)=>{
-    e.stopPropagation();
-    menu.style.display = (menu.style.display === "block") ? "none" : "block";
-    // click outside closes
-    const onDoc = () => closeMenu();
-    setTimeout(()=> document.addEventListener("click", onDoc, { once:true }), 0);
-  });
-
-  menu.querySelectorAll("[data-rate]").forEach(btn=>{
-    btn.addEventListener("click", (e)=>{
-      e.stopPropagation();
-      const val = btn.dataset.rate;
-      item.rating = (val === "") ? null : Number(val);
-      currentSpan.textContent = ratingToText(item.rating);
-      scheduleRemoteSave();
-      closeMenu();
-      renderAll();
-    });
-  });
-  return wrap;
-}
-
-function renderWatched(){
-  const list = applySort(state.watched.filter(i => i.media_type === watchedTab), watchedSort);
-  if(list.length === 0){
-    elWatchedList.innerHTML = `<div class="muted">No watched ${watchedTab === "movie" ? "movies" : "TV shows"} yet.</div>`;
-    return;
-  }
-  elWatchedList.innerHTML = "";
-  list.forEach(item=>{
-    const div = document.createElement("div");
-    div.className = "item";
-
-    if(item.media_type === "movie"){
-      div.innerHTML = `
-        ${posterOrBlank(item.poster_path)}
-        <div>
-          <div class="title">${item.title}</div>
-          <div class="meta">${item.year || "—"} • ${item.runtime_minutes || 0} min</div>
-        </div>
-        <div class="actions">
-          <button class="btnSmall" data-act="toWatchlist">↩ Watchlist</button>
-          <button class="btnSmall danger" data-act="remove">Remove</button>
-        </div>
-      `;
-      div.children[1].appendChild(buildRatingUI(item));
-    } else {
-      const totalEps = totalWatchedEpisodes(item);
-      div.innerHTML = `
-        ${posterOrBlank(item.poster_path)}
-        <div>
-          <div class="title">${item.title}</div>
-          <div class="meta">${item.year || "—"} • ${totalEps} ep × ${item.avg_episode_minutes || 0}m</div>
-          <div class="muted" style="margin-top:6px;">Tap “Edit” to update seasons/episodes.</div>
-        </div>
-        <div class="actions">
-          <button class="btnSmall linkBtn" data-act="edit">Edit</button>
-          <button class="btnSmall" data-act="toWatchlist">↩ Watchlist</button>
-          <button class="btnSmall danger" data-act="remove">Remove</button>
-        </div>
-      `;
-      div.children[1].appendChild(buildRatingUI(item));
-
-      div.querySelector('[data-act="edit"]').addEventListener("click", async ()=>{
-        const updated = await openTVModal(item);
-        if(updated){
-          state.watched = state.watched.map(x => uniqKey(x)===uniqKey(item) ? updated : x);
-          scheduleRemoteSave();
-          renderAll();
-        }
-      });
-    }
-
-    div.querySelector('[data-act="toWatchlist"]').addEventListener("click", ()=>{
-      state.watched = state.watched.filter(x => uniqKey(x) !== uniqKey(item));
-      state.watchlist.unshift({ id:item.id, media_type:item.media_type, title:item.title, year:item.year, poster_path:item.poster_path, added_at: Date.now() });
-      scheduleRemoteSave();
-      renderAll();
-    });
-
-    div.querySelector('[data-act="remove"]').addEventListener("click", ()=>{
-      state.watched = state.watched.filter(x => uniqKey(x) !== uniqKey(item));
-      scheduleRemoteSave();
-      renderAll();
-    });
-
-    elWatchedList.appendChild(div);
-  });
-}
-
-function renderTotals(){
-  let movieMin = 0, tvMin = 0;
-  for(const item of state.watched){
-    if(item.media_type === "movie") movieMin += (item.runtime_minutes || 0);
-    else tvMin += totalWatchedEpisodes(item) * (item.avg_episode_minutes || 0);
-  }
-  elTimeMovies.textContent = minutesToHM(movieMin);
-  elTimeTV.textContent = minutesToHM(tvMin);
-  elTimeTotal.textContent = minutesToHM(movieMin + tvMin);
-}
-
-function pickBestRated(list){
-  if(!list.length) return null;
-  const sorted = [...list].filter(x=>x.rating !== null).sort((a,b)=>{
-    const ra = Number(a.rating), rb = Number(b.rating);
-    if(rb !== ra) return rb - ra;
-    return (b.added_at||0) - (a.added_at||0);
-  });
-  return sorted[0] || null;
-}
-
-function renderTopPicks(){
-  const bestMovie = pickBestRated(state.watched.filter(x=>x.media_type==="movie"));
-  const bestTV = pickBestRated(state.watched.filter(x=>x.media_type==="tv"));
-
-  if(bestMovie){
-    elTopMovieRating.textContent = ratingToText(bestMovie.rating);
-    elTopMovieBody.innerHTML = `
-      <div class="topCardBody">
-        ${bestMovie.poster_path ? `<img class="topPoster" src="${POSTER_BASE}${bestMovie.poster_path}" alt="">` : `<div class="topPoster"></div>`}
-        <div>
-          <div class="topTitle">${bestMovie.title}</div>
-          <div class="topMeta">${bestMovie.year || "—"} • ${bestMovie.runtime_minutes || 0} min</div>
-          <div class="topMeta">Rating: ${ratingToText(bestMovie.rating)}</div>
-        </div>
-      </div>
-    `;
-  } else {
-    elTopMovieRating.textContent = "—";
-    elTopMovieBody.textContent = "Rate watched movies to see a top pick.";
-  }
-
-  if(bestTV){
-    elTopTVRating.textContent = ratingToText(bestTV.rating);
-    elTopTVBody.innerHTML = `
-      <div class="topCardBody">
-        ${bestTV.poster_path ? `<img class="topPoster" src="${POSTER_BASE}${bestTV.poster_path}" alt="">` : `<div class="topPoster"></div>`}
-        <div>
-          <div class="topTitle">${bestTV.title}</div>
-          <div class="topMeta">${bestTV.year || "—"} • ${totalWatchedEpisodes(bestTV)} episodes watched</div>
-          <div class="topMeta">Rating: ${ratingToText(bestTV.rating)}</div>
-        </div>
-      </div>
-    `;
-  } else {
-    elTopTVRating.textContent = "—";
-    elTopTVBody.textContent = "Rate watched TV shows to see a top pick.";
-  }
-}
-
-/* ===================== TV MODAL ===================== */
-const backdrop = document.getElementById("tvModalBackdrop");
-const titleEl = document.getElementById("tvModalTitle");
-const subEl = document.getElementById("tvModalSub");
-const gridEl = document.getElementById("seasonGrid");
-const btnClose = document.getElementById("tvModalClose");
-const btnCancel = document.getElementById("tvModalCancel");
-const btnSave = document.getElementById("tvModalSave");
-
-function openTVModal(tvItem){
-  return new Promise((resolve)=>{
-    const working = JSON.parse(JSON.stringify(tvItem));
-
-    titleEl.textContent = `${working.title} — Episodes Watched`;
-    subEl.textContent = "Enter how many episodes you watched per season (0..episode count).";
-
-    gridEl.innerHTML = "";
-    const seasonNumbers = Object.keys(working.seasons_meta || {})
-      .map(n=>parseInt(n,10))
-      .filter(n=>Number.isFinite(n))
-      .sort((a,b)=>a-b);
-
-    if(seasonNumbers.length === 0){
-      gridEl.innerHTML = `<div class="muted">No season data found for this show.</div>`;
-    }
-
-    seasonNumbers.forEach(sn=>{
-      const epCount = working.seasons_meta[sn] || 0;
-      const current = (working.seasons_watched && working.seasons_watched[sn]) ? working.seasons_watched[sn] : 0;
-
-      const row = document.createElement("div");
-      row.className = "seasonRow";
-      row.innerHTML = `
-        <div>
-          <div style="font-weight:800; display:flex; gap:10px; align-items:center; justify-content:space-between;">
-            <span>Season ${sn}</span>
-            <button type="button" class="btnSmall" data-fill="season" style="padding:8px 10px;">Mark whole season</button>
-          </div>
-          <div class="muted">${epCount} episodes</div>
-        </div>
-        <div>
-          <input type="number" min="0" max="${epCount}" step="1" value="${current}" aria-label="Season ${sn} episodes watched">
-        </div>
-      `;
-
-      const input = row.querySelector("input");
-      const fillBtn = row.querySelector('[data-fill="season"]');
-
-      fillBtn.addEventListener("click", ()=>{
-        input.value = epCount;
-        working.seasons_watched[sn] = epCount;
-      });
-
-      input.addEventListener("input", ()=>{
-        let v = parseInt(input.value || "0", 10);
-        if(!Number.isFinite(v)) v = 0;
-        v = Math.max(0, Math.min(epCount, v));
-        input.value = v;
-        working.seasons_watched[sn] = v;
-      });
-
-      gridEl.appendChild(row);
-    });
-
-    const close = (val)=>{
-      backdrop.style.display = "none";
-      document.body.style.overflow = "";
-      cleanup();
-      resolve(val);
-    };
-
-    const onEsc = (e)=>{ if(e.key==="Escape") close(null); };
-    const onBackdrop = (e)=>{ if(e.target === backdrop) close(null); };
-
-    function cleanup(){
-      window.removeEventListener("keydown", onEsc);
-      backdrop.removeEventListener("click", onBackdrop);
-      btnClose.onclick = null;
-      btnCancel.onclick = null;
-      btnSave.onclick = null;
-    }
-
-    btnClose.onclick = ()=>close(null);
-    btnCancel.onclick = ()=>close(null);
-
-    btnSave.onclick = ()=>{
-      const cleaned = {};
-      for(const [sn, v] of Object.entries(working.seasons_watched || {})){
-        const n = parseInt(sn,10);
-        const val = Number(v)||0;
-        if(val > 0) cleaned[n] = val;
-      }
-      working.seasons_watched = cleaned;
-      close(working);
-    };
-
-    window.addEventListener("keydown", onEsc);
-    backdrop.addEventListener("click", onBackdrop);
-    document.body.style.overflow = "hidden";
-    backdrop.style.display = "flex";
-  });
-}
-
-/* ===================== START ===================== */
-initSync();
-  const elDebugBox = document.getElementById("debugBox");
-
+/* ================= HELPERS ================= */
 function debug(msg){
-  if(elDebugBox) elDebugBox.textContent = "Debug: " + msg;
+  elDebug.textContent = "Debug: " + msg;
   console.log(msg);
 }
 
+async function tmdbFetch(path){
+  const res = await fetch(TMDB_BASE + path, {
+    headers:{
+      Authorization: `Bearer ${TMDB_BEARER}`,
+      accept: "application/json"
+    }
+  });
+  const data = await res.json();
+  if(!res.ok) throw new Error(data.status_message || res.status);
+  return data;
+}
+
+/* ================= SYNC ================= */
 async function initSync(){
   try{
-    migrate();
-
-    // Check Supabase script
     if(!window.supabase){
-      setSyncStatus("Supabase library not loaded");
-      debug("window.supabase is undefined. The CDN script may be blocked or failed to load.");
-      renderAll();
+      elSync.textContent = "Supabase not loaded";
+      debug("Supabase JS missing");
       return;
     }
 
-    if(!canUseSupabase()){
-      setSyncStatus("Local only (missing Supabase keys)");
-      debug("Supabase keys missing or still have PASTE_YOUR.");
-      setLastSaved(null);
-      renderAll();
-      return;
-    }
+    supabase = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_ANON_KEY
+    );
 
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    setSyncStatus("Connecting…");
-    debug("Connecting to Supabase…");
+    elSync.textContent = "Connecting…";
 
     const { data, error } = await supabase
       .from(SUPA_TABLE)
@@ -998,39 +151,60 @@ async function initSync(){
 
     if(error) throw error;
 
-    if(data && data.state){
+    if(data){
       state = data.state;
-      migrate();
-      saveLocalState();
-      setSyncStatus("Synced");
-      setLastSaved(data.updated_at);
-      debug("Loaded remote state OK.");
-    } else {
-      const { error: upErr } = await supabase
-        .from(SUPA_TABLE)
-        .upsert({ id: SUPA_ID, state }, { onConflict: "id" });
-      if(upErr) throw upErr;
-
-      setSyncStatus("Synced (created)");
-      setLastSaved(Date.now());
-      debug("Created remote row OK.");
+      elSaved.textContent = new Date(data.updated_at).toLocaleString();
+      elSync.textContent = "Synced";
+      debug("Loaded remote state");
+    }else{
+      await supabase.from(SUPA_TABLE).insert({ id: SUPA_ID, state });
+      elSync.textContent = "Synced (created)";
+      debug("Created new row");
     }
-
   }catch(err){
-    console.error(err);
-    setSyncStatus("Sync error (using local)");
-    debug("Sync error: " + (err?.message || String(err)));
-    renderAll();
+    elSync.textContent = "Sync error (local)";
+    debug(err.message);
   }
-
-  renderAll();
 }
 
-</script>
-  document.getElementById("syncStatus").textContent = "JS loaded";
+/* ================= SEARCH ================= */
+document.getElementById("searchBtn").onclick = runSearch;
+document.getElementById("searchInput").onkeydown =
+  e => e.key === "Enter" && runSearch();
 
+async function runSearch(){
+  const q = searchInput.value.trim();
+  if(!q) return;
+
+  elResults.innerHTML = "<div class='muted'>Searching…</div>";
+  try{
+    const type = typeFilter.value;
+    const data = await tmdbFetch(
+      `/search/${type}?query=${encodeURIComponent(q)}`
+    );
+
+    elResults.innerHTML = "";
+    data.results.slice(0,8).forEach(r=>{
+      const title = r.title || r.name;
+      const div = document.createElement("div");
+      div.className = "item";
+      div.innerHTML = `
+        ${r.poster_path ? `<img class="poster" src="${POSTER_BASE}${r.poster_path}">` : `<div class="poster"></div>`}
+        <div>
+          <div class="title">${title}</div>
+          <div class="muted">${r.media_type || type}</div>
+        </div>
+        <button>Add</button>
+      `;
+      elResults.appendChild(div);
+    });
+  }catch(err){
+    elResults.innerHTML = `<div class="muted">Error: ${err.message}</div>`;
+  }
+}
+
+/* ================= START ================= */
+initSync();
+</script>
 </body>
 </html>
-
-
-
