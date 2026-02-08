@@ -1,171 +1,331 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Yearly Movie & TV Tracker</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Yearly Movie & TV Tracker</title>
 
-<!-- ✅ Supabase JS (CDN) -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Supabase JS (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<style>
-  :root{
-    --bg:#0b0f17; --card:#11182a; --card2:#0f1729;
-    --border:#23314f; --border2:#2b3a5e;
-    --text:#e8eefc; --muted:#a9b7d6;
-    --accent:#3a55a1;
-  }
-  *{ box-sizing:border-box; }
-  body{
-    margin:0;
-    font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
-    background: radial-gradient(1200px 600px at 20% -10%, #1a2340, var(--bg));
-    color:var(--text);
-  }
-  .wrap{ max-width:1100px; margin:0 auto; padding:20px; }
-  h1{ margin:0 0 14px; font-size:42px; letter-spacing:.2px; }
+  <style>
+    :root{
+      --bg:#f6f7fb;
+      --card:#ffffff;
+      --card2:#fbfcff;
+      --border:#dde3f0;
+      --border2:#cfd8ee;
+      --text:#0f172a;
+      --muted:#5b6475;
+      --accent:#2563eb;
+      --accent2:#1d4ed8;
+      --danger:#dc2626;
+      --shadow: 0 12px 30px rgba(15,23,42,.08);
+      --radius:18px;
+    }
 
-  .card{
-    background:linear-gradient(180deg, #131c31, var(--card));
-    border:1px solid var(--border);
-    border-radius:18px;
-    padding:16px;
-  }
-  .row{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
-  input, select, button{
-    background:#0e1526; border:1px solid var(--border2);
-    color:var(--text); border-radius:12px;
-    padding:11px 12px; font-size:16px;
-  }
-  button{ cursor:pointer; }
-  button:hover{ filter:brightness(1.08); }
-  button:disabled{ opacity:.55; cursor:not-allowed; }
-  .muted{ color:var(--muted); font-size:13px; }
-  .pill{
-    display:inline-flex; gap:8px; align-items:center;
-    border:1px solid var(--border2); background:#0e1526;
-    border-radius:999px; padding:8px 12px; font-size:14px;
-    white-space:nowrap;
-  }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      background: radial-gradient(1200px 600px at 20% -10%, #e8efff, var(--bg));
+      color:var(--text);
+    }
 
-  .searchWrap{ position:relative; flex:1; min-width:240px; }
-  .searchWrap input{ width:100%; padding-right:52px; }
-  .clearX{
-    position:absolute; right:10px; top:50%;
-    transform:translateY(-50%);
-    border:none; background:transparent;
-    padding:6px 8px; font-size:22px; color:var(--muted);
-    line-height:1;
-  }
+    .wrap{ max-width:1150px; margin:0 auto; padding:18px; }
+    h1{ margin:0 0 14px; font-size:40px; letter-spacing:.2px; }
 
-  .results,.list{ display:grid; gap:12px; margin-top:12px; }
-  .item{
-    display:grid; grid-template-columns: 64px 1fr auto;
-    gap:12px; align-items:center;
-    background:linear-gradient(180deg, #121a2f, var(--card2));
-    border:1px solid var(--border);
-    border-radius:16px; padding:12px;
-  }
-  .poster{
-    width:64px; height:96px; border-radius:12px;
-    background:#1b2640; object-fit:cover;
-  }
-  .title{ font-weight:800; font-size:22px; line-height:1.1; }
-  .meta{ color:var(--muted); font-size:13px; margin-top:3px; }
-  .actions{ display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
-  .btnSmall{ padding:10px 12px; font-size:14px; border-radius:12px; }
-  .danger{ border-color:#7a2b2b; }
-  .linkBtn{ border-color:var(--accent); }
+    .card{
+      background:linear-gradient(180deg, var(--card2), var(--card));
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:14px;
+      box-shadow: var(--shadow);
+    }
 
-  .gridMain{ display:grid; grid-template-columns: 1fr 1fr; gap:14px; }
-  .gridTop{ display:grid; grid-template-columns: 1fr 1fr; gap:14px; }
-  @media (max-width: 920px){
-    h1{ font-size:34px; }
-    .gridMain, .gridTop{ grid-template-columns:1fr; }
-  }
-  @media (max-width: 520px){
-    .wrap{ padding:14px; }
-    input,select,button{ font-size:15px; }
-    .item{ grid-template-columns: 56px 1fr; }
-    .item .actions{ grid-column: 1 / -1; justify-content:flex-start; }
-    .poster{ width:56px; height:84px; }
-    .title{ font-size:20px; }
-    .btnSmall{ width:100%; }
-    .row > * { width:100%; }
-    .row select, .row button{ width:100%; }
-    .searchWrap{ width:100%; }
-    .searchWrap input{ padding-right:56px; }
-    .clearX{ right:8px; }
-  }
+    .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
 
-  .tabs{ display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
-  .tab{
-    border:1px solid var(--border2); background:#0e1526;
-    border-radius:999px; padding:9px 12px;
-    font-size:14px; cursor:pointer; user-select:none;
-  }
-  .tab.active{ background:#152042; border-color:var(--accent); }
+    input, select, button{
+      background:#fff;
+      border:1px solid var(--border2);
+      color:var(--text);
+      border-radius:14px;
+      padding:11px 12px;
+      font-size:16px;
+    }
 
-  .statsRow{ display:flex; gap:10px; flex-wrap:wrap; justify-content:space-between; }
-  .statsRow .pill{ flex:1; justify-content:center; }
+    button{ cursor:pointer; }
+    button:hover{ border-color:var(--accent); }
+    button:disabled{ opacity:.55; cursor:not-allowed; }
 
-  .ratingWrap{ display:inline-flex; align-items:center; gap:10px; margin-top:10px; position:relative; }
-  .ratingPill{
-    display:inline-flex; align-items:center; gap:10px;
-    border:1px solid var(--border2); background:#0e1526;
-    border-radius:999px; padding:8px 12px;
-    font-size:14px; cursor:pointer; user-select:none;
-  }
-  .ratingMenu{
-    position:absolute; top:42px; left:0;
-    background:#0e1526; border:1px solid var(--border);
-    border-radius:14px; padding:8px; display:none;
-    z-index:10; min-width:220px;
-  }
-  .ratingMenu button{
-    width:100%; text-align:left; padding:10px 12px;
-    border-radius:12px; border:1px solid transparent; background:transparent;
-  }
-  .ratingMenu button:hover{ background:#152042; border-color:var(--accent); }
+    .muted{ color:var(--muted); font-size:13px; }
 
-  .backdrop{
-    position:fixed; inset:0; background:rgba(0,0,0,.55);
-    display:none; align-items:center; justify-content:center;
-    padding:18px; z-index:999;
-  }
-  .modal{
-    width:min(720px, 100%);
-    background:linear-gradient(180deg, #131c31, #0f1729);
-    border:1px solid var(--border);
-    border-radius:18px; padding:16px;
-  }
-  .modalHeader{ display:flex; justify-content:space-between; gap:12px; align-items:flex-start; }
-  .modalTitle{ font-size:22px; font-weight:800; }
-  .closeBtn{ border:none; background:transparent; color:var(--muted); font-size:26px; padding:0 6px; cursor:pointer; }
-  .seasonGrid{ display:grid; gap:10px; margin-top:12px; }
-  .seasonRow{
-    display:grid; grid-template-columns: 1fr 160px; gap:10px;
-    align-items:center; border:1px solid var(--border);
-    background:#0e1526; border-radius:14px; padding:10px;
-  }
-  .seasonRow input{ width:100%; }
-  .modalFooter{ display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap; margin-top:14px; }
-  @media (max-width:520px){
-    .seasonRow{ grid-template-columns: 1fr; }
-    .modalFooter button{ width:100%; }
-  }
+    /* Top tabs */
+    .topTabs{
+      display:flex; gap:10px; flex-wrap:wrap;
+      margin:10px 0 14px;
+    }
+    .topTab{
+      border:1px solid var(--border2);
+      background:#fff;
+      border-radius:999px;
+      padding:10px 14px;
+      font-size:14px;
+      cursor:pointer;
+      user-select:none;
+    }
+    .topTab.active{
+      border-color:var(--accent);
+      background:rgba(37,99,235,.08);
+      color:var(--accent2);
+      font-weight:700;
+    }
 
-  .topCardBody{
-    display:grid; grid-template-columns: 80px 1fr;
-    gap:12px; align-items:center; margin-top:12px;
-  }
-  .topPoster{
-    width:80px; height:120px; border-radius:14px;
-    background:#1b2640; object-fit:cover;
-  }
-  .topTitle{ font-weight:900; font-size:22px; line-height:1.1; }
-  .topMeta{ color:var(--muted); font-size:13px; margin-top:5px; }
-</style>
+    /* Search */
+    .searchWrap{ position:relative; flex:1; min-width:240px; }
+    .searchWrap input{ width:100%; padding-right:48px; }
+    .clearX{
+      position:absolute; right:10px; top:50%;
+      transform:translateY(-50%);
+      border:none; background:transparent;
+      padding:6px 8px; font-size:20px;
+      color:var(--muted);
+      line-height:1;
+    }
+
+    .section{ display:none; }
+    .section.active{ display:block; }
+
+    .results,.list{ display:grid; gap:12px; margin-top:12px; }
+
+    .item{
+      position:relative;
+      display:grid;
+      grid-template-columns: 64px 1fr;
+      gap:12px;
+      align-items:center;
+      background:linear-gradient(180deg, #ffffff, #fbfcff);
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:12px;
+    }
+
+    .posterBtn{
+      border:none;
+      background:transparent;
+      padding:0;
+      cursor:pointer;
+      width:64px;
+      height:96px;
+    }
+    .poster{
+      width:64px; height:96px;
+      border-radius:14px;
+      object-fit:cover;
+      background:#e9eefc;
+      border:1px solid var(--border);
+    }
+
+    .title{
+      font-weight:900;
+      font-size:20px;
+      line-height:1.1;
+      margin:0;
+      cursor:pointer;
+    }
+    .title:hover{ color:var(--accent2); }
+    .meta{ color:var(--muted); font-size:13px; margin-top:4px; }
+
+    /* 3-dot menu */
+    .kebab{
+      position:absolute; top:10px; right:10px;
+      width:38px; height:38px;
+      border-radius:999px;
+      border:1px solid var(--border2);
+      background:#fff;
+      display:grid; place-items:center;
+      font-size:18px;
+      cursor:pointer;
+    }
+    .kebab:hover{ border-color:var(--accent); }
+
+    .menu{
+      position:absolute; top:52px; right:10px;
+      width:220px;
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:16px;
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      display:none;
+      z-index:50;
+    }
+    .menu button{
+      width:100%;
+      border:none;
+      border-bottom:1px solid #eef2ff;
+      background:#fff;
+      padding:12px 12px;
+      text-align:left;
+      border-radius:0;
+      font-size:14px;
+    }
+    .menu button:last-child{ border-bottom:none; }
+    .menu button:hover{ background:rgba(37,99,235,.07); }
+    .menu .dangerItem{ color:var(--danger); }
+
+    /* Small tabs inside cards */
+    .tabs{ display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
+    .tab{
+      border:1px solid var(--border2);
+      background:#fff;
+      border-radius:999px;
+      padding:8px 12px;
+      font-size:14px;
+      cursor:pointer;
+      user-select:none;
+    }
+    .tab.active{
+      border-color:var(--accent);
+      background:rgba(37,99,235,.08);
+      color:var(--accent2);
+      font-weight:700;
+    }
+
+    /* Stats pills */
+    .statsRow{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:space-between;
+      margin-top:10px;
+    }
+    .pill{
+      flex:1;
+      min-width:160px;
+      display:flex; justify-content:center; gap:10px; align-items:center;
+      border:1px solid var(--border2);
+      background:#fff;
+      border-radius:999px;
+      padding:10px 12px;
+      font-size:14px;
+      white-space:nowrap;
+    }
+
+    /* Modal */
+    .backdrop{
+      position:fixed; inset:0;
+      background:rgba(15,23,42,.55);
+      display:none;
+      align-items:center; justify-content:center;
+      padding:16px;
+      z-index:999;
+    }
+    .modal{
+      width:min(920px, 100%);
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:18px;
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .modalTop{
+      display:grid;
+      grid-template-columns: 120px 1fr auto;
+      gap:14px;
+      padding:14px;
+      border-bottom:1px solid var(--border);
+      background:linear-gradient(180deg, #ffffff, #fbfcff);
+    }
+    .modalPoster{
+      width:120px; height:180px;
+      border-radius:16px;
+      object-fit:cover;
+      background:#e9eefc;
+      border:1px solid var(--border);
+    }
+    .modalTitle{ font-weight:950; font-size:22px; margin:0; }
+    .modalMeta{ color:var(--muted); font-size:13px; margin-top:6px; }
+    .modalActions{ display:flex; flex-direction:column; gap:10px; }
+    .modalActions button{
+      border-radius:14px;
+      padding:10px 12px;
+      font-weight:700;
+    }
+    .btnPrimary{
+      border-color:var(--accent);
+      background:rgba(37,99,235,.10);
+      color:var(--accent2);
+    }
+    .btnDanger{
+      border-color:rgba(220,38,38,.35);
+      background:rgba(220,38,38,.07);
+      color:var(--danger);
+    }
+
+    .modalBody{ padding:14px; display:grid; gap:14px; }
+    .subCard{
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:12px;
+      background:#fff;
+    }
+    .subTitle{ font-weight:900; margin:0 0 8px; }
+    .overview{ color:var(--muted); line-height:1.45; margin:0; }
+
+    /* Horizontal carousel */
+    .carousel{
+      display:flex;
+      gap:12px;
+      overflow:auto;
+      padding:6px 2px 10px;
+      scroll-snap-type:x mandatory;
+    }
+    .carItem{
+      min-width:120px;
+      max-width:120px;
+      scroll-snap-align:start;
+      cursor:pointer;
+      user-select:none;
+    }
+    .carImg{
+      width:120px; height:170px;
+      border-radius:18px;
+      object-fit:cover;
+      background:#e9eefc;
+      border:1px solid var(--border);
+      display:block;
+    }
+    .carName{
+      font-size:13px;
+      font-weight:800;
+      margin-top:6px;
+      line-height:1.2;
+    }
+    .carRole{
+      font-size:12px;
+      color:var(--muted);
+      margin-top:2px;
+      line-height:1.2;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px){
+      h1{ font-size:32px; }
+    }
+    @media (max-width: 540px){
+      .wrap{ padding:14px; }
+      input,select,button{ font-size:15px; }
+      .row > *{ width:100%; }
+      .searchWrap{ width:100%; }
+      .searchWrap input{ padding-right:54px; }
+      .clearX{ right:10px; }
+      .modalTop{ grid-template-columns: 90px 1fr; }
+      .modalPoster{ width:90px; height:135px; }
+      .modalActions{ grid-column: 1 / -1; flex-direction:row; flex-wrap:wrap; }
+      .modalActions button{ flex:1; min-width:140px; }
+    }
+  </style>
 </head>
 
 <body>
@@ -182,58 +342,52 @@
     </div>
   </div>
 
-  <div class="card">
-    <div class="row">
-      <div class="searchWrap">
-        <input id="searchInput" placeholder="Search a movie or TV show…" />
-        <button class="clearX" id="clearSearch" aria-label="Clear search">✕</button>
-      </div>
-      <select id="typeFilter">
-        <option value="multi">Movies + TV</option>
-        <option value="movie">Movies only</option>
-        <option value="tv">TV only</option>
-      </select>
-      <button id="searchBtn">Search</button>
-    </div>
-    <div class="muted" style="margin-top:8px;">
-      Search TMDB → add to <b>Watchlist</b> or <b>Watched</b>. TV “Watched” opens a seasons/episodes picker.
-    </div>
-    <div id="results" class="results"></div>
+  <!-- Top Tabs -->
+  <div class="topTabs" id="topTabs">
+    <div class="topTab active" data-section="searchSec">Search</div>
+    <div class="topTab" data-section="watchlistSec">Watchlist</div>
+    <div class="topTab" data-section="watchedSec">Watched</div>
+    <div class="topTab" data-section="peopleSec">People</div>
+    <div class="topTab" data-section="statsSec">Stats</div>
   </div>
 
-  <div class="card">
-    <div class="statsRow">
-      <div class="pill"><b>Movies</b> <span id="timeMovies">0h 0m</span></div>
-      <div class="pill"><b>TV</b> <span id="timeTV">0h 0m</span></div>
-      <div class="pill"><b>Total</b> <span id="timeTotal">0h 0m</span></div>
-    </div>
-    <div class="muted" style="margin-top:10px;">
-      Movies = runtime · TV = total watched episodes × avg episode runtime
-    </div>
-  </div>
-
-  <div class="gridTop">
+  <!-- SEARCH -->
+  <div class="section active" id="searchSec">
     <div class="card">
-      <div class="row" style="justify-content:space-between;">
-        <div class="title" style="font-size:24px;">Top Movie This Year</div>
-        <div class="pill" id="topMovieRating">—</div>
-      </div>
-      <div id="topMovieBody" class="muted" style="margin-top:12px;">Rate movies to see a top pick.</div>
-    </div>
+      <div class="row">
+        <div class="searchWrap">
+          <input id="searchInput" placeholder="Search titles, actors, or directors…" />
+          <button class="clearX" id="clearSearch" aria-label="Clear search">✕</button>
+        </div>
 
-    <div class="card">
-      <div class="row" style="justify-content:space-between;">
-        <div class="title" style="font-size:24px;">Top TV Show This Year</div>
-        <div class="pill" id="topTVRating">—</div>
+        <select id="searchMode">
+          <option value="auto" selected>Auto-detect</option>
+          <option value="titles">Titles only</option>
+          <option value="people">People only</option>
+        </select>
+
+        <select id="typeFilter">
+          <option value="multi" selected>Movies + TV</option>
+          <option value="movie">Movies only</option>
+          <option value="tv">TV only</option>
+        </select>
+
+        <button id="searchBtn">Search</button>
       </div>
-      <div id="topTVBody" class="muted" style="margin-top:12px;">Rate TV shows to see a top pick.</div>
+
+      <div class="muted" style="margin-top:8px;">
+        Auto-detect shows <b>Titles</b> and <b>People</b>. Tap a poster/title for details.
+      </div>
+
+      <div id="results" class="results"></div>
     </div>
   </div>
 
-  <div class="gridMain">
+  <!-- WATCHLIST -->
+  <div class="section" id="watchlistSec">
     <div class="card">
       <div class="row" style="justify-content:space-between;">
-        <div class="title" style="font-size:24px;">Watchlist</div>
+        <div style="font-weight:950;font-size:22px;">Watchlist</div>
         <select id="watchlistSort" style="min-width:200px;">
           <option value="recent" selected>Recently added</option>
           <option value="title">Title (A–Z)</option>
@@ -247,10 +401,13 @@
 
       <div id="watchlistList" class="list"></div>
     </div>
+  </div>
 
+  <!-- WATCHED -->
+  <div class="section" id="watchedSec">
     <div class="card">
       <div class="row" style="justify-content:space-between;">
-        <div class="title" style="font-size:24px;">Watched</div>
+        <div style="font-weight:950;font-size:22px;">Watched</div>
         <select id="watchedSort" style="min-width:200px;">
           <option value="recent" selected>Recently added</option>
           <option value="title">Title (A–Z)</option>
@@ -265,91 +422,183 @@
       <div id="watchedList" class="list"></div>
     </div>
   </div>
+
+  <!-- PEOPLE -->
+  <div class="section" id="peopleSec">
+    <div class="card">
+      <div class="row" style="justify-content:space-between;">
+        <div style="font-weight:950;font-size:22px;">People (Actors & Directors)</div>
+      </div>
+
+      <div class="muted" style="margin-top:6px;">
+        Search people, follow them, then view their filmography and add titles to Watchlist/Watched.
+      </div>
+
+      <div class="tabs" id="peopleTabs">
+        <div class="tab active" data-tab="actors">Actors</div>
+        <div class="tab" data-tab="directors">Directors</div>
+      </div>
+
+      <div id="peopleList" class="list"></div>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="section" id="statsSec">
+    <div class="card">
+      <div style="font-weight:950;font-size:22px;">Year Totals</div>
+      <div class="statsRow">
+        <div class="pill"><b>Movies</b> <span id="timeMovies">0h 0m</span></div>
+        <div class="pill"><b>TV</b> <span id="timeTV">0h 0m</span></div>
+        <div class="pill"><b>Total</b> <span id="timeTotal">0h 0m</span></div>
+      </div>
+      <div class="muted" style="margin-top:10px;">
+        Movies = runtime · TV = watched episodes × avg episode runtime
+      </div>
+    </div>
+  </div>
 </div>
 
-<div class="backdrop" id="tvModalBackdrop">
+<!-- DETAILS MODAL -->
+<div class="backdrop" id="detailsBackdrop">
   <div class="modal" role="dialog" aria-modal="true">
-    <div class="modalHeader">
+    <div class="modalTop">
+      <img id="detailsPoster" class="modalPoster" alt="Poster"/>
       <div>
-        <div class="modalTitle" id="tvModalTitle">TV Episodes</div>
-        <div class="muted" id="tvModalSub">Pick how many episodes you watched per season.</div>
+        <h2 id="detailsTitle" class="modalTitle">Title</h2>
+        <div id="detailsMeta" class="modalMeta">—</div>
       </div>
-      <button class="closeBtn" id="tvModalClose" aria-label="Close">✕</button>
+      <div class="modalActions">
+        <button id="detailsAddWatchlist" class="btnPrimary">+ Watchlist</button>
+        <button id="detailsAddWatched" class="btnPrimary">✓ Watched</button>
+        <button id="detailsClose" class="btnDanger">Close</button>
+      </div>
     </div>
-    <div class="seasonGrid" id="seasonGrid"></div>
-    <div class="modalFooter">
-      <button class="btnSmall danger" id="tvModalCancel">Cancel</button>
-      <button class="btnSmall" id="tvModalSave">Save</button>
+
+    <div class="modalBody">
+      <div class="subCard">
+        <div class="subTitle">Overview</div>
+        <p id="detailsOverview" class="overview">—</p>
+      </div>
+
+      <div class="subCard">
+        <div class="subTitle">Top Billed Cast</div>
+        <div id="castCarousel" class="carousel"></div>
+      </div>
+
+      <div class="subCard">
+        <div class="subTitle">Directors</div>
+        <div id="dirCarousel" class="carousel"></div>
+      </div>
+
+      <div class="subCard">
+        <div class="subTitle">Similar Titles</div>
+        <div id="simCarousel" class="carousel"></div>
+      </div>
     </div>
   </div>
 </div>
 
 <script>
 /* ===================== CONFIG ===================== */
-// TMDB (v4 read token)
 const TMDB_BEARER = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJlOWY5NGVkYTNjMzFmMmQ2NWFjM2Y1OWNmMTBhN2VlNiIsIm5iZiI6MTc3MDUxMTY4MS4wNDQsInN1YiI6IjY5ODdkZDQxNjM5ZGJlZWQwNjhjOGQzYiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.JjpO38-YZKSOX_PXz9zEYiW4zUDpTlFkwPf4XNIOB74";
 const TMDB_BASE = "https://api.themoviedb.org/3";
-const POSTER_BASE = "https://image.tmdb.org/t/p/w154";
+const IMG_POSTER = "https://image.tmdb.org/t/p/w342";
+const IMG_SMALL  = "https://image.tmdb.org/t/p/w185";
 
-// Supabase
 const SUPABASE_URL = "https://bgnvmzvrmavzztplzlcg.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJnbnZtenZybWF2enp0cGx6bGNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5NjA3MjEsImV4cCI6MjA4NDUzNjcyMX0.fBqfl2Mk8FX_epBwYJ7dBJl5SwyGQyjVfrfiKsrT-xc";
 const SUPA_TABLE = "tracker_state";
 const SUPA_ID = "main";
 
-/* ===================== STATE ===================== */
-const LOCAL_KEY = "yearly_tracker_synced_cache";
-let state = loadLocalState();
-let watchlistTab = "movie";
-let watchedTab = "movie";
-let watchlistSort = "recent";
-let watchedSort = "recent";
-let saveTimer = null;
+const LOCAL_KEY = "yearly_tracker_synced_cache_v2";
 
+/* ===================== ELEMENTS ===================== */
 const elSyncStatus = document.getElementById("syncStatus");
 const elLastSaved  = document.getElementById("lastSaved");
 const elDebugBox   = document.getElementById("debugBox");
 
-function debug(msg){
-  if(elDebugBox) elDebugBox.textContent = "Debug: " + msg;
+const elResults = document.getElementById("results");
+const elSearchInput = document.getElementById("searchInput");
+const elSearchMode = document.getElementById("searchMode");
+const elTypeFilter = document.getElementById("typeFilter");
+
+const elWatchlistList = document.getElementById("watchlistList");
+const elWatchedList = document.getElementById("watchedList");
+const elPeopleList = document.getElementById("peopleList");
+
+const elTimeMovies = document.getElementById("timeMovies");
+const elTimeTV = document.getElementById("timeTV");
+const elTimeTotal = document.getElementById("timeTotal");
+
+/* ===================== STATE ===================== */
+let state = loadLocalState();
+let watchlistTab = "movie";
+let watchedTab = "movie";
+let peopleTab = "actors";
+let watchlistSort = "recent";
+let watchedSort = "recent";
+
+let sb = null; // ✅ IMPORTANT: do NOT name this "supabase" (prevents "already declared" crash)
+let saveTimer = null;
+
+function debug(msg){ if(elDebugBox) elDebugBox.textContent = "Debug: " + msg; }
+function setSyncStatus(msg){ if(elSyncStatus) elSyncStatus.textContent = msg; }
+function setLastSaved(ts){
+  if(!ts){ elLastSaved.textContent = "—"; return; }
+  const d = new Date(ts);
+  elLastSaved.textContent = d.toLocaleString();
 }
 
 function loadLocalState(){
   try{
     const s = JSON.parse(localStorage.getItem(LOCAL_KEY));
-    return s || { watchlist: [], watched: [] };
+    return s || baseState();
   }catch{
-    return { watchlist: [], watched: [] };
+    return baseState();
   }
 }
 function saveLocalState(){
   localStorage.setItem(LOCAL_KEY, JSON.stringify(state));
 }
 
-/* ===================== SUPABASE CLIENT ===================== */
-let supabase = null;
-function canUseSupabase(){
-  return !!(SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase && window.supabase.createClient);
-}
-function setSyncStatus(msg){ if(elSyncStatus) elSyncStatus.textContent = msg; }
-function setLastSaved(ts){
-  if(!ts) { elLastSaved.textContent = "—"; return; }
-  const d = new Date(ts);
-  elLastSaved.textContent = d.toLocaleString();
+function baseState(){
+  return {
+    watchlist: [],
+    watched: [],
+    people: {
+      actors: [],     // {id,name,profile_path}
+      directors: []   // {id,name,profile_path}
+    }
+  };
 }
 
-/* ===================== HELPERS ===================== */
+function migrate(){
+  if(!state.people) state.people = { actors: [], directors: [] };
+  if(!Array.isArray(state.people.actors)) state.people.actors = [];
+  if(!Array.isArray(state.people.directors)) state.people.directors = [];
+
+  state.watchlist = Array.isArray(state.watchlist) ? state.watchlist : [];
+  state.watched = Array.isArray(state.watched) ? state.watched : [];
+
+  for(const x of state.watchlist){
+    if(typeof x.added_at !== "number") x.added_at = Date.now();
+  }
+  for(const x of state.watched){
+    if(typeof x.added_at !== "number") x.added_at = Date.now();
+    if(!("rating" in x)) x.rating = null;
+    if(x.media_type === "tv"){
+      if(!x.seasons_watched) x.seasons_watched = {};
+      if(!x.seasons_meta) x.seasons_meta = {};
+      if(typeof x.avg_episode_minutes !== "number") x.avg_episode_minutes = 45;
+    }
+  }
+
+  saveLocalState();
+}
+
 function uniqKey(item){ return `${item.media_type}:${item.id}`; }
 function minutesToHM(total){ return `${Math.floor(total/60)}h ${total%60}m`; }
-function mediaLabel(t){ return t === "movie" ? "Movie" : "TV"; }
-function posterOrBlank(p){
-  return p ? `<img class="poster" src="${POSTER_BASE}${p}" alt="">` : `<div class="poster"></div>`;
-}
-function ratingToText(r){
-  const n = Number(r);
-  if(!Number.isFinite(n) || r === null) return "—";
-  return "🍿".repeat(Math.max(1, Math.min(5, n)));
-}
 function totalWatchedEpisodes(tvItem){
   const map = tvItem.seasons_watched || {};
   return Object.values(map).reduce((a,b)=>a+(Number(b)||0), 0);
@@ -364,45 +613,35 @@ function isInAnyList(media_type, id){
   const k = `${media_type}:${id}`;
   return state.watchlist.some(x=>uniqKey(x)===k) || state.watched.some(x=>uniqKey(x)===k);
 }
-
-/* ===================== MIGRATION ===================== */
-function migrate(){
-  let changed = false;
-  for(const x of state.watchlist){
-    if(typeof x.added_at !== "number"){ x.added_at = Date.now(); changed = true; }
-  }
-  for(const x of state.watched){
-    if(typeof x.added_at !== "number"){ x.added_at = Date.now(); changed = true; }
-    if(!("rating" in x)){ x.rating = null; changed = true; }
-    if(x.rating === 0){ x.rating = 1; changed = true; }
-    if(x.media_type === "tv"){
-      if(!x.seasons_watched){ x.seasons_watched = {}; changed = true; }
-      if(!x.seasons_meta){ x.seasons_meta = {}; changed = true; }
-      if(typeof x.avg_episode_minutes !== "number"){ x.avg_episode_minutes = 45; changed = true; }
-    }
-  }
-  if(changed) saveLocalState();
+function ratingToText(r){
+  const n = Number(r);
+  if(!Number.isFinite(n) || r === null) return "—";
+  return "🍿".repeat(Math.max(1, Math.min(5, n)));
 }
 
-/* ===================== SYNC (LOAD + SAVE) ===================== */
+/* ===================== SUPABASE ===================== */
+function canUseSupabase(){
+  return !!(SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase && window.supabase.createClient);
+}
+
 async function initSync(){
   debug("initSync() started");
   migrate();
 
   if(!canUseSupabase()){
     setSyncStatus("Supabase not loaded");
-    debug("Supabase JS missing or not ready");
+    debug("Supabase JS missing");
     setLastSaved(null);
     renderAll();
     return;
   }
 
-  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   setSyncStatus("Connecting…");
   debug("Supabase client created");
 
   try{
-    const { data, error } = await supabase
+    const { data, error } = await sb
       .from(SUPA_TABLE)
       .select("state, updated_at")
       .eq("id", SUPA_ID)
@@ -413,12 +652,11 @@ async function initSync(){
     if(data && data.state){
       state = data.state;
       migrate();
-      saveLocalState();
       setSyncStatus("Synced");
       debug("Loaded remote state");
       setLastSaved(data.updated_at);
     } else {
-      const { error: upErr } = await supabase
+      const { error: upErr } = await sb
         .from(SUPA_TABLE)
         .upsert({ id: SUPA_ID, state }, { onConflict: "id" });
       if(upErr) throw upErr;
@@ -437,7 +675,7 @@ async function initSync(){
 
 function scheduleRemoteSave(){
   saveLocalState();
-  if(!supabase) return;
+  if(!sb) return;
 
   setSyncStatus("Saving…");
   debug("Saving to Supabase…");
@@ -445,7 +683,7 @@ function scheduleRemoteSave(){
   if(saveTimer) clearTimeout(saveTimer);
   saveTimer = setTimeout(async ()=>{
     try{
-      const { data, error } = await supabase
+      const { data, error } = await sb
         .from(SUPA_TABLE)
         .upsert({ id: SUPA_ID, state }, { onConflict: "id" })
         .select("updated_at")
@@ -460,10 +698,10 @@ function scheduleRemoteSave(){
       setSyncStatus("Sync error (saved locally)");
       debug("Save error: " + (err?.message || String(err)));
     }
-  }, 700);
+  }, 650);
 }
 
-/* ===================== API ===================== */
+/* ===================== TMDB ===================== */
 async function tmdbFetch(path){
   const res = await fetch(`${TMDB_BASE}${path}`, {
     headers: { Authorization: `Bearer ${TMDB_BEARER}`, "Content-Type":"application/json;charset=utf-8" }
@@ -472,11 +710,16 @@ async function tmdbFetch(path){
   return res.json();
 }
 
-/* ===================== SEARCH ===================== */
-const elSearchInput = document.getElementById("searchInput");
-const elResults = document.getElementById("results");
-const elTypeFilter = document.getElementById("typeFilter");
+/* ===================== TOP TAB NAV ===================== */
+document.getElementById("topTabs").addEventListener("click", (e)=>{
+  const t = e.target.closest(".topTab");
+  if(!t) return;
+  document.querySelectorAll(".topTab").forEach(x=>x.classList.toggle("active", x===t));
+  document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+  document.getElementById(t.dataset.section).classList.add("active");
+});
 
+/* ===================== SEARCH UX ===================== */
 document.getElementById("searchBtn").addEventListener("click", runSearch);
 elSearchInput.addEventListener("keydown", (e)=>{ if(e.key==="Enter") runSearch(); });
 document.getElementById("clearSearch").addEventListener("click", ()=>{
@@ -488,66 +731,200 @@ elSearchInput.addEventListener("input", ()=>{
   if(elSearchInput.value.trim()==="") elResults.innerHTML = "";
 });
 
+/* ===================== SEARCH (AUTO TITLES + PEOPLE) ===================== */
 async function runSearch(){
   const q = elSearchInput.value.trim();
   if(!q) return;
 
   elResults.innerHTML = `<div class="muted">Searching…</div>`;
-  try{
-    const type = elTypeFilter.value;
-    const data = await tmdbFetch(`/search/${type}?query=${encodeURIComponent(q)}&include_adult=false&language=en-US&page=1`);
-    const results = (data.results||[])
-      .filter(r => (r.media_type ? (r.media_type==="movie" || r.media_type==="tv") : true))
-      .slice(0, 10);
 
-    if(results.length === 0){
-      elResults.innerHTML = `<div class="muted">No results found.</div>`;
-      return;
+  try{
+    const mode = elSearchMode.value;
+    const type = elTypeFilter.value;
+
+    const blocks = [];
+
+    if(mode === "auto" || mode === "titles"){
+      const data = await tmdbFetch(`/search/${type}?query=${encodeURIComponent(q)}&include_adult=false&language=en-US&page=1`);
+      const results = (data.results||[])
+        .filter(r => (r.media_type ? (r.media_type==="movie" || r.media_type==="tv") : true))
+        .slice(0, 10);
+      blocks.push(renderTitleResults(results, type));
     }
 
-    elResults.innerHTML = "";
-    results.forEach(r=>{
-      const media_type = r.media_type || type;
-      const title = media_type === "movie" ? r.title : r.name;
-      const year = media_type === "movie" ? (r.release_date||"").slice(0,4) : (r.first_air_date||"").slice(0,4);
-      const poster = r.poster_path ? `${POSTER_BASE}${r.poster_path}` : "";
-      const exists = isInAnyList(media_type, r.id);
+    if(mode === "auto" || mode === "people"){
+      const p = await tmdbFetch(`/search/person?query=${encodeURIComponent(q)}&include_adult=false&language=en-US&page=1`);
+      const people = (p.results||[]).slice(0, 10);
+      blocks.push(renderPeopleResults(people));
+    }
 
-      const div = document.createElement("div");
-      div.className = "item";
-      div.innerHTML = `
-        ${poster ? `<img class="poster" src="${poster}" alt="">` : `<div class="poster"></div>`}
-        <div>
-          <div class="title">${title}</div>
-          <div class="meta">${mediaLabel(media_type)} • ${year || "—"} • TMDB: ${Number.isFinite(r.vote_average) ? r.vote_average.toFixed(1) : "—"}</div>
-        </div>
-        <div class="actions">
-          <button class="btnSmall" data-act="watchlist" ${exists ? "disabled":""}>+ Watchlist</button>
-          <button class="btnSmall linkBtn" data-act="watched" ${exists ? "disabled":""}>✓ Watched</button>
-        </div>
-      `;
-
-      div.querySelector('[data-act="watchlist"]').addEventListener("click", ()=>{
-        if(exists) return;
-        addToWatchlist({ id:r.id, media_type, title, year, poster_path:r.poster_path });
-        renderAll();
-      });
-
-      div.querySelector('[data-act="watched"]').addEventListener("click", async ()=>{
-        if(exists) return;
-        await addToWatchedFlow({ id:r.id, media_type, title, year, poster_path:r.poster_path });
-        renderAll();
-      });
-
-      elResults.appendChild(div);
-    });
-
+    elResults.innerHTML = blocks.filter(Boolean).join("");
+    wireResultActions(); // attach events after HTML inserted
   }catch(err){
     elResults.innerHTML = `<div class="muted">Error: ${String(err.message||err)}</div>`;
   }
 }
 
-/* ===================== ADD / MOVE ===================== */
+function yearFrom(r, media_type){
+  return media_type === "movie"
+    ? (r.release_date||"").slice(0,4)
+    : (r.first_air_date||"").slice(0,4);
+}
+
+function renderTitleResults(results, type){
+  const title = `<div class="muted" style="margin-top:4px;"><b>Titles</b></div>`;
+  if(!results || results.length === 0) return `${title}<div class="muted">No titles found.</div>`;
+
+  const items = results.map(r=>{
+    const media_type = r.media_type || type;
+    const name = media_type === "movie" ? r.title : r.name;
+    const year = yearFrom(r, media_type);
+    const poster = r.poster_path ? `${IMG_SMALL}${r.poster_path}` : "";
+    const exists = isInAnyList(media_type, r.id);
+
+    return `
+      <div class="item" data-kind="title" data-id="${r.id}" data-media="${media_type}" data-name="${escapeHtml(name)}" data-year="${escapeHtml(year||"")}" data-poster="${escapeHtml(r.poster_path||"")}">
+        <button class="posterBtn" data-open="details" aria-label="Open details">
+          <img class="poster" src="${poster || ""}" alt="" onerror="this.style.display='none'">
+        </button>
+        <div>
+          <div class="title" data-open="details">${escapeHtml(name)}</div>
+          <div class="meta">${media_type.toUpperCase()} • ${escapeHtml(year||"—")} • TMDB: ${Number.isFinite(r.vote_average) ? r.vote_average.toFixed(1) : "—"}</div>
+        </div>
+
+        <button class="kebab" data-open="menu" aria-label="Menu">⋮</button>
+        <div class="menu" data-menu>
+          <button data-act="details">Details</button>
+          <button data-act="watchlist" ${exists ? "disabled":""}>+ Add to Watchlist</button>
+          <button data-act="watched" ${exists ? "disabled":""}>✓ Mark Watched</button>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  return `${title}<div class="results">${items}</div>`;
+}
+
+function renderPeopleResults(people){
+  const title = `<div class="muted" style="margin-top:10px;"><b>People</b></div>`;
+  if(!people || people.length === 0) return `${title}<div class="muted">No people found.</div>`;
+
+  const items = people.map(p=>{
+    const img = p.profile_path ? `${IMG_SMALL}${p.profile_path}` : "";
+    const dept = p.known_for_department || "Person";
+    const known = (p.known_for||[]).slice(0,3).map(x=>x.title||x.name).filter(Boolean).join(" • ");
+
+    const isActor = state.people.actors.some(x=>x.id===p.id);
+    const isDirector = state.people.directors.some(x=>x.id===p.id);
+
+    return `
+      <div class="item" data-kind="person" data-person-id="${p.id}" data-person-name="${escapeHtml(p.name||"")}" data-profile="${escapeHtml(p.profile_path||"")}">
+        <button class="posterBtn" data-open="person" aria-label="Open person">
+          <img class="poster" src="${img || ""}" alt="" onerror="this.style.display='none'">
+        </button>
+        <div>
+          <div class="title" data-open="person">${escapeHtml(p.name||"—")}</div>
+          <div class="meta">${escapeHtml(dept)}${known ? " • " + escapeHtml(known) : ""}</div>
+        </div>
+
+        <button class="kebab" data-open="menu" aria-label="Menu">⋮</button>
+        <div class="menu" data-menu>
+          <button data-act="openPerson">View Filmography</button>
+          <button data-act="followActor" ${isActor ? "disabled":""}>+ Follow as Actor</button>
+          <button data-act="followDirector" ${isDirector ? "disabled":""}>+ Follow as Director</button>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  return `${title}<div class="results">${items}</div>`;
+}
+
+/* ===================== RESULT EVENTS ===================== */
+function wireResultActions(){
+  // Close menus on outside click
+  document.addEventListener("click", ()=> {
+    document.querySelectorAll("[data-menu]").forEach(m=>m.style.display="none");
+  }, { once:true });
+
+  document.querySelectorAll(".item").forEach(card=>{
+    const kebab = card.querySelector('[data-open="menu"]');
+    const menu = card.querySelector("[data-menu]");
+    if(kebab && menu){
+      kebab.addEventListener("click", (e)=>{
+        e.stopPropagation();
+        const open = menu.style.display === "block";
+        document.querySelectorAll("[data-menu]").forEach(m=>m.style.display="none");
+        menu.style.display = open ? "none" : "block";
+      });
+    }
+
+    const openDetails = card.querySelectorAll('[data-open="details"]');
+    openDetails.forEach(x=>x.addEventListener("click", async (e)=>{
+      e.stopPropagation();
+      if(card.dataset.kind !== "title") return;
+      await openDetailsModalFromCard(card);
+    }));
+
+    const openPerson = card.querySelectorAll('[data-open="person"]');
+    openPerson.forEach(x=>x.addEventListener("click", async (e)=>{
+      e.stopPropagation();
+      if(card.dataset.kind !== "person") return;
+      await openPersonModalFromCard(card);
+    }));
+
+    if(menu){
+      menu.querySelectorAll("button").forEach(btn=>{
+        btn.addEventListener("click", async (e)=>{
+          e.stopPropagation();
+          menu.style.display="none";
+
+          if(card.dataset.kind === "title"){
+            const media_type = card.dataset.media;
+            const id = Number(card.dataset.id);
+            const title = card.dataset.name;
+            const year = card.dataset.year || "";
+            const poster_path = card.dataset.poster || "";
+
+            if(btn.dataset.act === "details"){
+              await openDetailsModalFromCard(card);
+            } else if(btn.dataset.act === "watchlist"){
+              addToWatchlist({ id, media_type, title, year, poster_path });
+              renderAll();
+            } else if(btn.dataset.act === "watched"){
+              await addToWatchedFlow({ id, media_type, title, year, poster_path });
+              renderAll();
+            }
+          }
+
+          if(card.dataset.kind === "person"){
+            const pid = Number(card.dataset.personId);
+            const name = card.dataset.personName || "";
+            const profile_path = card.dataset.profile || "";
+
+            if(btn.dataset.act === "openPerson"){
+              await openPersonModalFromCard(card);
+            } else if(btn.dataset.act === "followActor"){
+              if(!state.people.actors.some(x=>x.id===pid)){
+                state.people.actors.unshift({ id: pid, name, profile_path, added_at: Date.now() });
+                scheduleRemoteSave();
+                renderAll();
+              }
+            } else if(btn.dataset.act === "followDirector"){
+              if(!state.people.directors.some(x=>x.id===pid)){
+                state.people.directors.unshift({ id: pid, name, profile_path, added_at: Date.now() });
+                scheduleRemoteSave();
+                renderAll();
+              }
+            }
+          }
+        });
+      });
+    }
+  });
+}
+
+/* ===================== LIST ACTIONS (WATCHLIST/WATCHED) ===================== */
 function addToWatchlist(item){
   const k = uniqKey(item);
   if(state.watchlist.some(x=>uniqKey(x)===k) || state.watched.some(x=>uniqKey(x)===k)) return;
@@ -581,7 +958,7 @@ async function addToWatchedFlow(item){
     .filter(s => typeof s.season_number === "number" && s.season_number > 0)
     .forEach(s => { seasons_meta[s.season_number] = s.episode_count || 0; });
 
-  const baseTV = {
+  const tvItem = {
     ...item,
     avg_episode_minutes: avgEp,
     seasons_meta,
@@ -590,56 +967,41 @@ async function addToWatchedFlow(item){
     added_at: Date.now()
   };
 
-  if(seasons_meta[1] > 0) baseTV.seasons_watched[1] = 1;
+  // Default: mark 1 episode of season 1 if exists
+  if(seasons_meta[1] > 0) tvItem.seasons_watched[1] = 1;
 
-  const finalTV = await openTVModal(baseTV);
-  if(finalTV){
-    state.watched.unshift(finalTV);
-    scheduleRemoteSave();
-  } else {
-    state.watchlist.unshift({ id:item.id, media_type:item.media_type, title:item.title, year:item.year, poster_path:item.poster_path, added_at: Date.now() });
-    scheduleRemoteSave();
-  }
+  state.watched.unshift(tvItem);
+  scheduleRemoteSave();
 }
 
-/* ===================== TABS + SORT ===================== */
-function setActiveTab(containerId, active){
-  const c = document.getElementById(containerId);
-  c.querySelectorAll(".tab").forEach(t=> t.classList.toggle("active", t.dataset.tab === active));
-}
+/* ===================== WATCHLIST/WATCHED UI ===================== */
 document.getElementById("watchlistTabs").addEventListener("click", (e)=>{
   const tab = e.target.closest(".tab"); if(!tab) return;
   watchlistTab = tab.dataset.tab;
-  setActiveTab("watchlistTabs", watchlistTab);
+  document.querySelectorAll("#watchlistTabs .tab").forEach(t=>t.classList.toggle("active", t.dataset.tab===watchlistTab));
   renderWatchlist();
 });
 document.getElementById("watchedTabs").addEventListener("click", (e)=>{
   const tab = e.target.closest(".tab"); if(!tab) return;
   watchedTab = tab.dataset.tab;
-  setActiveTab("watchedTabs", watchedTab);
+  document.querySelectorAll("#watchedTabs .tab").forEach(t=>t.classList.toggle("active", t.dataset.tab===watchedTab));
   renderWatched();
 });
+document.getElementById("peopleTabs").addEventListener("click", (e)=>{
+  const tab = e.target.closest(".tab"); if(!tab) return;
+  peopleTab = tab.dataset.tab;
+  document.querySelectorAll("#peopleTabs .tab").forEach(t=>t.classList.toggle("active", t.dataset.tab===peopleTab));
+  renderPeople();
+});
+
 document.getElementById("watchlistSort").addEventListener("change", (e)=>{ watchlistSort = e.target.value; renderWatchlist(); });
 document.getElementById("watchedSort").addEventListener("change", (e)=>{ watchedSort = e.target.value; renderWatched(); });
 
-/* ===================== RENDER ===================== */
-const elTimeMovies = document.getElementById("timeMovies");
-const elTimeTV = document.getElementById("timeTV");
-const elTimeTotal = document.getElementById("timeTotal");
-
-const elTopMovieBody = document.getElementById("topMovieBody");
-const elTopTVBody = document.getElementById("topTVBody");
-const elTopMovieRating = document.getElementById("topMovieRating");
-const elTopTVRating = document.getElementById("topTVRating");
-
-const elWatchlistList = document.getElementById("watchlistList");
-const elWatchedList = document.getElementById("watchedList");
-
 function renderAll(){
-  renderTotals();
-  renderTopPicks();
   renderWatchlist();
   renderWatched();
+  renderPeople();
+  renderTotals();
 }
 
 function renderWatchlist(){
@@ -648,76 +1010,8 @@ function renderWatchlist(){
     elWatchlistList.innerHTML = `<div class="muted">No ${watchlistTab === "movie" ? "movies" : "TV shows"} in watchlist.</div>`;
     return;
   }
-  elWatchlistList.innerHTML = "";
-  list.forEach(item=>{
-    const div = document.createElement("div");
-    div.className = "item";
-    div.innerHTML = `
-      ${posterOrBlank(item.poster_path)}
-      <div>
-        <div class="title">${item.title}</div>
-        <div class="meta">${mediaLabel(item.media_type)} • ${item.year || "—"}</div>
-      </div>
-      <div class="actions">
-        <button class="btnSmall linkBtn" data-act="watched">✓ Watched</button>
-        <button class="btnSmall danger" data-act="remove">Remove</button>
-      </div>
-    `;
-    div.querySelector('[data-act="watched"]').addEventListener("click", async ()=>{
-      await addToWatchedFlow(item);
-      renderAll();
-    });
-    div.querySelector('[data-act="remove"]').addEventListener("click", ()=>{
-      state.watchlist = state.watchlist.filter(x => uniqKey(x) !== uniqKey(item));
-      scheduleRemoteSave();
-      renderAll();
-    });
-    elWatchlistList.appendChild(div);
-  });
-}
-
-function buildRatingUI(item){
-  const wrap = document.createElement("div");
-  wrap.className = "ratingWrap";
-  wrap.innerHTML = `
-    <div class="muted">Your rating:</div>
-    <div class="ratingPill" title="Click to change rating">
-      <span data-current>${ratingToText(item.rating)}</span>
-      <span class="muted">▾</span>
-    </div>
-    <div class="ratingMenu" role="menu">
-      <button type="button" data-rate="1">🍿</button>
-      <button type="button" data-rate="2">🍿🍿</button>
-      <button type="button" data-rate="3">🍿🍿🍿</button>
-      <button type="button" data-rate="4">🍿🍿🍿🍿</button>
-      <button type="button" data-rate="5">🍿🍿🍿🍿🍿</button>
-      <button type="button" data-rate="">Clear rating</button>
-    </div>
-  `;
-  const pill = wrap.querySelector(".ratingPill");
-  const menu = wrap.querySelector(".ratingMenu");
-  const currentSpan = wrap.querySelector("[data-current]");
-
-  function closeMenu(){ menu.style.display = "none"; }
-  pill.addEventListener("click", (e)=>{
-    e.stopPropagation();
-    menu.style.display = (menu.style.display === "block") ? "none" : "block";
-    const onDoc = () => closeMenu();
-    setTimeout(()=> document.addEventListener("click", onDoc, { once:true }), 0);
-  });
-
-  menu.querySelectorAll("[data-rate]").forEach(btn=>{
-    btn.addEventListener("click", (e)=>{
-      e.stopPropagation();
-      const val = btn.dataset.rate;
-      item.rating = (val === "") ? null : Number(val);
-      currentSpan.textContent = ratingToText(item.rating);
-      scheduleRemoteSave();
-      closeMenu();
-      renderAll();
-    });
-  });
-  return wrap;
+  elWatchlistList.innerHTML = list.map(item => listCardHtml(item, "watchlist")).join("");
+  wireListCards(elWatchlistList, "watchlist");
 }
 
 function renderWatched(){
@@ -726,66 +1020,173 @@ function renderWatched(){
     elWatchedList.innerHTML = `<div class="muted">No watched ${watchedTab === "movie" ? "movies" : "TV shows"} yet.</div>`;
     return;
   }
-  elWatchedList.innerHTML = "";
-  list.forEach(item=>{
-    const div = document.createElement("div");
-    div.className = "item";
+  elWatchedList.innerHTML = list.map(item => listCardHtml(item, "watched")).join("");
+  wireListCards(elWatchedList, "watched");
+}
 
-    if(item.media_type === "movie"){
-      div.innerHTML = `
-        ${posterOrBlank(item.poster_path)}
-        <div>
-          <div class="title">${item.title}</div>
-          <div class="meta">${item.year || "—"} • ${item.runtime_minutes || 0} min</div>
-        </div>
-        <div class="actions">
-          <button class="btnSmall" data-act="toWatchlist">↩ Watchlist</button>
-          <button class="btnSmall danger" data-act="remove">Remove</button>
-        </div>
-      `;
-      div.children[1].appendChild(buildRatingUI(item));
-    } else {
-      const totalEps = totalWatchedEpisodes(item);
-      div.innerHTML = `
-        ${posterOrBlank(item.poster_path)}
-        <div>
-          <div class="title">${item.title}</div>
-          <div class="meta">${item.year || "—"} • ${totalEps} ep × ${item.avg_episode_minutes || 0}m</div>
-          <div class="muted" style="margin-top:6px;">Tap “Edit” to update seasons/episodes.</div>
-        </div>
-        <div class="actions">
-          <button class="btnSmall linkBtn" data-act="edit">Edit</button>
-          <button class="btnSmall" data-act="toWatchlist">↩ Watchlist</button>
-          <button class="btnSmall danger" data-act="remove">Remove</button>
-        </div>
-      `;
-      div.children[1].appendChild(buildRatingUI(item));
+function renderPeople(){
+  const list = (peopleTab === "actors") ? state.people.actors : state.people.directors;
+  if(list.length === 0){
+    elPeopleList.innerHTML = `<div class="muted">No ${peopleTab} followed yet. Search a person and follow them.</div>`;
+    return;
+  }
+  elPeopleList.innerHTML = list.map(p => `
+    <div class="item" data-kind="followedPerson" data-person-id="${p.id}" data-person-name="${escapeHtml(p.name||"")}" data-profile="${escapeHtml(p.profile_path||"")}">
+      <button class="posterBtn" data-open="person" aria-label="Open person">
+        <img class="poster" src="${p.profile_path ? (IMG_SMALL + p.profile_path) : ""}" alt="" onerror="this.style.display='none'">
+      </button>
+      <div>
+        <div class="title" data-open="person">${escapeHtml(p.name||"—")}</div>
+        <div class="meta">Followed as ${peopleTab === "actors" ? "Actor" : "Director"}</div>
+      </div>
 
-      div.querySelector('[data-act="edit"]').addEventListener("click", async ()=>{
-        const updated = await openTVModal(item);
-        if(updated){
-          state.watched = state.watched.map(x => uniqKey(x)===uniqKey(item) ? updated : x);
+      <button class="kebab" data-open="menu" aria-label="Menu">⋮</button>
+      <div class="menu" data-menu>
+        <button data-act="openPerson">View Filmography</button>
+        <button class="dangerItem" data-act="unfollow">Unfollow</button>
+      </div>
+    </div>
+  `).join("");
+
+  // wire
+  elPeopleList.querySelectorAll(".item").forEach(card=>{
+    const kebab = card.querySelector('[data-open="menu"]');
+    const menu = card.querySelector("[data-menu]");
+
+    kebab.addEventListener("click", (e)=>{
+      e.stopPropagation();
+      const open = menu.style.display === "block";
+      document.querySelectorAll("[data-menu]").forEach(m=>m.style.display="none");
+      menu.style.display = open ? "none" : "block";
+    });
+
+    card.querySelectorAll('[data-open="person"]').forEach(x=>x.addEventListener("click", async (e)=>{
+      e.stopPropagation();
+      await openPersonModalFromCard(card);
+    }));
+
+    menu.querySelectorAll("button").forEach(btn=>{
+      btn.addEventListener("click", async (e)=>{
+        e.stopPropagation();
+        menu.style.display="none";
+        const pid = Number(card.dataset.personId);
+
+        if(btn.dataset.act === "openPerson"){
+          await openPersonModalFromCard(card);
+        } else if(btn.dataset.act === "unfollow"){
+          if(peopleTab === "actors"){
+            state.people.actors = state.people.actors.filter(x=>x.id!==pid);
+          } else {
+            state.people.directors = state.people.directors.filter(x=>x.id!==pid);
+          }
           scheduleRemoteSave();
-          renderAll();
+          renderPeople();
         }
       });
-    }
-
-    div.querySelector('[data-act="toWatchlist"]').addEventListener("click", ()=>{
-      state.watched = state.watched.filter(x => uniqKey(x) !== uniqKey(item));
-      state.watchlist.unshift({ id:item.id, media_type:item.media_type, title:item.title, year:item.year, poster_path:item.poster_path, added_at: Date.now() });
-      scheduleRemoteSave();
-      renderAll();
     });
-
-    div.querySelector('[data-act="remove"]').addEventListener("click", ()=>{
-      state.watched = state.watched.filter(x => uniqKey(x) !== uniqKey(item));
-      scheduleRemoteSave();
-      renderAll();
-    });
-
-    elWatchedList.appendChild(div);
   });
+
+  document.addEventListener("click", ()=> {
+    document.querySelectorAll("[data-menu]").forEach(m=>m.style.display="none");
+  }, { once:true });
+}
+
+function listCardHtml(item, listType){
+  const poster = item.poster_path ? (IMG_SMALL + item.poster_path) : "";
+  const year = item.year || "—";
+  const subtitle =
+    item.media_type === "movie"
+      ? `${year}${typeof item.runtime_minutes === "number" ? " • " + item.runtime_minutes + " min" : ""}`
+      : `${year} • ${totalWatchedEpisodes(item)} ep × ${item.avg_episode_minutes || 0}m`;
+
+  const ratingLine = (listType === "watched")
+    ? `<div class="meta">Your rating: <b>${ratingToText(item.rating)}</b></div>`
+    : ``;
+
+  return `
+    <div class="item" data-kind="title" data-id="${item.id}" data-media="${item.media_type}" data-name="${escapeHtml(item.title||"")}" data-year="${escapeHtml(item.year||"")}" data-poster="${escapeHtml(item.poster_path||"")}">
+      <button class="posterBtn" data-open="details" aria-label="Open details">
+        <img class="poster" src="${poster || ""}" alt="" onerror="this.style.display='none'">
+      </button>
+      <div>
+        <div class="title" data-open="details">${escapeHtml(item.title||"—")}</div>
+        <div class="meta">${subtitle}</div>
+        ${ratingLine}
+      </div>
+
+      <button class="kebab" data-open="menu" aria-label="Menu">⋮</button>
+      <div class="menu" data-menu>
+        <button data-act="details">Details</button>
+        ${listType === "watchlist"
+          ? `<button data-act="toWatched">✓ Mark Watched</button>`
+          : `<button data-act="toWatchlist">↩ Move to Watchlist</button>`
+        }
+        <button class="dangerItem" data-act="remove">Remove</button>
+      </div>
+    </div>
+  `;
+}
+
+function wireListCards(container, listType){
+  container.querySelectorAll(".item").forEach(card=>{
+    const kebab = card.querySelector('[data-open="menu"]');
+    const menu = card.querySelector("[data-menu]");
+
+    kebab.addEventListener("click", (e)=>{
+      e.stopPropagation();
+      const open = menu.style.display === "block";
+      document.querySelectorAll("[data-menu]").forEach(m=>m.style.display="none");
+      menu.style.display = open ? "none" : "block";
+    });
+
+    card.querySelectorAll('[data-open="details"]').forEach(x=>x.addEventListener("click", async (e)=>{
+      e.stopPropagation();
+      await openDetailsModalFromCard(card);
+    }));
+
+    menu.querySelectorAll("button").forEach(btn=>{
+      btn.addEventListener("click", async (e)=>{
+        e.stopPropagation();
+        menu.style.display="none";
+
+        const media_type = card.dataset.media;
+        const id = Number(card.dataset.id);
+        const title = card.dataset.name;
+        const year = card.dataset.year || "";
+        const poster_path = card.dataset.poster || "";
+        const k = `${media_type}:${id}`;
+
+        if(btn.dataset.act === "details"){
+          await openDetailsModalFromCard(card);
+          return;
+        }
+
+        if(listType === "watchlist"){
+          if(btn.dataset.act === "toWatched"){
+            await addToWatchedFlow({ id, media_type, title, year, poster_path });
+          }
+          if(btn.dataset.act === "remove"){
+            state.watchlist = state.watchlist.filter(x=>uniqKey(x)!==k);
+          }
+        } else {
+          if(btn.dataset.act === "toWatchlist"){
+            state.watched = state.watched.filter(x=>uniqKey(x)!==k);
+            state.watchlist.unshift({ id, media_type, title, year, poster_path, added_at: Date.now() });
+          }
+          if(btn.dataset.act === "remove"){
+            state.watched = state.watched.filter(x=>uniqKey(x)!==k);
+          }
+        }
+
+        scheduleRemoteSave();
+        renderAll();
+      });
+    });
+  });
+
+  document.addEventListener("click", ()=> {
+    document.querySelectorAll("[data-menu]").forEach(m=>m.style.display="none");
+  }, { once:true });
 }
 
 function renderTotals(){
@@ -799,161 +1200,260 @@ function renderTotals(){
   elTimeTotal.textContent = minutesToHM(movieMin + tvMin);
 }
 
-function pickBestRated(list){
-  if(!list.length) return null;
-  const sorted = [...list].filter(x=>x.rating !== null).sort((a,b)=>{
-    const ra = Number(a.rating), rb = Number(b.rating);
-    if(rb !== ra) return rb - ra;
-    return (b.added_at||0) - (a.added_at||0);
-  });
-  return sorted[0] || null;
+/* ===================== DETAILS MODAL ===================== */
+const detailsBackdrop = document.getElementById("detailsBackdrop");
+const detailsPoster = document.getElementById("detailsPoster");
+const detailsTitle = document.getElementById("detailsTitle");
+const detailsMeta = document.getElementById("detailsMeta");
+const detailsOverview = document.getElementById("detailsOverview");
+const castCarousel = document.getElementById("castCarousel");
+const dirCarousel = document.getElementById("dirCarousel");
+const simCarousel = document.getElementById("simCarousel");
+
+const btnDetailsClose = document.getElementById("detailsClose");
+const btnDetailsWatchlist = document.getElementById("detailsAddWatchlist");
+const btnDetailsWatched = document.getElementById("detailsAddWatched");
+
+let currentDetails = null;
+
+btnDetailsClose.addEventListener("click", ()=>closeDetails());
+detailsBackdrop.addEventListener("click", (e)=>{ if(e.target===detailsBackdrop) closeDetails(); });
+window.addEventListener("keydown", (e)=>{ if(e.key==="Escape" && detailsBackdrop.style.display==="flex") closeDetails(); });
+
+function closeDetails(){
+  detailsBackdrop.style.display = "none";
+  document.body.style.overflow = "";
+  currentDetails = null;
 }
 
-function renderTopPicks(){
-  const bestMovie = pickBestRated(state.watched.filter(x=>x.media_type==="movie"));
-  const bestTV = pickBestRated(state.watched.filter(x=>x.media_type==="tv"));
+async function openDetailsModalFromCard(card){
+  const media_type = card.dataset.media;
+  const id = Number(card.dataset.id);
+  const title = card.dataset.name;
+  const year = card.dataset.year || "";
+  const poster_path = card.dataset.poster || "";
 
-  if(bestMovie){
-    elTopMovieRating.textContent = ratingToText(bestMovie.rating);
-    elTopMovieBody.innerHTML = `
-      <div class="topCardBody">
-        ${bestMovie.poster_path ? `<img class="topPoster" src="${POSTER_BASE}${bestMovie.poster_path}" alt="">` : `<div class="topPoster"></div>`}
-        <div>
-          <div class="topTitle">${bestMovie.title}</div>
-          <div class="topMeta">${bestMovie.year || "—"} • ${bestMovie.runtime_minutes || 0} min</div>
-          <div class="topMeta">Rating: ${ratingToText(bestMovie.rating)}</div>
-        </div>
-      </div>
-    `;
-  } else {
-    elTopMovieRating.textContent = "—";
-    elTopMovieBody.textContent = "Rate watched movies to see a top pick.";
-  }
-
-  if(bestTV){
-    elTopTVRating.textContent = ratingToText(bestTV.rating);
-    elTopTVBody.innerHTML = `
-      <div class="topCardBody">
-        ${bestTV.poster_path ? `<img class="topPoster" src="${POSTER_BASE}${bestTV.poster_path}" alt="">` : `<div class="topPoster"></div>`}
-        <div>
-          <div class="topTitle">${bestTV.title}</div>
-          <div class="topMeta">${bestTV.year || "—"} • ${totalWatchedEpisodes(bestTV)} episodes watched</div>
-          <div class="topMeta">Rating: ${ratingToText(bestTV.rating)}</div>
-        </div>
-      </div>
-    `;
-  } else {
-    elTopTVRating.textContent = "—";
-    elTopTVBody.textContent = "Rate watched TV shows to see a top pick.";
-  }
+  await openDetailsModal({ id, media_type, title, year, poster_path });
 }
 
-/* ===================== TV MODAL ===================== */
-const backdrop = document.getElementById("tvModalBackdrop");
-const titleEl = document.getElementById("tvModalTitle");
-const subEl = document.getElementById("tvModalSub");
-const gridEl = document.getElementById("seasonGrid");
-const btnClose = document.getElementById("tvModalClose");
-const btnCancel = document.getElementById("tvModalCancel");
-const btnSave = document.getElementById("tvModalSave");
+async function openDetailsModal(item){
+  currentDetails = { ...item };
+  document.body.style.overflow = "hidden";
+  detailsBackdrop.style.display = "flex";
 
-function openTVModal(tvItem){
-  return new Promise((resolve)=>{
-    const working = JSON.parse(JSON.stringify(tvItem));
+  // basic fill while loading
+  detailsTitle.textContent = item.title || "—";
+  detailsMeta.textContent = `${item.media_type.toUpperCase()} • ${item.year || "—"}`;
+  detailsPoster.src = item.poster_path ? (IMG_POSTER + item.poster_path) : "";
+  detailsOverview.textContent = "Loading…";
+  castCarousel.innerHTML = "";
+  dirCarousel.innerHTML = "";
+  simCarousel.innerHTML = "";
 
-    titleEl.textContent = `${working.title} — Episodes Watched`;
-    subEl.textContent = "Enter how many episodes you watched per season (0..episode count).";
+  const exists = isInAnyList(item.media_type, item.id);
+  btnDetailsWatchlist.disabled = exists;
+  btnDetailsWatched.disabled = exists;
 
-    gridEl.innerHTML = "";
-    const seasonNumbers = Object.keys(working.seasons_meta || {})
-      .map(n=>parseInt(n,10))
-      .filter(n=>Number.isFinite(n))
-      .sort((a,b)=>a-b);
+  btnDetailsWatchlist.onclick = ()=>{
+    addToWatchlist(item);
+    btnDetailsWatchlist.disabled = true;
+    btnDetailsWatched.disabled = true;
+    renderAll();
+  };
+  btnDetailsWatched.onclick = async ()=>{
+    await addToWatchedFlow(item);
+    btnDetailsWatchlist.disabled = true;
+    btnDetailsWatched.disabled = true;
+    renderAll();
+  };
 
-    if(seasonNumbers.length === 0){
-      gridEl.innerHTML = `<div class="muted">No season data found for this show.</div>`;
-    }
+  try{
+    const isMovie = item.media_type === "movie";
+    const details = await tmdbFetch(`/${isMovie ? "movie" : "tv"}/${item.id}?language=en-US`);
+    const credits = await tmdbFetch(`/${isMovie ? "movie" : "tv"}/${item.id}/credits?language=en-US`);
+    const similar = await tmdbFetch(`/${isMovie ? "movie" : "tv"}/${item.id}/similar?language=en-US&page=1`);
 
-    seasonNumbers.forEach(sn=>{
-      const epCount = working.seasons_meta[sn] || 0;
-      const current = (working.seasons_watched && working.seasons_watched[sn]) ? working.seasons_watched[sn] : 0;
+    const runtime = isMovie ? (details.runtime || 0) : (Array.isArray(details.episode_run_time) && details.episode_run_time.length ? details.episode_run_time[0] : 0);
+    const genres = (details.genres||[]).slice(0,4).map(g=>g.name).join(" • ");
+    const score = Number.isFinite(details.vote_average) ? details.vote_average.toFixed(1) : "—";
 
-      const row = document.createElement("div");
-      row.className = "seasonRow";
-      row.innerHTML = `
-        <div>
-          <div style="font-weight:800; display:flex; gap:10px; align-items:center; justify-content:space-between;">
-            <span>Season ${sn}</span>
-            <button type="button" class="btnSmall" data-fill="season" style="padding:8px 10px;">Mark whole season</button>
-          </div>
-          <div class="muted">${epCount} episodes</div>
-        </div>
-        <div>
-          <input type="number" min="0" max="${epCount}" step="1" value="${current}" aria-label="Season ${sn} episodes watched">
-        </div>
-      `;
+    detailsMeta.textContent =
+      `${item.media_type.toUpperCase()} • ${item.year || "—"} • TMDB ${score}${runtime ? " • " + runtime + "m" : ""}${genres ? " • " + genres : ""}`;
 
-      const input = row.querySelector("input");
-      const fillBtn = row.querySelector('[data-fill="season"]');
+    detailsOverview.textContent = details.overview || "—";
 
-      fillBtn.addEventListener("click", ()=>{
-        input.value = epCount;
-        working.seasons_watched[sn] = epCount;
+    // Cast carousel
+    const cast = (credits.cast||[]).slice(0, 12);
+    castCarousel.innerHTML = cast.length
+      ? cast.map(p=>carPersonHtml(p)).join("")
+      : `<div class="muted">No cast found.</div>`;
+
+    // Directors carousel
+    const crew = credits.crew || [];
+    const directors = crew.filter(c=>c.job === "Director").slice(0, 10);
+    dirCarousel.innerHTML = directors.length
+      ? directors.map(p=>carPersonHtml(p, true)).join("")
+      : `<div class="muted">No directors found.</div>`;
+
+    // Similar carousel
+    const sim = (similar.results||[]).filter(r => r.poster_path).slice(0, 12);
+    simCarousel.innerHTML = sim.length
+      ? sim.map(r=>{
+          const mt = isMovie ? "movie" : "tv";
+          const name = isMovie ? r.title : r.name;
+          const yr = isMovie ? (r.release_date||"").slice(0,4) : (r.first_air_date||"").slice(0,4);
+          return carTitleHtml({ id:r.id, media_type: mt, title:name, year:yr, poster_path:r.poster_path });
+        }).join("")
+      : `<div class="muted">No similar titles found.</div>`;
+
+    // Wire clicks
+    castCarousel.querySelectorAll("[data-person]").forEach(btn=>{
+      btn.addEventListener("click", async ()=>{
+        const pid = Number(btn.dataset.person);
+        const pname = btn.dataset.name || "";
+        const pimg = btn.dataset.img || "";
+        await openPersonFilmography(pid, pname, pimg);
       });
-
-      input.addEventListener("input", ()=>{
-        let v = parseInt(input.value || "0", 10);
-        if(!Number.isFinite(v)) v = 0;
-        v = Math.max(0, Math.min(epCount, v));
-        input.value = v;
-        working.seasons_watched[sn] = v;
-      });
-
-      gridEl.appendChild(row);
     });
 
-    const close = (val)=>{
-      backdrop.style.display = "none";
-      document.body.style.overflow = "";
-      cleanup();
-      resolve(val);
-    };
+    dirCarousel.querySelectorAll("[data-person]").forEach(btn=>{
+      btn.addEventListener("click", async ()=>{
+        const pid = Number(btn.dataset.person);
+        const pname = btn.dataset.name || "";
+        const pimg = btn.dataset.img || "";
+        await openPersonFilmography(pid, pname, pimg);
+      });
+    });
 
-    const onEsc = (e)=>{ if(e.key==="Escape") close(null); };
-    const onBackdrop = (e)=>{ if(e.target === backdrop) close(null); };
+    simCarousel.querySelectorAll("[data-title]").forEach(btn=>{
+      btn.addEventListener("click", async ()=>{
+        const tid = Number(btn.dataset.id);
+        const mt = btn.dataset.media;
+        const nm = btn.dataset.name || "";
+        const yr = btn.dataset.year || "";
+        const pp = btn.dataset.poster || "";
+        await openDetailsModal({ id:tid, media_type:mt, title:nm, year:yr, poster_path:pp });
+      });
+    });
 
-    function cleanup(){
-      window.removeEventListener("keydown", onEsc);
-      backdrop.removeEventListener("click", onBackdrop);
-      btnClose.onclick = null;
-      btnCancel.onclick = null;
-      btnSave.onclick = null;
-    }
+  }catch(err){
+    console.error(err);
+    detailsOverview.textContent = "Failed to load details. " + (err?.message || String(err));
+  }
+}
 
-    btnClose.onclick = ()=>close(null);
-    btnCancel.onclick = ()=>close(null);
+function carPersonHtml(p, isCrew=false){
+  const img = p.profile_path ? (IMG_SMALL + p.profile_path) : "";
+  const role = isCrew ? (p.job || "—") : (p.character || "—");
+  return `
+    <div class="carItem" data-person="${p.id}" data-name="${escapeHtml(p.name||"")}" data-img="${escapeHtml(p.profile_path||"")}" role="button" tabindex="0">
+      <img class="carImg" src="${img || ""}" alt="" onerror="this.style.display='none'">
+      <div class="carName">${escapeHtml(p.name||"—")}</div>
+      <div class="carRole">${escapeHtml(role)}</div>
+    </div>
+  `;
+}
 
-    btnSave.onclick = ()=>{
-      const cleaned = {};
-      for(const [sn, v] of Object.entries(working.seasons_watched || {})){
-        const n = parseInt(sn,10);
-        const val = Number(v)||0;
-        if(val > 0) cleaned[n] = val;
-      }
-      working.seasons_watched = cleaned;
-      close(working);
-    };
+function carTitleHtml(item){
+  const img = item.poster_path ? (IMG_SMALL + item.poster_path) : "";
+  return `
+    <div class="carItem" data-title="1" data-id="${item.id}" data-media="${item.media_type}" data-name="${escapeHtml(item.title||"")}" data-year="${escapeHtml(item.year||"")}" data-poster="${escapeHtml(item.poster_path||"")}">
+      <img class="carImg" src="${img || ""}" alt="" onerror="this.style.display='none'">
+      <div class="carName">${escapeHtml(item.title||"—")}</div>
+      <div class="carRole">${escapeHtml(item.media_type.toUpperCase())} • ${escapeHtml(item.year||"—")}</div>
+    </div>
+  `;
+}
 
-    window.addEventListener("keydown", onEsc);
-    backdrop.addEventListener("click", onBackdrop);
-    document.body.style.overflow = "hidden";
-    backdrop.style.display = "flex";
-  });
+/* ===================== PERSON FILMOGRAPHY (simple: pushes to Search results) ===================== */
+async function openPersonModalFromCard(card){
+  const pid = Number(card.dataset.personId);
+  const name = card.dataset.personName || "";
+  const prof = card.dataset.profile || "";
+  await openPersonFilmography(pid, name, prof);
+}
+
+async function openPersonFilmography(personId, name, profile_path){
+  // Switch to Search tab and show their credits as results (clean + simple)
+  document.querySelectorAll(".topTab").forEach(t=>t.classList.toggle("active", t.dataset.section==="searchSec"));
+  document.querySelectorAll(".section").forEach(s=>s.classList.toggle("active", s.id==="searchSec"));
+
+  elResults.innerHTML = `<div class="muted">Loading filmography for <b>${escapeHtml(name||"Person")}</b>…</div>`;
+
+  try{
+    const credits = await tmdbFetch(`/person/${personId}/combined_credits?language=en-US`);
+    const all = []
+      .concat((credits.cast||[]).map(x=>({ ...x, creditType:"Cast" })))
+      .concat((credits.crew||[]).map(x=>({ ...x, creditType:(x.job||"Crew") })));
+
+    // keep only movies/tv with posters, sort by popularity
+    const list = all
+      .filter(x => (x.media_type==="movie" || x.media_type==="tv"))
+      .filter(x => x.poster_path)
+      .sort((a,b)=>(b.popularity||0)-(a.popularity||0))
+      .slice(0, 30);
+
+    const header = `
+      <div class="card" style="margin-bottom:12px;">
+        <div class="row" style="justify-content:space-between;">
+          <div>
+            <div style="font-weight:950;font-size:20px;">${escapeHtml(name||"Person")}</div>
+            <div class="muted">Top filmography (tap ⋮ to add titles)</div>
+          </div>
+          <button id="backToSearch">Back to Search</button>
+        </div>
+      </div>
+    `;
+
+    const items = list.map(x=>{
+      const media_type = x.media_type;
+      const title = media_type==="movie" ? x.title : x.name;
+      const year = media_type==="movie" ? (x.release_date||"").slice(0,4) : (x.first_air_date||"").slice(0,4);
+      const exists = isInAnyList(media_type, x.id);
+
+      return `
+        <div class="item" data-kind="title" data-id="${x.id}" data-media="${media_type}" data-name="${escapeHtml(title||"")}" data-year="${escapeHtml(year||"")}" data-poster="${escapeHtml(x.poster_path||"")}">
+          <button class="posterBtn" data-open="details" aria-label="Open details">
+            <img class="poster" src="${IMG_SMALL}${x.poster_path}" alt="" onerror="this.style.display='none'">
+          </button>
+          <div>
+            <div class="title" data-open="details">${escapeHtml(title||"—")}</div>
+            <div class="meta">${media_type.toUpperCase()} • ${escapeHtml(year||"—")} • ${escapeHtml(x.creditType||"")}</div>
+          </div>
+
+          <button class="kebab" data-open="menu" aria-label="Menu">⋮</button>
+          <div class="menu" data-menu>
+            <button data-act="details">Details</button>
+            <button data-act="watchlist" ${exists ? "disabled":""}>+ Add to Watchlist</button>
+            <button data-act="watched" ${exists ? "disabled":""}>✓ Mark Watched</button>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    elResults.innerHTML = header + `<div class="results">${items}</div>`;
+    document.getElementById("backToSearch").addEventListener("click", ()=>{ elResults.innerHTML=""; });
+
+    wireResultActions();
+
+  }catch(err){
+    console.error(err);
+    elResults.innerHTML = `<div class="muted">Failed to load filmography: ${escapeHtml(err?.message || String(err))}</div>`;
+  }
+}
+
+/* ===================== HELPERS ===================== */
+function escapeHtml(s){
+  return String(s ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
 }
 
 /* ===================== START ===================== */
-/* ✅ This guarantees the DOM + Supabase script are loaded before we run */
-window.addEventListener("load", () => {
+window.addEventListener("load", ()=>{
   try{
     initSync();
   }catch(e){
