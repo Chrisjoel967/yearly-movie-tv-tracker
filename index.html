@@ -3,137 +3,447 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Yearly Movie & TV Tracker</title>
-
+  <title>HaveYouWatch</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
+    /* ── DARK THEME (default) ── */
     :root{
-      --bg:#f6f7fb;
-      --card:#ffffff;
-      --card2:#fbfcff;
-      --border:#dde3f0;
-      --border2:#cfd8ee;
-      --text:#0f172a;
-      --muted:#5b6475;
-      --accent:#2563eb;
-      --accent2:#1d4ed8;
-      --danger:#dc2626;
-      --shadow: 0 12px 30px rgba(15,23,42,.08);
-      --radius:18px;
+      --bg:#0a0b0f;
+      --surface:#111318;
+      --surface2:#181b22;
+      --border:#232733;
+      --border2:#2e3444;
+      --text:#f0f2f8;
+      --muted:#6b7280;
+      --muted2:#9ca3af;
+      --accent:#e8a020;
+      --accent2:#f5b942;
+      --accent-dim:rgba(232,160,32,.12);
+      --danger:#e05252;
+      --danger-dim:rgba(224,82,82,.10);
+      --green:#3ecf8e;
+      --green-dim:rgba(62,207,142,.10);
+      --radius:16px;
+      --shadow:0 8px 32px rgba(0,0,0,.45);
     }
 
-    *{ box-sizing:border-box; }
+    /* ── LIGHT THEME ── */
+    :root[data-theme="light"]{
+      --bg:#f4f5f7;
+      --surface:#ffffff;
+      --surface2:#f9fafb;
+      --border:#e2e5ec;
+      --border2:#d1d6e0;
+      --text:#0f1117;
+      --muted:#9ca3af;
+      --muted2:#6b7280;
+      --accent:#c47d00;
+      --accent2:#a86b00;
+      --accent-dim:rgba(196,125,0,.10);
+      --danger:#dc2626;
+      --danger-dim:rgba(220,38,38,.08);
+      --green:#059669;
+      --green-dim:rgba(5,150,105,.09);
+      --shadow:0 4px 20px rgba(0,0,0,.08);
+    }
+
+    /* Theme transition */
+    *, *::before, *::after{
+      transition: background-color .25s ease, border-color .25s ease, color .15s ease, box-shadow .25s ease;
+    }
+    /* Disable transition on images/svgs */
+    img, svg { transition: none !important; }
+
+    *{ box-sizing:border-box; margin:0; padding:0; }
 
     body{
-      margin:0;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
-      background: radial-gradient(1200px 600px at 20% -10%, #e8efff, var(--bg));
+      font-family:'DM Sans', sans-serif;
+      background:var(--bg);
       color:var(--text);
+      min-height:100vh;
     }
 
-    .wrap{ max-width:1150px; margin:0 auto; padding:18px; }
-    h1{ margin:0 0 14px; font-size:40px; letter-spacing:.2px; }
+    /* ── AUTH SCREEN ── */
+    #authScreen{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:100vh;
+      padding:24px;
+      background:
+        radial-gradient(ellipse 700px 500px at 70% 0%, rgba(232,160,32,.06), transparent),
+        radial-gradient(ellipse 500px 400px at 10% 100%, rgba(232,160,32,.04), transparent),
+        var(--bg);
+    }
 
-    .card{
-      background:linear-gradient(180deg, var(--card2), var(--card));
+    :root[data-theme="light"] #authScreen{
+      background:
+        radial-gradient(ellipse 700px 500px at 70% 0%, rgba(196,125,0,.07), transparent),
+        radial-gradient(ellipse 500px 400px at 10% 100%, rgba(196,125,0,.05), transparent),
+        var(--bg);
+    }
+
+    .authBox{
+      width:100%;
+      max-width:420px;
+    }
+
+    .authLogo{
+      font-family:'Bebas Neue', sans-serif;
+      font-size:52px;
+      letter-spacing:1px;
+      color:var(--text);
+      line-height:1;
+      margin-bottom:6px;
+    }
+
+    .authLogo span{ color:var(--accent); }
+
+    .authTagline{
+      color:var(--muted2);
+      font-size:14px;
+      margin-bottom:36px;
+    }
+
+    .authCard{
+      background:var(--surface);
       border:1px solid var(--border);
       border-radius:var(--radius);
-      padding:14px;
-      box-shadow: var(--shadow);
+      padding:28px;
+      box-shadow:var(--shadow);
     }
 
-    .subCard{
-      border:1px solid var(--border);
-      border-radius:16px;
-      padding:12px;
-      background:#fff;
-    }
-
-    .subTitle{ font-weight:900; margin:0 0 8px; }
-
-    .row{
+    .authTabs{
       display:flex;
-      gap:10px;
-      align-items:center;
-      flex-wrap:wrap;
+      gap:0;
+      margin-bottom:24px;
+      border-bottom:1px solid var(--border);
     }
 
-    input, select, button{
-      background:#fff;
+    .authTab{
+      flex:1;
+      background:none;
+      border:none;
+      color:var(--muted2);
+      font-family:'DM Sans',sans-serif;
+      font-size:14px;
+      font-weight:600;
+      padding:10px;
+      cursor:pointer;
+      border-bottom:2px solid transparent;
+      margin-bottom:-1px;
+      transition:all .2s;
+    }
+
+    .authTab.active{
+      color:var(--accent);
+      border-bottom-color:var(--accent);
+    }
+
+    .authField{ margin-bottom:16px; }
+
+    .authLabel{
+      display:block;
+      font-size:12px;
+      font-weight:600;
+      color:var(--muted2);
+      text-transform:uppercase;
+      letter-spacing:.05em;
+      margin-bottom:6px;
+    }
+
+    .authInput{
+      width:100%;
+      background:var(--surface2);
       border:1px solid var(--border2);
       color:var(--text);
-      border-radius:14px;
-      padding:11px 12px;
-      font-size:16px;
+      border-radius:10px;
+      padding:12px 14px;
+      font-family:'DM Sans',sans-serif;
+      font-size:15px;
+      outline:none;
+      transition:border-color .2s;
     }
 
-    button{ cursor:pointer; }
-    button:hover{ border-color:var(--accent); }
-    button:disabled{ opacity:.55; cursor:not-allowed; }
+    .authInput:focus{ border-color:var(--accent); }
 
-    .muted{ color:var(--muted); font-size:13px; }
+    .btnAuth{
+      width:100%;
+      background:var(--accent);
+      color:#0a0b0f;
+      border:none;
+      border-radius:10px;
+      padding:13px;
+      font-family:'DM Sans',sans-serif;
+      font-size:15px;
+      font-weight:700;
+      cursor:pointer;
+      transition:background .2s, transform .1s;
+      margin-top:4px;
+    }
 
-    .topTabs{
+    .btnAuth:hover{ background:var(--accent2); }
+    .btnAuth:active{ transform:scale(.98); }
+    .btnAuth:disabled{ opacity:.55; cursor:not-allowed; }
+
+    .authMsg{
+      font-size:13px;
+      margin-top:12px;
+      text-align:center;
+      min-height:20px;
+    }
+
+    .authMsg.error{ color:var(--danger); }
+    .authMsg.success{ color:var(--green); }
+
+    /* ── MAIN APP ── */
+    #appScreen{ display:none; }
+
+    .topbar{
+      background:var(--surface);
+      border-bottom:1px solid var(--border);
+      padding:0 20px;
       display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      margin:10px 0 14px;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      height:58px;
+      position:sticky;
+      top:0;
+      z-index:100;
+    }
+
+    .appLogo{
+      font-family:'Bebas Neue',sans-serif;
+      font-size:28px;
+      letter-spacing:.5px;
+      color:var(--text);
+      white-space:nowrap;
+    }
+
+    .appLogo span{ color:var(--accent); }
+
+    .topNav{
+      display:flex;
+      gap:2px;
+      flex:1;
+      justify-content:center;
     }
 
     .topTab{
-      border:1px solid var(--border2);
-      background:#fff;
-      border-radius:999px;
-      padding:10px 14px;
-      font-size:14px;
+      background:none;
+      border:none;
+      color:var(--muted2);
+      font-family:'DM Sans',sans-serif;
+      font-size:13px;
+      font-weight:600;
+      padding:7px 12px;
+      border-radius:8px;
       cursor:pointer;
-      user-select:none;
+      transition:all .18s;
+      white-space:nowrap;
     }
+
+    .topTab:hover{ color:var(--text); background:var(--surface2); }
 
     .topTab.active{
-      border-color:var(--accent);
-      background:rgba(37,99,235,.08);
-      color:var(--accent2);
-      font-weight:700;
+      color:var(--accent);
+      background:var(--accent-dim);
     }
 
-    .searchWrap{ position:relative; flex:1; min-width:240px; }
-    .searchWrap input{ width:100%; padding-right:48px; }
+    .userChip{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      background:var(--surface2);
+      border:1px solid var(--border2);
+      border-radius:999px;
+      padding:6px 12px 6px 8px;
+      cursor:pointer;
+      transition:border-color .18s;
+    }
+
+    .userChip:hover{ border-color:var(--accent); }
+
+    .userAvatar{
+      width:26px;
+      height:26px;
+      border-radius:50%;
+      background:var(--accent-dim);
+      border:1px solid var(--accent);
+      display:grid;
+      place-items:center;
+      font-size:12px;
+      font-weight:700;
+      color:var(--accent);
+    }
+
+    .userEmail{
+      font-size:12px;
+      color:var(--muted2);
+      max-width:120px;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+
+    .signOutBtn{
+      background:none;
+      border:none;
+      color:var(--muted);
+      font-size:11px;
+      cursor:pointer;
+      padding:2px 0;
+      font-family:'DM Sans',sans-serif;
+    }
+
+    .signOutBtn:hover{ color:var(--danger); }
+
+    .wrap{ max-width:1100px; margin:0 auto; padding:20px; }
+
+    .section{ display:none; }
+    .section.active{ display:block; }
+
+    /* ── CARDS ── */
+    .card{
+      background:var(--surface);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:18px;
+      box-shadow:var(--shadow);
+    }
+
+    .cardTitle{
+      font-family:'Bebas Neue',sans-serif;
+      font-size:24px;
+      letter-spacing:.5px;
+      color:var(--text);
+    }
+
+    .subCard{
+      background:var(--surface2);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:14px;
+    }
+
+    /* ── PILLS / TABS ── */
+    .pillTabs{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top:12px;
+    }
+
+    .pillTab{
+      background:var(--surface2);
+      border:1px solid var(--border2);
+      border-radius:999px;
+      padding:7px 14px;
+      font-size:13px;
+      font-weight:600;
+      cursor:pointer;
+      color:var(--muted2);
+      transition:all .18s;
+    }
+
+    .pillTab:hover{ color:var(--text); border-color:var(--muted); }
+
+    .pillTab.active{
+      border-color:var(--accent);
+      background:var(--accent-dim);
+      color:var(--accent);
+    }
+
+    /* ── SEARCH ── */
+    .searchRow{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .searchWrap{ position:relative; flex:1; min-width:220px; }
+
+    .searchInput{
+      width:100%;
+      background:var(--surface2);
+      border:1px solid var(--border2);
+      color:var(--text);
+      border-radius:12px;
+      padding:11px 44px 11px 14px;
+      font-family:'DM Sans',sans-serif;
+      font-size:15px;
+      outline:none;
+      transition:border-color .2s;
+    }
+
+    .searchInput:focus{ border-color:var(--accent); }
+
+    .searchInput::placeholder{ color:var(--muted); }
 
     .clearX{
       position:absolute;
       right:10px;
       top:50%;
       transform:translateY(-50%);
+      background:none;
       border:none;
-      background:transparent;
-      padding:6px 8px;
-      font-size:20px;
       color:var(--muted);
+      font-size:18px;
+      cursor:pointer;
+      padding:4px 6px;
       line-height:1;
     }
 
-    .section{ display:none; }
-    .section.active{ display:block; }
-
-    .results,.list{
-      display:grid;
-      gap:12px;
-      margin-top:12px;
+    select{
+      background:var(--surface2);
+      border:1px solid var(--border2);
+      color:var(--text);
+      border-radius:12px;
+      padding:11px 14px;
+      font-family:'DM Sans',sans-serif;
+      font-size:14px;
+      outline:none;
+      cursor:pointer;
     }
+
+    select:focus{ border-color:var(--accent); }
+
+    .btnSearch{
+      background:var(--accent);
+      color:#0a0b0f;
+      border:none;
+      border-radius:12px;
+      padding:11px 20px;
+      font-family:'DM Sans',sans-serif;
+      font-size:14px;
+      font-weight:700;
+      cursor:pointer;
+      transition:background .18s;
+    }
+
+    .btnSearch:hover{ background:var(--accent2); }
+
+    /* ── ITEM CARDS ── */
+    .results,.list{ display:grid; gap:10px; margin-top:14px; }
 
     .item{
       position:relative;
       display:grid;
-      grid-template-columns:64px 1fr;
+      grid-template-columns:64px 1fr auto;
       gap:12px;
       align-items:center;
-      background:linear-gradient(180deg, #ffffff, #fbfcff);
+      background:var(--surface2);
       border:1px solid var(--border);
-      border-radius:18px;
+      border-radius:14px;
       padding:12px;
+      transition:border-color .18s;
     }
+
+    .item:hover{ border-color:var(--border2); }
 
     .posterBtn{
       border:none;
@@ -142,59 +452,79 @@
       cursor:pointer;
       width:64px;
       height:96px;
+      flex-shrink:0;
     }
 
     .poster{
       width:64px;
       height:96px;
-      border-radius:14px;
+      border-radius:10px;
       object-fit:cover;
-      background:#e9eefc;
-      border:1px solid var(--border);
+      background:var(--surface);
+      border:1px solid var(--border2);
+      display:block;
     }
 
-    .title{
-      font-weight:900;
-      font-size:20px;
-      line-height:1.1;
-      margin:0;
+    .itemTitle{
+      font-weight:700;
+      font-size:16px;
+      line-height:1.2;
       cursor:pointer;
+      color:var(--text);
+      transition:color .15s;
     }
 
-    .title:hover{ color:var(--accent2); }
+    .itemTitle:hover{ color:var(--accent); }
 
     .meta{
-      color:var(--muted);
-      font-size:13px;
+      color:var(--muted2);
+      font-size:12px;
       margin-top:4px;
     }
 
+    .badge{
+      display:inline-block;
+      font-size:10px;
+      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+      padding:2px 7px;
+      border-radius:5px;
+      margin-right:5px;
+    }
+
+    .badge-movie{ background:rgba(99,102,241,.18); color:#a5b4fc; }
+    .badge-tv{ background:rgba(16,185,129,.14); color:#6ee7b7; }
+    .badge-watched{ background:var(--green-dim); color:var(--green); }
+    .badge-watchlist{ background:var(--accent-dim); color:var(--accent); }
+
+    /* ── KEBAB MENU ── */
     .kebab{
-      position:absolute;
-      top:10px;
-      right:10px;
-      width:38px;
-      height:38px;
-      border-radius:999px;
+      width:36px;
+      height:36px;
+      border-radius:8px;
       border:1px solid var(--border2);
-      background:#fff;
+      background:var(--surface);
+      color:var(--muted2);
       display:grid;
       place-items:center;
       font-size:18px;
       cursor:pointer;
+      transition:all .15s;
+      flex-shrink:0;
     }
 
-    .kebab:hover{ border-color:var(--accent); }
+    .kebab:hover{ border-color:var(--accent); color:var(--accent); }
 
     .menu{
       position:absolute;
-      top:52px;
+      top:50px;
       right:10px;
-      width:220px;
-      background:#fff;
-      border:1px solid var(--border);
-      border-radius:16px;
-      box-shadow: var(--shadow);
+      width:210px;
+      background:var(--surface);
+      border:1px solid var(--border2);
+      border-radius:12px;
+      box-shadow:var(--shadow);
       overflow:hidden;
       display:none;
       z-index:50;
@@ -203,417 +533,616 @@
     .menu button{
       width:100%;
       border:none;
-      border-bottom:1px solid #eef2ff;
-      background:#fff;
-      padding:12px 12px;
+      border-bottom:1px solid var(--border);
+      background:none;
+      color:var(--text);
+      padding:11px 14px;
       text-align:left;
-      border-radius:0;
-      font-size:14px;
+      font-family:'DM Sans',sans-serif;
+      font-size:13px;
+      cursor:pointer;
+      transition:background .15s;
     }
 
     .menu button:last-child{ border-bottom:none; }
-    .menu button:hover{ background:rgba(37,99,235,.07); }
+    .menu button:hover{ background:var(--surface2); }
     .menu .dangerItem{ color:var(--danger); }
+    .menu button:disabled{ opacity:.4; cursor:not-allowed; }
 
-    .tabs{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-top:10px;
+    /* ── STATS ── */
+    .statsGrid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));
+      gap:12px;
+      margin-top:14px;
     }
 
-    .tab{
-      border:1px solid var(--border2);
-      background:#fff;
-      border-radius:999px;
-      padding:8px 12px;
-      font-size:14px;
-      cursor:pointer;
-      user-select:none;
+    .statBox{
+      background:var(--surface2);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:16px;
+      text-align:center;
     }
 
-    .tab.active{
-      border-color:var(--accent);
-      background:rgba(37,99,235,.08);
-      color:var(--accent2);
-      font-weight:700;
+    .statVal{
+      font-family:'Bebas Neue',sans-serif;
+      font-size:36px;
+      color:var(--accent);
+      line-height:1;
     }
 
-    .statsRow{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      justify-content:space-between;
-      margin-top:10px;
+    .statLabel{
+      font-size:11px;
+      font-weight:600;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      color:var(--muted2);
+      margin-top:4px;
     }
 
-    .pill{
-      flex:1;
-      min-width:160px;
-      display:flex;
-      justify-content:center;
-      gap:10px;
-      align-items:center;
-      border:1px solid var(--border2);
-      background:#fff;
-      border-radius:999px;
-      padding:10px 12px;
-      font-size:14px;
-      white-space:nowrap;
-    }
-
-    .countBadges{
-      display:flex;
-      gap:8px;
-      margin-left:10px;
-      flex-wrap:wrap;
-    }
-
-    .countBadge{
-      background:#eef2f7;
-      border:1px solid #d8dee9;
-      border-radius:14px;
-      padding:2px 10px;
-      font-size:12px;
-      font-weight:700;
-      color:#4a5568;
-    }
-
+    /* ── MODAL ── */
     .backdrop{
       position:fixed;
       inset:0;
-      background:rgba(15,23,42,.55);
+      background:rgba(0,0,0,.7);
       display:none;
       align-items:center;
       justify-content:center;
       padding:16px;
       z-index:999;
+      backdrop-filter:blur(4px);
     }
 
     .modal{
-      width:min(920px, 100%);
-      background:#fff;
-      border:1px solid var(--border);
-      border-radius:18px;
-      box-shadow: var(--shadow);
+      width:min(900px,100%);
+      background:var(--surface);
+      border:1px solid var(--border2);
+      border-radius:20px;
+      box-shadow:var(--shadow);
       overflow:hidden;
-      max-height:calc(100vh - 28px);
+      max-height:calc(100vh - 32px);
       display:flex;
       flex-direction:column;
     }
 
     .modalTop{
       display:grid;
-      grid-template-columns:120px 1fr auto;
-      gap:14px;
-      padding:14px;
+      grid-template-columns:130px 1fr auto;
+      gap:16px;
+      padding:18px;
       border-bottom:1px solid var(--border);
-      background:linear-gradient(180deg, #ffffff, #fbfcff);
+      background:var(--surface2);
       position:sticky;
       top:0;
       z-index:10;
     }
 
     .modalPoster{
-      width:120px;
-      height:180px;
-      border-radius:16px;
+      width:130px;
+      height:195px;
+      border-radius:14px;
       object-fit:cover;
-      background:#e9eefc;
-      border:1px solid var(--border);
+      background:var(--surface);
+      border:1px solid var(--border2);
     }
 
     .modalTitle{
-      font-weight:950;
-      font-size:22px;
-      margin:0;
+      font-family:'Bebas Neue',sans-serif;
+      font-size:28px;
+      letter-spacing:.3px;
+      color:var(--text);
     }
 
     .modalMeta{
-      color:var(--muted);
+      color:var(--muted2);
       font-size:13px;
       margin-top:6px;
+      line-height:1.5;
     }
 
     .modalActions{
       display:flex;
       flex-direction:column;
-      gap:10px;
-    }
-
-    .modalActions button{
-      border-radius:14px;
-      padding:10px 12px;
-      font-weight:700;
+      gap:8px;
     }
 
     .btnPrimary{
-      border-color:var(--accent);
-      background:rgba(37,99,235,.10);
-      color:var(--accent2);
+      background:var(--accent-dim);
+      border:1px solid var(--accent);
+      color:var(--accent);
+      border-radius:10px;
+      padding:9px 14px;
+      font-family:'DM Sans',sans-serif;
+      font-size:13px;
+      font-weight:700;
+      cursor:pointer;
+      transition:background .15s;
     }
 
+    .btnPrimary:hover{ background:rgba(232,160,32,.2); }
+    .btnPrimary:disabled{ opacity:.45; cursor:not-allowed; }
+
     .btnDanger{
-      border-color:rgba(220,38,38,.35);
-      background:rgba(220,38,38,.07);
+      background:var(--danger-dim);
+      border:1px solid rgba(224,82,82,.35);
       color:var(--danger);
+      border-radius:10px;
+      padding:9px 14px;
+      font-family:'DM Sans',sans-serif;
+      font-size:13px;
+      font-weight:700;
+      cursor:pointer;
     }
 
     .modalBody{
-      padding:14px;
+      padding:16px;
       display:grid;
       gap:14px;
       overflow:auto;
-      -webkit-overflow-scrolling: touch;
+      -webkit-overflow-scrolling:touch;
+    }
+
+    .subTitle{
+      font-family:'Bebas Neue',sans-serif;
+      font-size:16px;
+      letter-spacing:.3px;
+      color:var(--muted2);
+      margin-bottom:10px;
     }
 
     .overview{
-      color:var(--muted);
-      line-height:1.45;
-      margin:0;
+      color:var(--muted2);
+      font-size:14px;
+      line-height:1.55;
     }
 
+    /* ── CAROUSEL ── */
     .carousel{
       display:flex;
       gap:12px;
       overflow:auto;
-      padding:6px 2px 10px;
+      padding:4px 2px 10px;
       scroll-snap-type:x mandatory;
     }
 
+    .carousel::-webkit-scrollbar{ height:4px; }
+    .carousel::-webkit-scrollbar-track{ background:var(--surface); border-radius:2px; }
+    .carousel::-webkit-scrollbar-thumb{ background:var(--border2); border-radius:2px; }
+
     .carItem{
-      min-width:120px;
-      max-width:120px;
+      min-width:110px;
+      max-width:110px;
       scroll-snap-align:start;
       cursor:pointer;
-      user-select:none;
     }
 
     .carImg{
-      width:120px;
-      height:170px;
-      border-radius:18px;
+      width:110px;
+      height:155px;
+      border-radius:12px;
       object-fit:cover;
-      background:#e9eefc;
+      background:var(--surface);
       border:1px solid var(--border);
       display:block;
+      transition:opacity .15s;
     }
 
+    .carItem:hover .carImg{ opacity:.8; }
+
     .carName{
-      font-size:13px;
-      font-weight:800;
+      font-size:12px;
+      font-weight:700;
       margin-top:6px;
       line-height:1.2;
+      color:var(--text);
     }
 
     .carRole{
-      font-size:12px;
-      color:var(--muted);
+      font-size:11px;
+      color:var(--muted2);
       margin-top:2px;
-      line-height:1.2;
     }
 
-    .homeGrid{
+    /* ── SORT ROW ── */
+    .listHeader{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-bottom:4px;
+    }
+
+    .countBadges{ display:flex; gap:8px; }
+
+    .countBadge{
+      background:var(--surface2);
+      border:1px solid var(--border2);
+      border-radius:8px;
+      padding:3px 10px;
+      font-size:12px;
+      font-weight:700;
+      color:var(--muted2);
+    }
+
+    /* ── TOAST ── */
+    #toast{
+      position:fixed;
+      bottom:28px;
+      left:50%;
+      transform:translateX(-50%) translateY(20px);
+      background:var(--surface2);
+      border:1px solid var(--green);
+      color:var(--green);
+      border-radius:999px;
+      padding:10px 20px;
+      font-size:14px;
+      font-weight:600;
+      opacity:0;
+      transition:all .3s;
+      pointer-events:none;
+      z-index:9999;
+      white-space:nowrap;
+    }
+
+    #toast.show{
+      opacity:1;
+      transform:translateX(-50%) translateY(0);
+    }
+
+    /* ── STATUS BAR ── */
+    .statusBar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:10px 20px;
+      background:var(--surface);
+      border-top:1px solid var(--border);
+      font-size:11px;
+      color:var(--muted);
+    }
+
+    /* ── EMPTY STATES ── */
+    .emptyState{
+      padding:40px 20px;
+      text-align:center;
+    }
+
+    .emptyIcon{
+      font-size:48px;
+      margin-bottom:12px;
+      opacity:.4;
+    }
+
+    .emptyText{
+      color:var(--muted2);
+      font-size:14px;
+    }
+
+    /* ── HOME GRID ── */
+    .homeGrid{ display:grid; gap:10px; margin-top:14px; }
+
+    /* ── PEOPLE GRID ── */
+    .peopleGrid{ display:grid; gap:10px; margin-top:14px; }
+
+    /* ── RATING SELECT ── */
+    select.ratingSelect{
+      background:var(--surface2);
+      border:1px solid var(--border2);
+      color:var(--text);
+      border-radius:10px;
+      padding:9px 14px;
+      font-size:14px;
+      min-width:155px;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width:720px){
+      .topNav{ display:none; }
+      .mobileNav{
+        display:flex;
+        overflow-x:auto;
+        gap:6px;
+        padding:10px 16px;
+        background:var(--surface);
+        border-bottom:1px solid var(--border);
+      }
+      .mobileNavBtn{
+        flex-shrink:0;
+        background:var(--surface2);
+        border:1px solid var(--border2);
+        border-radius:999px;
+        padding:7px 14px;
+        font-family:'DM Sans',sans-serif;
+        font-size:12px;
+        font-weight:600;
+        color:var(--muted2);
+        cursor:pointer;
+      }
+      .mobileNavBtn.active{
+        background:var(--accent-dim);
+        border-color:var(--accent);
+        color:var(--accent);
+      }
+      .userEmail{ display:none; }
+      .modalTop{ grid-template-columns:90px 1fr; }
+      .modalPoster{ width:90px; height:135px; }
+      .modalActions{ grid-column:1/-1; flex-direction:row; flex-wrap:wrap; }
+      .modalActions button{ flex:1; min-width:130px; }
+    }
+
+    @media (min-width:721px){
+      .mobileNav{ display:none; }
+    }
+
+    /* ── THEME TOGGLE ── */
+    .themeToggle{
+      width:38px;
+      height:38px;
+      border-radius:10px;
+      border:1px solid var(--border2);
+      background:var(--surface2);
+      color:var(--muted2);
       display:grid;
-      gap:12px;
-      margin-top:12px;
+      place-items:center;
+      font-size:17px;
+      cursor:pointer;
+      transition:border-color .18s, color .18s;
+      flex-shrink:0;
     }
 
-    .homeNote{ margin-top:6px; }
-
-    .footerCard{ margin-top:18px; }
-
-    @media (max-width: 900px){
-      h1{ font-size:32px; }
+    .themeToggle:hover{
+      border-color:var(--accent);
+      color:var(--accent);
     }
 
-    @media (max-width: 540px){
-      .wrap{ padding:14px; }
-      input,select,button{ font-size:15px; }
-      .row > *{ width:100%; }
-      .searchWrap{ width:100%; }
-      .searchWrap input{ padding-right:54px; }
-      .clearX{ right:10px; }
-
-      .modalTop{
-        grid-template-columns:90px 1fr;
-      }
-
-      .modalPoster{
-        width:90px;
-        height:135px;
-      }
-
-      .modalActions{
-        grid-column:1 / -1;
-        flex-direction:row;
-        flex-wrap:wrap;
-      }
-
-      .modalActions button{
-        flex:1;
-        min-width:140px;
-      }
-
-      .modalActions select{
-        width:100%;
-      }
+    /* Auth screen theme toggle (top-right corner) */
+    #authThemeToggle{
+      position:fixed;
+      top:16px;
+      right:16px;
+      width:38px;
+      height:38px;
+      border-radius:10px;
+      border:1px solid var(--border2);
+      background:var(--surface);
+      color:var(--muted2);
+      display:grid;
+      place-items:center;
+      font-size:17px;
+      cursor:pointer;
+      z-index:10;
     }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar{ width:6px; height:6px; }
+    ::-webkit-scrollbar-track{ background:transparent; }
+    ::-webkit-scrollbar-thumb{ background:var(--border2); border-radius:3px; }
   </style>
 </head>
 <body>
-<div class="wrap">
-  <h1>Yearly Movie & TV Tracker</h1>
 
-  <div class="topTabs" id="topTabs">
-    <div class="topTab active" data-section="homeSec">Home</div>
-    <div class="topTab" data-section="searchSec">Search</div>
-    <div class="topTab" data-section="watchlistSec">Watchlist</div>
-    <div class="topTab" data-section="watchedSec">Watched</div>
-    <div class="topTab" data-section="peopleSec">People</div>
-    <div class="topTab" data-section="statsSec">Stats</div>
-  </div>
+<!-- ══════════════ AUTH SCREEN ══════════════ -->
+<div id="authScreen">
+  <button id="authThemeToggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+  <div class="authBox">
+    <div class="authLogo">Have<span>You</span>Watch</div>
+    <div class="authTagline">Your personal movie & TV tracker</div>
 
-  <div class="section active" id="homeSec">
-    <div class="card">
-      <div class="row" style="justify-content:space-between;">
-        <div>
-          <div style="font-weight:950;font-size:22px;">Recently Added</div>
-          <div class="muted homeNote">Last 5 items you added (Watchlist + Watched).</div>
+    <div class="authCard">
+      <div class="authTabs">
+        <button class="authTab active" id="tabSignIn" onclick="switchAuthTab('signin')">Sign In</button>
+        <button class="authTab" id="tabSignUp" onclick="switchAuthTab('signup')">Create Account</button>
+      </div>
+
+      <div id="formSignIn">
+        <div class="authField">
+          <label class="authLabel">Email</label>
+          <input class="authInput" type="email" id="siEmail" placeholder="you@example.com" />
         </div>
-      </div>
-
-      <div id="homeRecent" class="homeGrid"></div>
-    </div>
-  </div>
-
-  <div class="section" id="searchSec">
-    <div class="card">
-      <div class="row">
-        <div class="searchWrap">
-          <input id="searchInput" placeholder="Search titles, actors, or directors…" />
-          <button class="clearX" id="clearSearch" aria-label="Clear search">✕</button>
+        <div class="authField">
+          <label class="authLabel">Password</label>
+          <input class="authInput" type="password" id="siPass" placeholder="••••••••" />
         </div>
-
-        <select id="searchMode">
-          <option value="auto" selected>Auto-detect</option>
-          <option value="titles">Titles only</option>
-          <option value="people">People only</option>
-        </select>
-
-        <select id="typeFilter">
-          <option value="multi" selected>Movies + TV</option>
-          <option value="movie">Movies only</option>
-          <option value="tv">TV only</option>
-        </select>
-
-        <button id="searchBtn">Search</button>
+        <button class="btnAuth" id="btnSignIn" onclick="doSignIn()">Sign In</button>
+        <div class="authMsg" id="siMsg"></div>
       </div>
 
-      <div class="muted" style="margin-top:8px;">
-        Auto-detect shows <b>Titles</b> and <b>People</b>. Tap a poster/title for details.
-      </div>
-
-      <div id="results" class="results"></div>
-    </div>
-  </div>
-
-  <div class="section" id="watchlistSec">
-    <div class="card">
-      <div class="row" style="justify-content:space-between;">
-        <div style="display:flex;align-items:center;">
-          <div style="font-weight:950;font-size:22px;">Watchlist</div>
-          <div class="countBadges">
-            <div class="countBadge" id="watchlistMoviesCount">0 Movies</div>
-            <div class="countBadge" id="watchlistTVCount">0 TV</div>
-          </div>
+      <div id="formSignUp" style="display:none;">
+        <div class="authField">
+          <label class="authLabel">Email</label>
+          <input class="authInput" type="email" id="suEmail" placeholder="you@example.com" />
         </div>
-
-        <select id="watchlistSort" style="min-width:200px;">
-          <option value="recent" selected>Recently added</option>
-          <option value="title">Title (A–Z)</option>
-        </select>
-      </div>
-
-      <div class="tabs" id="watchlistTabs">
-        <div class="tab active" data-tab="movie">Movies</div>
-        <div class="tab" data-tab="tv">TV Shows</div>
-      </div>
-
-      <div id="watchlistList" class="list"></div>
-    </div>
-  </div>
-
-  <div class="section" id="watchedSec">
-    <div class="card">
-      <div class="row" style="justify-content:space-between;">
-        <div style="display:flex;align-items:center;">
-          <div style="font-weight:950;font-size:22px;">Watched</div>
-          <div class="countBadges">
-            <div class="countBadge" id="watchedMoviesCount">0 Movies</div>
-            <div class="countBadge" id="watchedTVCount">0 TV</div>
-          </div>
+        <div class="authField">
+          <label class="authLabel">Password</label>
+          <input class="authInput" type="password" id="suPass" placeholder="Min 6 characters" />
         </div>
-
-        <select id="watchedSort" style="min-width:200px;">
-          <option value="recent" selected>Recently added</option>
-          <option value="title">Title (A–Z)</option>
-        </select>
+        <button class="btnAuth" id="btnSignUp" onclick="doSignUp()">Create Account</button>
+        <div class="authMsg" id="suMsg"></div>
       </div>
-
-      <div class="tabs" id="watchedTabs">
-        <div class="tab active" data-tab="movie">Movies</div>
-        <div class="tab" data-tab="tv">TV Shows</div>
-      </div>
-
-      <div id="watchedList" class="list"></div>
-    </div>
-  </div>
-
-  <div class="section" id="peopleSec">
-    <div class="card">
-      <div class="row" style="justify-content:space-between;">
-        <div style="font-weight:950;font-size:22px;">People (Actors & Directors)</div>
-      </div>
-
-      <div class="muted" style="margin-top:6px;">
-        Search people, follow them, then view their filmography and add titles to Watchlist/Watched.
-      </div>
-
-      <div class="tabs" id="peopleTabs">
-        <div class="tab active" data-tab="actors">Actors</div>
-        <div class="tab" data-tab="directors">Directors</div>
-      </div>
-
-      <div id="peopleList" class="list"></div>
-    </div>
-  </div>
-
-  <div class="section" id="statsSec">
-    <div class="card">
-      <div style="font-weight:950;font-size:22px;">Year Totals</div>
-      <div class="statsRow">
-        <div class="pill"><b>Movies</b> <span id="timeMovies">0h 0m</span></div>
-        <div class="pill"><b>TV</b> <span id="timeTV">0h 0m</span></div>
-        <div class="pill"><b>Total</b> <span id="timeTotal">0h 0m</span></div>
-      </div>
-      <div class="muted" style="margin-top:10px;">
-        Movies = runtime · TV = watched episodes × avg episode runtime
-      </div>
-    </div>
-  </div>
-
-  <div class="card footerCard">
-    <div class="row" style="justify-content:space-between;">
-      <div class="muted">
-        Sync status: <span id="syncStatus">Starting…</span><br/>
-        <span id="debugBox" class="muted">Debug: —</span>
-      </div>
-      <div class="muted">Last saved: <span id="lastSaved">—</span></div>
     </div>
   </div>
 </div>
 
+<!-- ══════════════ MAIN APP ══════════════ -->
+<div id="appScreen">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="appLogo">Have<span>You</span>Watch</div>
+
+    <nav class="topNav" id="topTabsDesktop">
+      <button class="topTab active" data-section="homeSec">Home</button>
+      <button class="topTab" data-section="searchSec">Search</button>
+      <button class="topTab" data-section="watchlistSec">Watchlist</button>
+      <button class="topTab" data-section="watchedSec">Watched</button>
+      <button class="topTab" data-section="peopleSec">People</button>
+      <button class="topTab" data-section="statsSec">Stats</button>
+    </nav>
+
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button class="themeToggle" id="appThemeToggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+      <div class="userChip" id="userChip">
+        <div class="userAvatar" id="userAvatar">?</div>
+        <span class="userEmail" id="userEmailLabel">—</span>
+        <button class="signOutBtn" onclick="doSignOut()">Sign out</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile nav -->
+  <div class="mobileNav" id="topTabsMobile">
+    <button class="mobileNavBtn active" data-section="homeSec">Home</button>
+    <button class="mobileNavBtn" data-section="searchSec">Search</button>
+    <button class="mobileNavBtn" data-section="watchlistSec">Watchlist</button>
+    <button class="mobileNavBtn" data-section="watchedSec">Watched</button>
+    <button class="mobileNavBtn" data-section="peopleSec">People</button>
+    <button class="mobileNavBtn" data-section="statsSec">Stats</button>
+  </div>
+
+  <div class="wrap">
+
+    <!-- HOME -->
+    <div class="section active" id="homeSec">
+      <div class="card">
+        <div class="cardTitle">Recently Added</div>
+        <div style="color:var(--muted2);font-size:13px;margin-top:4px;">Your last 5 items across Watchlist & Watched</div>
+        <div id="homeRecent" class="homeGrid"></div>
+      </div>
+    </div>
+
+    <!-- SEARCH -->
+    <div class="section" id="searchSec">
+      <div class="card">
+        <div class="searchRow">
+          <div class="searchWrap">
+            <input class="searchInput" id="searchInput" placeholder="Search titles, actors, directors…" />
+            <button class="clearX" id="clearSearch" aria-label="Clear">✕</button>
+          </div>
+          <select id="searchMode">
+            <option value="auto">Auto-detect</option>
+            <option value="titles">Titles only</option>
+            <option value="people">People only</option>
+          </select>
+          <select id="typeFilter">
+            <option value="multi">Movies + TV</option>
+            <option value="movie">Movies only</option>
+            <option value="tv">TV only</option>
+          </select>
+          <button class="btnSearch" id="searchBtn">Search</button>
+        </div>
+        <div style="color:var(--muted);font-size:12px;margin-top:8px;">Tap a poster or title for full details</div>
+        <div id="results" class="results"></div>
+      </div>
+    </div>
+
+    <!-- WATCHLIST -->
+    <div class="section" id="watchlistSec">
+      <div class="card">
+        <div class="listHeader">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div class="cardTitle">Watchlist</div>
+            <div class="countBadges">
+              <div class="countBadge" id="watchlistMoviesCount">0 Movies</div>
+              <div class="countBadge" id="watchlistTVCount">0 TV</div>
+            </div>
+          </div>
+          <select id="watchlistSort">
+            <option value="recent">Recently added</option>
+            <option value="title">Title A–Z</option>
+          </select>
+        </div>
+        <div class="pillTabs" id="watchlistTabs">
+          <button class="pillTab active" data-tab="movie">Movies</button>
+          <button class="pillTab" data-tab="tv">TV Shows</button>
+        </div>
+        <div id="watchlistList" class="list"></div>
+      </div>
+    </div>
+
+    <!-- WATCHED -->
+    <div class="section" id="watchedSec">
+      <div class="card">
+        <div class="listHeader">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div class="cardTitle">Watched</div>
+            <div class="countBadges">
+              <div class="countBadge" id="watchedMoviesCount">0 Movies</div>
+              <div class="countBadge" id="watchedTVCount">0 TV</div>
+            </div>
+          </div>
+          <select id="watchedSort">
+            <option value="recent">Recently added</option>
+            <option value="title">Title A–Z</option>
+          </select>
+        </div>
+        <div class="pillTabs" id="watchedTabs">
+          <button class="pillTab active" data-tab="movie">Movies</button>
+          <button class="pillTab" data-tab="tv">TV Shows</button>
+        </div>
+        <div id="watchedList" class="list"></div>
+      </div>
+    </div>
+
+    <!-- PEOPLE -->
+    <div class="section" id="peopleSec">
+      <div class="card">
+        <div class="cardTitle">People</div>
+        <div style="color:var(--muted2);font-size:13px;margin-top:4px;">Actors & Directors you follow</div>
+        <div class="pillTabs" id="peopleTabs">
+          <button class="pillTab active" data-tab="actors">Actors</button>
+          <button class="pillTab" data-tab="directors">Directors</button>
+        </div>
+        <div id="peopleList" class="list"></div>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="section" id="statsSec">
+      <div class="card">
+        <div class="cardTitle">Your Stats</div>
+        <div class="statsGrid">
+          <div class="statBox">
+            <div class="statVal" id="statMovieCount">0</div>
+            <div class="statLabel">Movies Watched</div>
+          </div>
+          <div class="statBox">
+            <div class="statVal" id="statTVCount">0</div>
+            <div class="statLabel">TV Shows Watched</div>
+          </div>
+          <div class="statBox">
+            <div class="statVal" id="timeMovies">0h 0m</div>
+            <div class="statLabel">Movie Time</div>
+          </div>
+          <div class="statBox">
+            <div class="statVal" id="timeTV">0h 0m</div>
+            <div class="statLabel">TV Time</div>
+          </div>
+          <div class="statBox">
+            <div class="statVal" id="timeTotal">0h 0m</div>
+            <div class="statLabel">Total Watch Time</div>
+          </div>
+          <div class="statBox">
+            <div class="statVal" id="statWatchlistCount">0</div>
+            <div class="statLabel">On Watchlist</div>
+          </div>
+        </div>
+        <div style="color:var(--muted);font-size:12px;margin-top:14px;">Movies = runtime · TV = watched episodes × avg episode runtime</div>
+      </div>
+    </div>
+
+  </div><!-- /wrap -->
+
+  <!-- Status bar -->
+  <div class="statusBar">
+    <span>Sync: <span id="syncStatus">—</span></span>
+    <span>Last saved: <span id="lastSaved">—</span></span>
+  </div>
+
+</div><!-- /appScreen -->
+
+<!-- ══════════════ DETAILS MODAL ══════════════ -->
 <div class="backdrop" id="detailsBackdrop">
   <div class="modal" role="dialog" aria-modal="true">
     <div class="modalTop">
@@ -625,36 +1154,30 @@
       <div class="modalActions">
         <button id="detailsAddWatchlist" class="btnPrimary">+ Watchlist</button>
         <button id="detailsAddWatched" class="btnPrimary">✓ Watched</button>
-
-        <select id="detailsRating" title="Your rating" style="min-width:160px;">
-          <option value="">Your rating: —</option>
+        <select id="detailsRating" class="ratingSelect" title="Your rating">
+          <option value="">Rating: —</option>
           <option value="1">🍿</option>
           <option value="2">🍿🍿</option>
           <option value="3">🍿🍿🍿</option>
           <option value="4">🍿🍿🍿🍿</option>
           <option value="5">🍿🍿🍿🍿🍿</option>
         </select>
-
-        <button id="detailsClose" class="btnDanger">← Back</button>
+        <button id="detailsClose" class="btnDanger">← Close</button>
       </div>
     </div>
-
     <div class="modalBody">
       <div class="subCard">
         <div class="subTitle">Overview</div>
         <p id="detailsOverview" class="overview">—</p>
       </div>
-
       <div class="subCard">
-        <div class="subTitle">Top Billed Cast</div>
+        <div class="subTitle">Top Cast</div>
         <div id="castCarousel" class="carousel"></div>
       </div>
-
       <div class="subCard">
         <div class="subTitle">Directors</div>
         <div id="dirCarousel" class="carousel"></div>
       </div>
-
       <div class="subCard">
         <div class="subTitle">Similar Titles</div>
         <div id="simCarousel" class="carousel"></div>
@@ -663,479 +1186,399 @@
   </div>
 </div>
 
+<!-- Toast -->
+<div id="toast"></div>
+
 <script>
+// ─────────────────────────────────────────────
+// CONFIG — fill in your own keys
+// ─────────────────────────────────────────────
 const TMDB_BEARER = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJlOWY5NGVkYTNjMzFmMmQ2NWFjM2Y1OWNmMTBhN2VlNiIsIm5iZiI6MTc3MDUxMTY4MS4wNDQsInN1YiI6IjY5ODdkZDQxNjM5ZGJlZWQwNjhjOGQzYiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.JjpO38-YZKSOX_PXz9zEYiW4zUDpTlFkwPf4XNIOB74";
-const TMDB_BASE = "https://api.themoviedb.org/3";
+const TMDB_BASE  = "https://api.themoviedb.org/3";
 const IMG_POSTER = "https://image.tmdb.org/t/p/w342";
 const IMG_SMALL  = "https://image.tmdb.org/t/p/w185";
 
-const SUPABASE_URL = "https://bgnvmzvrmavzztplzlcg.supabase.co";
+const SUPABASE_URL      = "https://bgnvmzvrmavzztplzlcg.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJnbnZtenZybWF2enp0cGx6bGNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5NjA3MjEsImV4cCI6MjA4NDUzNjcyMX0.fBqfl2Mk8FX_epBwYJ7dBJl5SwyGQyjVfrfiKsrT-xc";
-const SUPA_TABLE = "tracker_state";
-const SUPA_ID = "main";
-const LOCAL_KEY = "yearly_tracker_synced_cache_v2";
+const SUPA_TABLE        = "tracker_state";
+const LOCAL_KEY         = "hyw_cache_v1";
 
-const elSyncStatus = document.getElementById("syncStatus");
-const elLastSaved  = document.getElementById("lastSaved");
-const elDebugBox   = document.getElementById("debugBox");
-
-const elHomeRecent = document.getElementById("homeRecent");
-
-const elResults = document.getElementById("results");
-const elSearchInput = document.getElementById("searchInput");
-const elSearchMode = document.getElementById("searchMode");
-const elTypeFilter = document.getElementById("typeFilter");
-
-const elWatchlistList = document.getElementById("watchlistList");
-const elWatchedList = document.getElementById("watchedList");
-const elPeopleList = document.getElementById("peopleList");
-
-const elWatchlistMoviesCount = document.getElementById("watchlistMoviesCount");
-const elWatchlistTVCount = document.getElementById("watchlistTVCount");
-const elWatchedMoviesCount = document.getElementById("watchedMoviesCount");
-const elWatchedTVCount = document.getElementById("watchedTVCount");
-
-const elTimeMovies = document.getElementById("timeMovies");
-const elTimeTV = document.getElementById("timeTV");
-const elTimeTotal = document.getElementById("timeTotal");
-
-let state = loadLocalState();
-let watchlistTab = "movie";
-let watchedTab = "movie";
-let peopleTab = "actors";
-let watchlistSort = "recent";
-let watchedSort = "recent";
-
-let sb = null;
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+let sb        = null;
+let currentUser = null;
+let state     = baseState();
 let saveTimer = null;
 
-function debug(msg){
-  if(elDebugBox) elDebugBox.textContent = "Debug: " + msg;
+let watchlistTab  = "movie";
+let watchedTab    = "movie";
+let peopleTab     = "actors";
+let watchlistSort = "recent";
+let watchedSort   = "recent";
+
+// DOM shortcuts
+const authScreen   = document.getElementById("authScreen");
+const appScreen    = document.getElementById("appScreen");
+const elSyncStatus = document.getElementById("syncStatus");
+const elLastSaved  = document.getElementById("lastSaved");
+const elResults    = document.getElementById("results");
+const elSearchInput= document.getElementById("searchInput");
+const elWatchlistList= document.getElementById("watchlistList");
+const elWatchedList  = document.getElementById("watchedList");
+const elPeopleList   = document.getElementById("peopleList");
+const elHomeRecent   = document.getElementById("homeRecent");
+
+// ─────────────────────────────────────────────
+// TOAST
+// ─────────────────────────────────────────────
+let toastTimer;
+function showToast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> t.classList.remove("show"), 2500);
 }
 
-function setSyncStatus(msg){
-  if(elSyncStatus) elSyncStatus.textContent = msg;
+// ─────────────────────────────────────────────
+// AUTH HELPERS
+// ─────────────────────────────────────────────
+function switchAuthTab(tab){
+  document.getElementById("formSignIn").style.display = tab === "signin" ? "block" : "none";
+  document.getElementById("formSignUp").style.display = tab === "signup" ? "block" : "none";
+  document.getElementById("tabSignIn").classList.toggle("active", tab === "signin");
+  document.getElementById("tabSignUp").classList.toggle("active", tab === "signup");
 }
 
-function setLastSaved(ts){
-  if(!ts){
-    elLastSaved.textContent = "—";
-    return;
-  }
-  const d = new Date(ts);
-  elLastSaved.textContent = d.toLocaleString();
+async function doSignIn(){
+  const email = document.getElementById("siEmail").value.trim();
+  const pass  = document.getElementById("siPass").value;
+  const msg   = document.getElementById("siMsg");
+  const btn   = document.getElementById("btnSignIn");
+  if(!email || !pass){ msg.textContent = "Please fill in both fields."; msg.className="authMsg error"; return; }
+  btn.disabled = true; msg.textContent = "Signing in…"; msg.className="authMsg";
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+  btn.disabled = false;
+  if(error){ msg.textContent = error.message; msg.className="authMsg error"; return; }
+  await onSignedIn(data.user);
 }
 
-function closeAllMenus(){
-  document.querySelectorAll("[data-menu]").forEach(m => m.style.display = "none");
-}
-
-function loadLocalState(){
-  try{
-    const s = JSON.parse(localStorage.getItem(LOCAL_KEY));
-    return s || baseState();
-  }catch{
-    return baseState();
-  }
-}
-
-function saveLocalState(){
-  localStorage.setItem(LOCAL_KEY, JSON.stringify(state));
-}
-
-function baseState(){
-  return {
-    watchlist: [],
-    watched: [],
-    people: {
-      actors: [],
-      directors: []
-    }
-  };
-}
-
-function migrate(){
-  if(!state.people) state.people = { actors: [], directors: [] };
-  if(!Array.isArray(state.people.actors)) state.people.actors = [];
-  if(!Array.isArray(state.people.directors)) state.people.directors = [];
-
-  state.watchlist = Array.isArray(state.watchlist) ? state.watchlist : [];
-  state.watched = Array.isArray(state.watched) ? state.watched : [];
-
-  for(const x of state.watchlist){
-    if(typeof x.added_at !== "number") x.added_at = Date.now();
-  }
-
-  for(const x of state.watched){
-    if(typeof x.added_at !== "number") x.added_at = Date.now();
-    if(!("rating" in x)) x.rating = null;
-    if(x.media_type === "tv"){
-      if(!x.seasons_watched) x.seasons_watched = {};
-      if(!x.seasons_meta) x.seasons_meta = {};
-      if(typeof x.avg_episode_minutes !== "number") x.avg_episode_minutes = 45;
-    }
-  }
-
-  saveLocalState();
-}
-
-function uniqKey(item){
-  return `${item.media_type}:${item.id}`;
-}
-
-function minutesToHM(total){
-  return `${Math.floor(total/60)}h ${total%60}m`;
-}
-
-function totalWatchedEpisodes(tvItem){
-  const map = tvItem.seasons_watched || {};
-  return Object.values(map).reduce((a,b)=>a+(Number(b)||0), 0);
-}
-
-function applySort(list, mode){
-  const arr = [...list];
-  if(mode === "title") arr.sort((a,b)=> (a.title||"").localeCompare(b.title||""));
-  else arr.sort((a,b)=> (b.added_at||0) - (a.added_at||0));
-  return arr;
-}
-
-function isInAnyList(media_type, id){
-  const k = `${media_type}:${id}`;
-  return state.watchlist.some(x=>uniqKey(x)===k) || state.watched.some(x=>uniqKey(x)===k);
-}
-
-function ratingToText(r){
-  const n = Number(r);
-  if(!Number.isFinite(n) || r === null) return "—";
-  return "🍿".repeat(Math.max(1, Math.min(5, n)));
-}
-
-function renderCounts(){
-  const watchlistMovies = state.watchlist.filter(x => x.media_type === "movie").length;
-  const watchlistTV = state.watchlist.filter(x => x.media_type === "tv").length;
-  const watchedMovies = state.watched.filter(x => x.media_type === "movie").length;
-  const watchedTV = state.watched.filter(x => x.media_type === "tv").length;
-
-  if(elWatchlistMoviesCount){
-    elWatchlistMoviesCount.textContent = watchlistMovies + (watchlistMovies === 1 ? " Movie" : " Movies");
-  }
-  if(elWatchlistTVCount){
-    elWatchlistTVCount.textContent = watchlistTV + " TV";
-  }
-  if(elWatchedMoviesCount){
-    elWatchedMoviesCount.textContent = watchedMovies + (watchedMovies === 1 ? " Movie" : " Movies");
-  }
-  if(elWatchedTVCount){
-    elWatchedTVCount.textContent = watchedTV + " TV";
+async function doSignUp(){
+  const email = document.getElementById("suEmail").value.trim();
+  const pass  = document.getElementById("suPass").value;
+  const msg   = document.getElementById("suMsg");
+  const btn   = document.getElementById("btnSignUp");
+  if(!email || !pass){ msg.textContent = "Please fill in both fields."; msg.className="authMsg error"; return; }
+  if(pass.length < 6){ msg.textContent = "Password must be at least 6 characters."; msg.className="authMsg error"; return; }
+  btn.disabled = true; msg.textContent = "Creating account…"; msg.className="authMsg";
+  const { data, error } = await sb.auth.signUp({ email, password: pass });
+  btn.disabled = false;
+  if(error){ msg.textContent = error.message; msg.className="authMsg error"; return; }
+  // if email confirmation is off, user is immediately signed in
+  if(data.session){
+    await onSignedIn(data.user);
+  } else {
+    msg.textContent = "Account created! Check your email to confirm, then sign in.";
+    msg.className = "authMsg success";
   }
 }
 
-function canUseSupabase(){
-  return !!(SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase && window.supabase.createClient);
+async function doSignOut(){
+  await sb.auth.signOut();
+  currentUser = null;
+  state = baseState();
+  authScreen.style.display = "flex";
+  appScreen.style.display  = "none";
 }
 
-async function initSync(){
-  debug("initSync() started");
-  migrate();
+async function onSignedIn(user){
+  currentUser = user;
+  authScreen.style.display = "none";
+  appScreen.style.display  = "block";
 
-  if(!canUseSupabase()){
-    setSyncStatus("Supabase not loaded");
-    debug("Supabase JS missing");
-    setLastSaved(null);
-    renderAll();
-    return;
-  }
+  // Update UI
+  const initial = (user.email || "?")[0].toUpperCase();
+  document.getElementById("userAvatar").textContent = initial;
+  document.getElementById("userEmailLabel").textContent = user.email || "";
 
-  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  setSyncStatus("Connecting…");
-  debug("Supabase client created");
-
-  try{
-    const { data, error } = await sb
-      .from(SUPA_TABLE)
-      .select("state, updated_at")
-      .eq("id", SUPA_ID)
-      .maybeSingle();
-
-    if(error) throw error;
-
-    if(data && data.state){
-      state = data.state;
-      migrate();
-      setSyncStatus("Synced");
-      debug("Loaded remote state");
-      setLastSaved(data.updated_at);
-    } else {
-      const { error: upErr } = await sb
-        .from(SUPA_TABLE)
-        .upsert({ id: SUPA_ID, state }, { onConflict: "id" });
-
-      if(upErr) throw upErr;
-      setSyncStatus("Synced (created)");
-      debug("Created remote state");
-      setLastSaved(Date.now());
-    }
-  }catch(err){
-    console.error(err);
-    setSyncStatus("Sync error (using local)");
-    debug("Sync error: " + (err?.message || String(err)));
-  }
-
+  setSyncStatus("Loading…");
+  await loadRemoteState();
   renderAll();
 }
 
-function scheduleRemoteSave(){
-  saveLocalState();
-  if(!sb) return;
-
-  setSyncStatus("Saving…");
-  debug("Saving to Supabase…");
-
-  if(saveTimer) clearTimeout(saveTimer);
-  saveTimer = setTimeout(async ()=>{
-    try{
-      const { data, error } = await sb
-        .from(SUPA_TABLE)
-        .upsert({ id: SUPA_ID, state }, { onConflict: "id" })
-        .select("updated_at")
-        .single();
-
-      if(error) throw error;
-
-      setSyncStatus("Synced");
-      debug("Saved to Supabase");
-      setLastSaved(data.updated_at);
-    }catch(err){
-      console.error(err);
-      setSyncStatus("Sync error (saved locally)");
-      debug("Save error: " + (err?.message || String(err)));
-    }
-  }, 650);
+// ─────────────────────────────────────────────
+// STATE HELPERS
+// ─────────────────────────────────────────────
+function baseState(){
+  return { watchlist:[], watched:[], people:{ actors:[], directors:[] } };
 }
 
-async function tmdbFetch(path){
-  const res = await fetch(`${TMDB_BASE}${path}`, {
-    headers: {
-      Authorization: `Bearer ${TMDB_BEARER}`,
-      "Content-Type":"application/json;charset=utf-8"
+function migrate(){
+  if(!state.people) state.people = { actors:[], directors:[] };
+  if(!Array.isArray(state.people.actors)) state.people.actors=[];
+  if(!Array.isArray(state.people.directors)) state.people.directors=[];
+  state.watchlist = Array.isArray(state.watchlist) ? state.watchlist : [];
+  state.watched   = Array.isArray(state.watched)   ? state.watched   : [];
+  for(const x of state.watchlist) if(typeof x.added_at!=="number") x.added_at=Date.now();
+  for(const x of state.watched){
+    if(typeof x.added_at!=="number") x.added_at=Date.now();
+    if(!("rating" in x)) x.rating=null;
+    if(x.media_type==="tv"){
+      if(!x.seasons_watched) x.seasons_watched={};
+      if(!x.seasons_meta)    x.seasons_meta={};
+      if(typeof x.avg_episode_minutes!=="number") x.avg_episode_minutes=45;
     }
+  }
+}
+
+function uniqKey(item){ return `${item.media_type}:${item.id}`; }
+function minutesToHM(t){ return `${Math.floor(t/60)}h ${t%60}m`; }
+function totalWatchedEpisodes(tv){ return Object.values(tv.seasons_watched||{}).reduce((a,b)=>a+(Number(b)||0),0); }
+function applySort(list,mode){
+  const arr=[...list];
+  if(mode==="title") arr.sort((a,b)=>(a.title||"").localeCompare(b.title||""));
+  else arr.sort((a,b)=>(b.added_at||0)-(a.added_at||0));
+  return arr;
+}
+function isInAnyList(mt,id){
+  const k=`${mt}:${id}`;
+  return state.watchlist.some(x=>uniqKey(x)===k)||state.watched.some(x=>uniqKey(x)===k);
+}
+function ratingToText(r){
+  const n=Number(r);
+  if(!Number.isFinite(n)||r===null) return "—";
+  return "🍿".repeat(Math.max(1,Math.min(5,n)));
+}
+
+// ─────────────────────────────────────────────
+// SYNC
+// ─────────────────────────────────────────────
+function setSyncStatus(msg){ elSyncStatus.textContent=msg; }
+function setLastSaved(ts){
+  if(!ts){ elLastSaved.textContent="—"; return; }
+  elLastSaved.textContent=new Date(ts).toLocaleString();
+}
+
+async function loadRemoteState(){
+  if(!sb||!currentUser) return;
+  try{
+    const { data, error } = await sb
+      .from(SUPA_TABLE)
+      .select("state,updated_at")
+      .eq("id", currentUser.id)
+      .maybeSingle();
+    if(error) throw error;
+    if(data && data.state){
+      state = data.state;
+      migrate();
+      setLastSaved(data.updated_at);
+      setSyncStatus("Synced ✓");
+    } else {
+      await saveRemote();
+      setSyncStatus("Synced (new) ✓");
+    }
+  }catch(err){
+    setSyncStatus("Sync error (local only)");
+    console.error(err);
+  }
+}
+
+function scheduleRemoteSave(){
+  localStorage.setItem(LOCAL_KEY+"_"+currentUser?.id, JSON.stringify(state));
+  if(!sb||!currentUser) return;
+  setSyncStatus("Saving…");
+  if(saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveRemote, 700);
+}
+
+async function saveRemote(){
+  if(!sb||!currentUser) return;
+  try{
+    const { data, error } = await sb
+      .from(SUPA_TABLE)
+      .upsert({ id: currentUser.id, state }, { onConflict:"id" })
+      .select("updated_at")
+      .single();
+    if(error) throw error;
+    setSyncStatus("Synced ✓");
+    setLastSaved(data.updated_at);
+  }catch(err){
+    setSyncStatus("Save error");
+    console.error(err);
+  }
+}
+
+// ─────────────────────────────────────────────
+// TMDB
+// ─────────────────────────────────────────────
+async function tmdbFetch(path){
+  const res = await fetch(`${TMDB_BASE}${path}`,{
+    headers:{ Authorization:`Bearer ${TMDB_BEARER}`, "Content-Type":"application/json;charset=utf-8" }
   });
   if(!res.ok) throw new Error(`TMDB ${res.status}`);
   return res.json();
 }
 
-document.getElementById("topTabs").addEventListener("click", (e)=>{
-  const t = e.target.closest(".topTab");
-  if(!t) return;
-  document.querySelectorAll(".topTab").forEach(x=>x.classList.toggle("active", x===t));
-  document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
-  document.getElementById(t.dataset.section).classList.add("active");
-});
+// ─────────────────────────────────────────────
+// NAV
+// ─────────────────────────────────────────────
+function setupNav(){
+  function switchSection(sectionId){
+    document.querySelectorAll(".section").forEach(s=>s.classList.toggle("active", s.id===sectionId));
+    document.querySelectorAll(".topTab,.mobileNavBtn").forEach(t=>t.classList.toggle("active", t.dataset.section===sectionId));
+    closeAllMenus();
+  }
+  document.getElementById("topTabsDesktop").addEventListener("click", e=>{
+    const t=e.target.closest(".topTab"); if(!t) return;
+    switchSection(t.dataset.section);
+  });
+  document.getElementById("topTabsMobile").addEventListener("click", e=>{
+    const t=e.target.closest(".mobileNavBtn"); if(!t) return;
+    switchSection(t.dataset.section);
+  });
+}
 
-document.getElementById("searchBtn").addEventListener("click", runSearch);
-
-elSearchInput.addEventListener("keydown", (e)=>{
-  if(e.key === "Enter") runSearch();
-});
-
-document.getElementById("clearSearch").addEventListener("click", ()=>{
-  elSearchInput.value = "";
-  elResults.innerHTML = "";
-  elSearchInput.focus();
-});
-
-elSearchInput.addEventListener("input", ()=>{
-  if(elSearchInput.value.trim() === "") elResults.innerHTML = "";
-});
+// ─────────────────────────────────────────────
+// SEARCH
+// ─────────────────────────────────────────────
+function setupSearch(){
+  document.getElementById("searchBtn").addEventListener("click", runSearch);
+  elSearchInput.addEventListener("keydown", e=>{ if(e.key==="Enter") runSearch(); });
+  document.getElementById("clearSearch").addEventListener("click", ()=>{
+    elSearchInput.value=""; elResults.innerHTML=""; elSearchInput.focus();
+  });
+  elSearchInput.addEventListener("input", ()=>{
+    if(!elSearchInput.value.trim()) elResults.innerHTML="";
+  });
+}
 
 async function runSearch(){
-  const q = elSearchInput.value.trim();
-  if(!q) return;
-
-  elResults.innerHTML = `<div class="muted">Searching…</div>`;
-
+  const q=elSearchInput.value.trim(); if(!q) return;
+  elResults.innerHTML=`<div class="emptyState"><div class="emptyIcon">🔍</div><div class="emptyText">Searching…</div></div>`;
   try{
-    const mode = elSearchMode.value;
-    const type = elTypeFilter.value;
-    const blocks = [];
-
-    if(mode === "auto" || mode === "titles"){
-      const data = await tmdbFetch(`/search/${type}?query=${encodeURIComponent(q)}&include_adult=false&language=en-US&page=1`);
-      const results = (data.results || [])
-        .filter(r => (r.media_type ? (r.media_type === "movie" || r.media_type === "tv") : true))
-        .slice(0, 10);
-
-      blocks.push(renderTitleResults(results, type));
+    const mode=document.getElementById("searchMode").value;
+    const type=document.getElementById("typeFilter").value;
+    const blocks=[];
+    if(mode==="auto"||mode==="titles"){
+      const data=await tmdbFetch(`/search/${type}?query=${encodeURIComponent(q)}&include_adult=false&language=en-US&page=1`);
+      const results=(data.results||[]).filter(r=>r.media_type?r.media_type==="movie"||r.media_type==="tv":true).slice(0,10);
+      blocks.push(renderTitleResults(results,type));
     }
-
-    if(mode === "auto" || mode === "people"){
-      const p = await tmdbFetch(`/search/person?query=${encodeURIComponent(q)}&include_adult=false&language=en-US&page=1`);
-      const people = (p.results || []).slice(0, 10);
-      blocks.push(renderPeopleResults(people));
+    if(mode==="auto"||mode==="people"){
+      const p=await tmdbFetch(`/search/person?query=${encodeURIComponent(q)}&include_adult=false&language=en-US&page=1`);
+      blocks.push(renderPeopleResults((p.results||[]).slice(0,8)));
     }
-
-    elResults.innerHTML = blocks.filter(Boolean).join("");
+    elResults.innerHTML=blocks.filter(Boolean).join("");
     wireResultActions();
   }catch(err){
-    elResults.innerHTML = `<div class="muted">Error: ${String(err.message || err)}</div>`;
+    elResults.innerHTML=`<div class="emptyState"><div class="emptyText">Error: ${escapeHtml(err.message||String(err))}</div></div>`;
   }
 }
 
-function yearFrom(r, media_type){
-  return media_type === "movie"
-    ? (r.release_date || "").slice(0,4)
-    : (r.first_air_date || "").slice(0,4);
-}
+function yearFrom(r,mt){ return mt==="movie"?(r.release_date||"").slice(0,4):(r.first_air_date||"").slice(0,4); }
 
-function renderTitleResults(results, type){
-  const title = `<div class="muted" style="margin-top:4px;"><b>Titles</b></div>`;
-  if(!results || results.length === 0){
-    return `${title}<div class="muted">No titles found.</div>`;
-  }
-
-  const items = results.map(r=>{
-    const media_type = r.media_type || type;
-    const name = media_type === "movie" ? r.title : r.name;
-    const year = yearFrom(r, media_type);
-    const poster = r.poster_path ? `${IMG_SMALL}${r.poster_path}` : "";
-    const exists = isInAnyList(media_type, r.id);
-
-    return `
-      <div class="item" data-kind="title" data-id="${r.id}" data-media="${media_type}" data-name="${escapeHtml(name)}" data-year="${escapeHtml(year || "")}" data-poster="${escapeHtml(r.poster_path || "")}">
-        <button class="posterBtn" data-open="details" aria-label="Open details">
-          <img class="poster" src="${poster || ""}" alt="" onerror="this.style.display='none'">
-        </button>
-        <div>
-          <div class="title" data-open="details">${escapeHtml(name)}</div>
-          <div class="meta">${media_type.toUpperCase()} • ${escapeHtml(year || "—")} • TMDB: ${Number.isFinite(r.vote_average) ? r.vote_average.toFixed(1) : "—"}</div>
-        </div>
-
-        <button class="kebab" data-open="menu" aria-label="Menu">⋮</button>
-        <div class="menu" data-menu>
-          <button data-act="details">Details</button>
-          <button data-act="watchlist" ${exists ? "disabled":""}>+ Add to Watchlist</button>
-          <button data-act="watched" ${exists ? "disabled":""}>✓ Mark Watched</button>
-        </div>
-      </div>
-    `;
+function renderTitleResults(results,type){
+  if(!results||results.length===0) return `<div class="emptyState"><div class="emptyText">No titles found.</div></div>`;
+  const items=results.map(r=>{
+    const mt=r.media_type||type;
+    const name=mt==="movie"?r.title:r.name;
+    const year=yearFrom(r,mt);
+    const poster=r.poster_path?`${IMG_SMALL}${r.poster_path}`:"";
+    const exists=isInAnyList(mt,r.id);
+    return itemHtml({id:r.id,media_type:mt,title:name,year,poster_path:r.poster_path||""},exists,"result");
   }).join("");
-
-  return `${title}<div class="results">${items}</div>`;
+  return `<div style="color:var(--muted);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-top:8px;">Titles</div><div class="results">${items}</div>`;
 }
 
 function renderPeopleResults(people){
-  const title = `<div class="muted" style="margin-top:10px;"><b>People</b></div>`;
-  if(!people || people.length === 0){
-    return `${title}<div class="muted">No people found.</div>`;
-  }
-
-  const items = people.map(p=>{
-    const img = p.profile_path ? `${IMG_SMALL}${p.profile_path}` : "";
-    const dept = p.known_for_department || "Person";
-    const known = (p.known_for || []).slice(0,3).map(x=>x.title || x.name).filter(Boolean).join(" • ");
-
-    const isActor = state.people.actors.some(x=>x.id===p.id);
-    const isDirector = state.people.directors.some(x=>x.id===p.id);
-
+  if(!people||people.length===0) return "";
+  const items=people.map(p=>{
+    const img=p.profile_path?`${IMG_SMALL}${p.profile_path}`:"";
+    const dept=p.known_for_department||"";
+    const known=(p.known_for||[]).slice(0,3).map(x=>x.title||x.name).filter(Boolean).join(" · ");
+    const isActor=state.people.actors.some(x=>x.id===p.id);
+    const isDir=state.people.directors.some(x=>x.id===p.id);
     return `
-      <div class="item" data-kind="person" data-person-id="${p.id}" data-person-name="${escapeHtml(p.name || "")}" data-profile="${escapeHtml(p.profile_path || "")}">
-        <button class="posterBtn" data-open="person" aria-label="Open person">
-          <img class="poster" src="${img || ""}" alt="" onerror="this.style.display='none'">
+      <div class="item" data-kind="person" data-person-id="${p.id}" data-person-name="${escapeHtml(p.name||"")}" data-profile="${escapeHtml(p.profile_path||"")}">
+        <button class="posterBtn" data-open="person">
+          <img class="poster" src="${img}" alt="" onerror="this.style.display='none'">
         </button>
         <div>
-          <div class="title" data-open="person">${escapeHtml(p.name || "—")}</div>
-          <div class="meta">${escapeHtml(dept)}${known ? " • " + escapeHtml(known) : ""}</div>
+          <div class="itemTitle" data-open="person">${escapeHtml(p.name||"—")}</div>
+          <div class="meta">${escapeHtml(dept)}${known?" · "+escapeHtml(known):""}</div>
         </div>
-
-        <button class="kebab" data-open="menu" aria-label="Menu">⋮</button>
+        <button class="kebab" data-open="menu">⋮</button>
         <div class="menu" data-menu>
           <button data-act="openPerson">View Filmography</button>
-          <button data-act="followActor" ${isActor ? "disabled":""}>+ Follow as Actor</button>
-          <button data-act="followDirector" ${isDirector ? "disabled":""}>+ Follow as Director</button>
+          <button data-act="followActor" ${isActor?"disabled":""}>+ Follow as Actor</button>
+          <button data-act="followDirector" ${isDir?"disabled":""}>+ Follow as Director</button>
         </div>
-      </div>
-    `;
+      </div>`;
   }).join("");
-
-  return `${title}<div class="results">${items}</div>`;
+  return `<div style="color:var(--muted);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-top:14px;">People</div><div class="results">${items}</div>`;
 }
 
+function itemHtml(item,exists,_ctx){
+  const poster=item.poster_path?`${IMG_SMALL}${item.poster_path}`:"";
+  const mtBadge=`<span class="badge badge-${item.media_type}">${item.media_type.toUpperCase()}</span>`;
+  return `
+    <div class="item" data-kind="title" data-id="${item.id}" data-media="${item.media_type}" data-name="${escapeHtml(item.title||"")}" data-year="${escapeHtml(item.year||"")}" data-poster="${escapeHtml(item.poster_path||"")}">
+      <button class="posterBtn" data-open="details">
+        <img class="poster" src="${poster}" alt="" onerror="this.style.display='none'">
+      </button>
+      <div>
+        <div class="itemTitle" data-open="details">${escapeHtml(item.title||"—")}</div>
+        <div class="meta">${mtBadge} ${escapeHtml(item.year||"—")}</div>
+      </div>
+      <button class="kebab" data-open="menu">⋮</button>
+      <div class="menu" data-menu>
+        <button data-act="details">Details</button>
+        <button data-act="watchlist" ${exists?"disabled":""}>+ Add to Watchlist</button>
+        <button data-act="watched"   ${exists?"disabled":""}>✓ Mark Watched</button>
+      </div>
+    </div>`;
+}
+
+// ─────────────────────────────────────────────
+// WIRE ACTIONS
+// ─────────────────────────────────────────────
+function closeAllMenus(){ document.querySelectorAll("[data-menu]").forEach(m=>m.style.display="none"); }
+
 function wireResultActions(){
-  document.addEventListener("click", closeAllMenus, { once:true });
-
+  document.addEventListener("click", closeAllMenus,{once:true});
   document.querySelectorAll(".item").forEach(card=>{
-    const kebab = card.querySelector('[data-open="menu"]');
-    const menu = card.querySelector("[data-menu]");
-
-    if(kebab && menu){
-      kebab.addEventListener("click", (e)=>{
+    const kebab=card.querySelector('[data-open="menu"]');
+    const menu=card.querySelector("[data-menu]");
+    if(kebab&&menu){
+      kebab.addEventListener("click",e=>{
         e.stopPropagation();
-        const open = menu.style.display === "block";
+        const open=menu.style.display==="block";
         closeAllMenus();
-        menu.style.display = open ? "none" : "block";
+        menu.style.display=open?"none":"block";
       });
     }
-
     card.querySelectorAll('[data-open="details"]').forEach(x=>{
-      x.addEventListener("click", async (e)=>{
-        e.stopPropagation();
-        if(card.dataset.kind !== "title") return;
-        await openDetailsModalFromCard(card);
-      });
+      x.addEventListener("click",async e=>{ e.stopPropagation(); if(card.dataset.kind==="title") await openDetailsModalFromCard(card); });
     });
-
     card.querySelectorAll('[data-open="person"]').forEach(x=>{
-      x.addEventListener("click", async (e)=>{
-        e.stopPropagation();
-        if(card.dataset.kind !== "person") return;
-        await openPersonModalFromCard(card);
-      });
+      x.addEventListener("click",async e=>{ e.stopPropagation(); if(card.dataset.kind==="person") await openPersonModalFromCard(card); });
     });
-
     if(menu){
       menu.querySelectorAll("button").forEach(btn=>{
-        btn.addEventListener("click", async (e)=>{
-          e.stopPropagation();
-          menu.style.display = "none";
-
-          if(card.dataset.kind === "title"){
-            const media_type = card.dataset.media;
-            const id = Number(card.dataset.id);
-            const title = card.dataset.name;
-            const year = card.dataset.year || "";
-            const poster_path = card.dataset.poster || "";
-
-            if(btn.dataset.act === "details"){
-              await openDetailsModalFromCard(card);
-            } else if(btn.dataset.act === "watchlist"){
-              addToWatchlist({ id, media_type, title, year, poster_path });
-              renderAll();
-            } else if(btn.dataset.act === "watched"){
-              await addToWatchedFlow({ id, media_type, title, year, poster_path });
-              renderAll();
-            }
+        btn.addEventListener("click",async e=>{
+          e.stopPropagation(); menu.style.display="none";
+          if(card.dataset.kind==="title"){
+            const mt=card.dataset.media,id=Number(card.dataset.id),title=card.dataset.name,year=card.dataset.year||"",poster_path=card.dataset.poster||"";
+            if(btn.dataset.act==="details") await openDetailsModalFromCard(card);
+            else if(btn.dataset.act==="watchlist"){ addToWatchlist({id,media_type:mt,title,year,poster_path}); renderAll(); showToast(`Added "${title}" to Watchlist`); }
+            else if(btn.dataset.act==="watched"){ await addToWatchedFlow({id,media_type:mt,title,year,poster_path}); renderAll(); showToast(`"${title}" marked as Watched`); }
           }
-
-          if(card.dataset.kind === "person"){
-            const pid = Number(card.dataset.personId);
-            const name = card.dataset.personName || "";
-            const profile_path = card.dataset.profile || "";
-
-            if(btn.dataset.act === "openPerson"){
-              await openPersonModalFromCard(card);
-            } else if(btn.dataset.act === "followActor"){
-              if(!state.people.actors.some(x=>x.id===pid)){
-                state.people.actors.unshift({ id: pid, name, profile_path, added_at: Date.now() });
-                scheduleRemoteSave();
-                renderAll();
-              }
-            } else if(btn.dataset.act === "followDirector"){
-              if(!state.people.directors.some(x=>x.id===pid)){
-                state.people.directors.unshift({ id: pid, name, profile_path, added_at: Date.now() });
-                scheduleRemoteSave();
-                renderAll();
-              }
-            }
+          if(card.dataset.kind==="person"){
+            const pid=Number(card.dataset.personId),name=card.dataset.personName||"",profile_path=card.dataset.profile||"";
+            if(btn.dataset.act==="openPerson") await openPersonModalFromCard(card);
+            else if(btn.dataset.act==="followActor"&&!state.people.actors.some(x=>x.id===pid)){ state.people.actors.unshift({id:pid,name,profile_path,added_at:Date.now()}); scheduleRemoteSave(); renderAll(); showToast(`Following ${name}`); }
+            else if(btn.dataset.act==="followDirector"&&!state.people.directors.some(x=>x.id===pid)){ state.people.directors.unshift({id:pid,name,profile_path,added_at:Date.now()}); scheduleRemoteSave(); renderAll(); showToast(`Following ${name}`); }
           }
         });
       });
@@ -1143,659 +1586,473 @@ function wireResultActions(){
   });
 }
 
+// ─────────────────────────────────────────────
+// ADD ITEMS
+// ─────────────────────────────────────────────
 function addToWatchlist(item){
-  const k = uniqKey(item);
-  if(state.watchlist.some(x=>uniqKey(x)===k) || state.watched.some(x=>uniqKey(x)===k)) return;
-  state.watchlist.unshift({ ...item, added_at: Date.now() });
+  const k=uniqKey(item);
+  if(state.watchlist.some(x=>uniqKey(x)===k)||state.watched.some(x=>uniqKey(x)===k)) return;
+  state.watchlist.unshift({...item,added_at:Date.now()});
   scheduleRemoteSave();
 }
 
 async function addToWatchedFlow(item){
-  const k = uniqKey(item);
-  state.watchlist = state.watchlist.filter(x => uniqKey(x) !== k);
-
-  if(item.media_type === "movie"){
-    const details = await tmdbFetch(`/movie/${item.id}?language=en-US`);
-    state.watched.unshift({
-      ...item,
-      runtime_minutes: details.runtime || 0,
-      rating: null,
-      added_at: Date.now()
-    });
-    scheduleRemoteSave();
-    return;
+  const k=uniqKey(item);
+  state.watchlist=state.watchlist.filter(x=>uniqKey(x)!==k);
+  if(item.media_type==="movie"){
+    const details=await tmdbFetch(`/movie/${item.id}?language=en-US`);
+    state.watched.unshift({...item,runtime_minutes:details.runtime||0,rating:null,added_at:Date.now()});
+  } else {
+    const details=await tmdbFetch(`/tv/${item.id}?language=en-US`);
+    const avgEp=Array.isArray(details.episode_run_time)&&details.episode_run_time.length
+      ?Math.round(details.episode_run_time.reduce((a,b)=>a+b,0)/details.episode_run_time.length):45;
+    const seasons_meta={};
+    (details.seasons||[]).filter(s=>s.season_number>0).forEach(s=>{seasons_meta[s.season_number]=s.episode_count||0;});
+    const tvItem={...item,avg_episode_minutes:avgEp,seasons_meta,seasons_watched:{},rating:null,added_at:Date.now()};
+    if(seasons_meta[1]>0) tvItem.seasons_watched[1]=1;
+    state.watched.unshift(tvItem);
   }
-
-  const details = await tmdbFetch(`/tv/${item.id}?language=en-US`);
-  const avgEp = Array.isArray(details.episode_run_time) && details.episode_run_time.length
-    ? Math.round(details.episode_run_time.reduce((a,b)=>a+b,0) / details.episode_run_time.length)
-    : 45;
-
-  const seasons_meta = {};
-  (details.seasons || [])
-    .filter(s => typeof s.season_number === "number" && s.season_number > 0)
-    .forEach(s => { seasons_meta[s.season_number] = s.episode_count || 0; });
-
-  const tvItem = {
-    ...item,
-    avg_episode_minutes: avgEp,
-    seasons_meta,
-    seasons_watched: {},
-    rating: null,
-    added_at: Date.now()
-  };
-
-  if(seasons_meta[1] > 0) tvItem.seasons_watched[1] = 1;
-
-  state.watched.unshift(tvItem);
   scheduleRemoteSave();
 }
 
-document.getElementById("watchlistTabs").addEventListener("click", (e)=>{
-  const tab = e.target.closest(".tab");
-  if(!tab) return;
-  watchlistTab = tab.dataset.tab;
-  document.querySelectorAll("#watchlistTabs .tab").forEach(t=>t.classList.toggle("active", t.dataset.tab===watchlistTab));
-  renderWatchlist();
-});
-
-document.getElementById("watchedTabs").addEventListener("click", (e)=>{
-  const tab = e.target.closest(".tab");
-  if(!tab) return;
-  watchedTab = tab.dataset.tab;
-  document.querySelectorAll("#watchedTabs .tab").forEach(t=>t.classList.toggle("active", t.dataset.tab===watchedTab));
-  renderWatched();
-});
-
-document.getElementById("peopleTabs").addEventListener("click", (e)=>{
-  const tab = e.target.closest(".tab");
-  if(!tab) return;
-  peopleTab = tab.dataset.tab;
-  document.querySelectorAll("#peopleTabs .tab").forEach(t=>t.classList.toggle("active", t.dataset.tab===peopleTab));
-  renderPeople();
-});
-
-document.getElementById("watchlistSort").addEventListener("change", (e)=>{
-  watchlistSort = e.target.value;
-  renderWatchlist();
-});
-
-document.getElementById("watchedSort").addEventListener("change", (e)=>{
-  watchedSort = e.target.value;
-  renderWatched();
-});
-
-function renderAll(){
-  renderHome();
-  renderWatchlist();
-  renderWatched();
-  renderPeople();
-  renderTotals();
-  renderCounts();
-}
+// ─────────────────────────────────────────────
+// RENDER
+// ─────────────────────────────────────────────
+function renderAll(){ renderHome(); renderWatchlist(); renderWatched(); renderPeople(); renderStats(); renderCounts(); }
 
 function renderHome(){
-  const combined = []
-    .concat(state.watchlist.map(x=>({ ...x, __list:"watchlist" })))
-    .concat(state.watched.map(x=>({ ...x, __list:"watched" })))
-    .sort((a,b)=>(b.added_at||0)-(a.added_at||0))
-    .slice(0,5);
-
-  if(combined.length === 0){
-    elHomeRecent.innerHTML = `<div class="muted">Nothing yet. Add something using the Search tab.</div>`;
+  const combined=[...state.watchlist.map(x=>({...x,__list:"watchlist"}))]
+    .concat(state.watched.map(x=>({...x,__list:"watched"})))
+    .sort((a,b)=>(b.added_at||0)-(a.added_at||0)).slice(0,5);
+  if(combined.length===0){
+    elHomeRecent.innerHTML=`<div class="emptyState"><div class="emptyIcon">🎬</div><div class="emptyText">Nothing here yet — search for something to add!</div></div>`;
     return;
   }
-
-  elHomeRecent.innerHTML = combined.map(item=>{
-    const poster = item.poster_path ? (IMG_SMALL + item.poster_path) : "";
-    const badge = item.__list === "watched" ? "✓ Watched" : "+ Watchlist";
-    const extra = item.__list === "watched" ? ` • Rating: ${ratingToText(item.rating)}` : "";
-
+  elHomeRecent.innerHTML=combined.map(item=>{
+    const poster=item.poster_path?(IMG_SMALL+item.poster_path):"";
+    const badge=item.__list==="watched"?`<span class="badge badge-watched">✓ Watched</span>`:`<span class="badge badge-watchlist">+ Watchlist</span>`;
+    const mtBadge=`<span class="badge badge-${item.media_type}">${item.media_type.toUpperCase()}</span>`;
+    const extra=item.__list==="watched"?` · ${ratingToText(item.rating)}`:"";
     return `
-      <div class="item" data-kind="title" data-id="${item.id}" data-media="${item.media_type}" data-name="${escapeHtml(item.title || "")}" data-year="${escapeHtml(item.year || "")}" data-poster="${escapeHtml(item.poster_path || "")}">
-        <button class="posterBtn" data-open="details" aria-label="Open details">
-          <img class="poster" src="${poster || ""}" alt="" onerror="this.style.display='none'">
-        </button>
+      <div class="item" data-kind="title" data-id="${item.id}" data-media="${item.media_type}" data-name="${escapeHtml(item.title||"")}" data-year="${escapeHtml(item.year||"")}" data-poster="${escapeHtml(item.poster_path||"")}">
+        <button class="posterBtn" data-open="details"><img class="poster" src="${poster}" alt="" onerror="this.style.display='none'"></button>
         <div>
-          <div class="title" data-open="details">${escapeHtml(item.title || "—")}</div>
-          <div class="meta">${badge} • ${escapeHtml(item.media_type.toUpperCase())} • ${escapeHtml(item.year || "—")}${extra}</div>
+          <div class="itemTitle" data-open="details">${escapeHtml(item.title||"—")}</div>
+          <div class="meta">${badge} ${mtBadge} ${escapeHtml(item.year||"—")}${extra}</div>
         </div>
-        <button class="kebab" data-open="menu" aria-label="Menu">⋮</button>
+        <button class="kebab" data-open="menu">⋮</button>
         <div class="menu" data-menu>
           <button data-act="details">Details</button>
-          ${item.__list === "watchlist"
-            ? `<button data-act="toWatched">✓ Mark Watched</button>`
-            : `
-              <button data-act="toWatchlist">↩ Move to Watchlist</button>
-              <button data-act="rate:1">Rate: 🍿</button>
-              <button data-act="rate:2">Rate: 🍿🍿</button>
-              <button data-act="rate:3">Rate: 🍿🍿🍿</button>
-              <button data-act="rate:4">Rate: 🍿🍿🍿🍿</button>
-              <button data-act="rate:5">Rate: 🍿🍿🍿🍿🍿</button>
-              <button data-act="rate:clear">Rate: —</button>
-            `
-          }
+          ${item.__list==="watchlist"
+            ?`<button data-act="toWatched">✓ Mark Watched</button>`
+            :`<button data-act="toWatchlist">↩ Move to Watchlist</button>
+              <button data-act="rate:1">🍿</button>
+              <button data-act="rate:2">🍿🍿</button>
+              <button data-act="rate:3">🍿🍿🍿</button>
+              <button data-act="rate:4">🍿🍿🍿🍿</button>
+              <button data-act="rate:5">🍿🍿🍿🍿🍿</button>
+              <button data-act="rate:clear">Clear rating</button>`}
           <button class="dangerItem" data-act="remove">Remove</button>
         </div>
-      </div>
-    `;
+      </div>`;
   }).join("");
-
-  wireListCards(elHomeRecent, "home");
+  wireListCards(elHomeRecent);
 }
 
 function renderWatchlist(){
-  const list = applySort(state.watchlist.filter(i => i.media_type === watchlistTab), watchlistSort);
-
-  if(list.length === 0){
-    elWatchlistList.innerHTML = `<div class="muted">No ${watchlistTab === "movie" ? "movies" : "TV shows"} in watchlist.</div>`;
+  const list=applySort(state.watchlist.filter(i=>i.media_type===watchlistTab),watchlistSort);
+  if(list.length===0){
+    elWatchlistList.innerHTML=`<div class="emptyState"><div class="emptyIcon">🎞️</div><div class="emptyText">Your ${watchlistTab==="movie"?"movie":"TV"} watchlist is empty.<br>Search for something to add!</div></div>`;
     return;
   }
-
-  elWatchlistList.innerHTML = list.map(item => listCardHtml(item, "watchlist")).join("");
-  wireListCards(elWatchlistList, "watchlist");
+  elWatchlistList.innerHTML=list.map(item=>listCardHtml(item,"watchlist")).join("");
+  wireListCards(elWatchlistList);
 }
 
 function renderWatched(){
-  const list = applySort(state.watched.filter(i => i.media_type === watchedTab), watchedSort);
-
-  if(list.length === 0){
-    elWatchedList.innerHTML = `<div class="muted">No watched ${watchedTab === "movie" ? "movies" : "TV shows"} yet.</div>`;
+  const list=applySort(state.watched.filter(i=>i.media_type===watchedTab),watchedSort);
+  if(list.length===0){
+    elWatchedList.innerHTML=`<div class="emptyState"><div class="emptyIcon">✅</div><div class="emptyText">No watched ${watchedTab==="movie"?"movies":"TV shows"} yet.</div></div>`;
     return;
   }
-
-  elWatchedList.innerHTML = list.map(item => listCardHtml(item, "watched")).join("");
-  wireListCards(elWatchedList, "watched");
+  elWatchedList.innerHTML=list.map(item=>listCardHtml(item,"watched")).join("");
+  wireListCards(elWatchedList);
 }
 
 function renderPeople(){
-  const list = (peopleTab === "actors") ? state.people.actors : state.people.directors;
-
-  if(list.length === 0){
-    elPeopleList.innerHTML = `<div class="muted">No ${peopleTab} followed yet. Search a person and follow them.</div>`;
+  const list=peopleTab==="actors"?state.people.actors:state.people.directors;
+  if(list.length===0){
+    elPeopleList.innerHTML=`<div class="emptyState"><div class="emptyIcon">🎭</div><div class="emptyText">No ${peopleTab} followed yet.<br>Search a person and follow them.</div></div>`;
     return;
   }
-
-  elPeopleList.innerHTML = list.map(p => `
-    <div class="item" data-kind="followedPerson" data-person-id="${p.id}" data-person-name="${escapeHtml(p.name || "")}" data-profile="${escapeHtml(p.profile_path || "")}">
-      <button class="posterBtn" data-open="person" aria-label="Open person">
-        <img class="poster" src="${p.profile_path ? (IMG_SMALL + p.profile_path) : ""}" alt="" onerror="this.style.display='none'">
-      </button>
+  elPeopleList.innerHTML=list.map(p=>`
+    <div class="item" data-kind="followedPerson" data-person-id="${p.id}" data-person-name="${escapeHtml(p.name||"")}" data-profile="${escapeHtml(p.profile_path||"")}">
+      <button class="posterBtn" data-open="person"><img class="poster" src="${p.profile_path?(IMG_SMALL+p.profile_path):""}" alt="" onerror="this.style.display='none'"></button>
       <div>
-        <div class="title" data-open="person">${escapeHtml(p.name || "—")}</div>
-        <div class="meta">Followed as ${peopleTab === "actors" ? "Actor" : "Director"}</div>
+        <div class="itemTitle" data-open="person">${escapeHtml(p.name||"—")}</div>
+        <div class="meta">Following as ${peopleTab==="actors"?"Actor":"Director"}</div>
       </div>
-
-      <button class="kebab" data-open="menu" aria-label="Menu">⋮</button>
+      <button class="kebab" data-open="menu">⋮</button>
       <div class="menu" data-menu>
         <button data-act="openPerson">View Filmography</button>
         <button class="dangerItem" data-act="unfollow">Unfollow</button>
       </div>
-    </div>
-  `).join("");
+    </div>`).join("");
 
   elPeopleList.querySelectorAll(".item").forEach(card=>{
-    const kebab = card.querySelector('[data-open="menu"]');
-    const menu = card.querySelector("[data-menu]");
-
-    kebab.addEventListener("click", (e)=>{
-      e.stopPropagation();
-      const open = menu.style.display === "block";
-      closeAllMenus();
-      menu.style.display = open ? "none" : "block";
-    });
-
-    card.querySelectorAll('[data-open="person"]').forEach(x=>{
-      x.addEventListener("click", async (e)=>{
-        e.stopPropagation();
-        await openPersonModalFromCard(card);
-      });
-    });
-
+    const kebab=card.querySelector('[data-open="menu"]');
+    const menu=card.querySelector("[data-menu]");
+    kebab.addEventListener("click",e=>{e.stopPropagation();const open=menu.style.display==="block";closeAllMenus();menu.style.display=open?"none":"block";});
+    card.querySelectorAll('[data-open="person"]').forEach(x=>{ x.addEventListener("click",async e=>{e.stopPropagation();await openPersonModalFromCard(card);});});
     menu.querySelectorAll("button").forEach(btn=>{
-      btn.addEventListener("click", async (e)=>{
-        e.stopPropagation();
-        menu.style.display = "none";
-        const pid = Number(card.dataset.personId);
-
-        if(btn.dataset.act === "openPerson"){
-          await openPersonModalFromCard(card);
-        } else if(btn.dataset.act === "unfollow"){
-          if(peopleTab === "actors"){
-            state.people.actors = state.people.actors.filter(x=>x.id!==pid);
-          } else {
-            state.people.directors = state.people.directors.filter(x=>x.id!==pid);
-          }
-          scheduleRemoteSave();
-          renderPeople();
+      btn.addEventListener("click",async e=>{
+        e.stopPropagation();menu.style.display="none";
+        const pid=Number(card.dataset.personId);
+        if(btn.dataset.act==="openPerson") await openPersonModalFromCard(card);
+        else if(btn.dataset.act==="unfollow"){
+          if(peopleTab==="actors") state.people.actors=state.people.actors.filter(x=>x.id!==pid);
+          else state.people.directors=state.people.directors.filter(x=>x.id!==pid);
+          scheduleRemoteSave(); renderPeople();
         }
       });
     });
   });
-
-  document.addEventListener("click", closeAllMenus, { once:true });
+  document.addEventListener("click",closeAllMenus,{once:true});
 }
 
-function listCardHtml(item, listType){
-  const poster = item.poster_path ? (IMG_SMALL + item.poster_path) : "";
-  const year = item.year || "—";
+function renderStats(){
+  let movieMin=0,tvMin=0;
+  for(const item of state.watched){
+    if(item.media_type==="movie") movieMin+=(item.runtime_minutes||0);
+    else tvMin+=totalWatchedEpisodes(item)*(item.avg_episode_minutes||0);
+  }
+  document.getElementById("timeMovies").textContent=minutesToHM(movieMin);
+  document.getElementById("timeTV").textContent=minutesToHM(tvMin);
+  document.getElementById("timeTotal").textContent=minutesToHM(movieMin+tvMin);
+  document.getElementById("statMovieCount").textContent=state.watched.filter(x=>x.media_type==="movie").length;
+  document.getElementById("statTVCount").textContent=state.watched.filter(x=>x.media_type==="tv").length;
+  document.getElementById("statWatchlistCount").textContent=state.watchlist.length;
+}
 
-  const subtitle = item.media_type === "movie"
-    ? `${year}${typeof item.runtime_minutes === "number" ? " • " + item.runtime_minutes + " min" : ""}`
-    : `${year} • ${totalWatchedEpisodes(item)} ep × ${item.avg_episode_minutes || 0}m`;
+function renderCounts(){
+  const wlM=state.watchlist.filter(x=>x.media_type==="movie").length;
+  const wlT=state.watchlist.filter(x=>x.media_type==="tv").length;
+  const wM=state.watched.filter(x=>x.media_type==="movie").length;
+  const wT=state.watched.filter(x=>x.media_type==="tv").length;
+  document.getElementById("watchlistMoviesCount").textContent=wlM+(wlM===1?" Movie":" Movies");
+  document.getElementById("watchlistTVCount").textContent=wlT+" TV";
+  document.getElementById("watchedMoviesCount").textContent=wM+(wM===1?" Movie":" Movies");
+  document.getElementById("watchedTVCount").textContent=wT+" TV";
+}
 
-  const ratingLine = (listType === "watched")
-    ? `<div class="meta">Your rating: <b>${ratingToText(item.rating)}</b></div>`
-    : ``;
-
+function listCardHtml(item,listType){
+  const poster=item.poster_path?(IMG_SMALL+item.poster_path):"";
+  const year=item.year||"—";
+  const subtitle=item.media_type==="movie"
+    ?`${year}${typeof item.runtime_minutes==="number"?" · "+item.runtime_minutes+" min":""}`
+    :`${year} · ${totalWatchedEpisodes(item)} ep × ${item.avg_episode_minutes||0}m`;
+  const ratingLine=listType==="watched"?`<div class="meta">Your rating: <b>${ratingToText(item.rating)}</b></div>`:"";
+  const mtBadge=`<span class="badge badge-${item.media_type}">${item.media_type.toUpperCase()}</span>`;
   return `
-    <div class="item" data-kind="title" data-id="${item.id}" data-media="${item.media_type}" data-name="${escapeHtml(item.title || "")}" data-year="${escapeHtml(item.year || "")}" data-poster="${escapeHtml(item.poster_path || "")}">
-      <button class="posterBtn" data-open="details" aria-label="Open details">
-        <img class="poster" src="${poster || ""}" alt="" onerror="this.style.display='none'">
-      </button>
+    <div class="item" data-kind="title" data-id="${item.id}" data-media="${item.media_type}" data-name="${escapeHtml(item.title||"")}" data-year="${escapeHtml(item.year||"")}" data-poster="${escapeHtml(item.poster_path||"")}">
+      <button class="posterBtn" data-open="details"><img class="poster" src="${poster}" alt="" onerror="this.style.display='none'"></button>
       <div>
-        <div class="title" data-open="details">${escapeHtml(item.title || "—")}</div>
-        <div class="meta">${subtitle}</div>
+        <div class="itemTitle" data-open="details">${escapeHtml(item.title||"—")}</div>
+        <div class="meta">${mtBadge} ${escapeHtml(subtitle)}</div>
         ${ratingLine}
       </div>
-
-      <button class="kebab" data-open="menu" aria-label="Menu">⋮</button>
+      <button class="kebab" data-open="menu">⋮</button>
       <div class="menu" data-menu>
         <button data-act="details">Details</button>
-        ${listType === "watchlist"
-          ? `<button data-act="toWatched">✓ Mark Watched</button>`
-          : `
-            <button data-act="toWatchlist">↩ Move to Watchlist</button>
-            <button data-act="rate:1">Rate: 🍿</button>
-            <button data-act="rate:2">Rate: 🍿🍿</button>
-            <button data-act="rate:3">Rate: 🍿🍿🍿</button>
-            <button data-act="rate:4">Rate: 🍿🍿🍿🍿</button>
-            <button data-act="rate:5">Rate: 🍿🍿🍿🍿🍿</button>
-            <button data-act="rate:clear">Rate: —</button>
-          `
-        }
+        ${listType==="watchlist"
+          ?`<button data-act="toWatched">✓ Mark Watched</button>`
+          :`<button data-act="toWatchlist">↩ Move to Watchlist</button>
+            <button data-act="rate:1">🍿</button>
+            <button data-act="rate:2">🍿🍿</button>
+            <button data-act="rate:3">🍿🍿🍿</button>
+            <button data-act="rate:4">🍿🍿🍿🍿</button>
+            <button data-act="rate:5">🍿🍿🍿🍿🍿</button>
+            <button data-act="rate:clear">Clear rating</button>`}
         <button class="dangerItem" data-act="remove">Remove</button>
       </div>
-    </div>
-  `;
+    </div>`;
 }
 
 function wireListCards(container){
   container.querySelectorAll(".item").forEach(card=>{
-    const kebab = card.querySelector('[data-open="menu"]');
-    const menu = card.querySelector("[data-menu]");
-
-    if(kebab && menu){
-      kebab.addEventListener("click", (e)=>{
-        e.stopPropagation();
-        const open = menu.style.display === "block";
-        closeAllMenus();
-        menu.style.display = open ? "none" : "block";
-      });
+    const kebab=card.querySelector('[data-open="menu"]');
+    const menu=card.querySelector("[data-menu]");
+    if(kebab&&menu){
+      kebab.addEventListener("click",e=>{e.stopPropagation();const open=menu.style.display==="block";closeAllMenus();menu.style.display=open?"none":"block";});
     }
-
     card.querySelectorAll('[data-open="details"]').forEach(x=>{
-      x.addEventListener("click", async (e)=>{
-        e.stopPropagation();
-        await openDetailsModalFromCard(card);
-      });
+      x.addEventListener("click",async e=>{e.stopPropagation();await openDetailsModalFromCard(card);});
     });
-
     if(menu){
       menu.querySelectorAll("button").forEach(btn=>{
-        btn.addEventListener("click", async (e)=>{
-          e.stopPropagation();
-          menu.style.display = "none";
-
-          const media_type = card.dataset.media;
-          const id = Number(card.dataset.id);
-          const title = card.dataset.name;
-          const year = card.dataset.year || "";
-          const poster_path = card.dataset.poster || "";
-          const k = `${media_type}:${id}`;
-
-          if(btn.dataset.act === "details"){
-            await openDetailsModalFromCard(card);
-            return;
+        btn.addEventListener("click",async e=>{
+          e.stopPropagation(); menu.style.display="none";
+          const mt=card.dataset.media,id=Number(card.dataset.id),title=card.dataset.name,year=card.dataset.year||"",poster_path=card.dataset.poster||"";
+          const k=`${mt}:${id}`;
+          if(btn.dataset.act==="details"){ await openDetailsModalFromCard(card); return; }
+          if(btn.dataset.act&&btn.dataset.act.startsWith("rate:")){
+            const val=btn.dataset.act.split(":")[1];
+            const w=state.watched.find(x=>uniqKey(x)===k);
+            if(w){ w.rating=(val==="clear")?null:Number(val); scheduleRemoteSave(); renderAll(); } return;
           }
-
-          if(btn.dataset.act && btn.dataset.act.startsWith("rate:")){
-            const val = btn.dataset.act.split(":")[1];
-            const w = state.watched.find(x => uniqKey(x) === k);
-            if(w){
-              w.rating = (val === "clear") ? null : Number(val);
-              scheduleRemoteSave();
-              renderAll();
-            }
-            return;
+          if(state.watchlist.some(x=>uniqKey(x)===k)){
+            if(btn.dataset.act==="toWatched"){ await addToWatchedFlow({id,media_type:mt,title,year,poster_path}); showToast(`"${title}" marked as Watched`); }
+            else if(btn.dataset.act==="remove"){ state.watchlist=state.watchlist.filter(x=>uniqKey(x)!==k); showToast("Removed"); }
+            scheduleRemoteSave(); renderAll(); return;
           }
-
-          if(state.watchlist.some(x => uniqKey(x) === k)){
-            if(btn.dataset.act === "toWatched"){
-              await addToWatchedFlow({ id, media_type, title, year, poster_path });
-            } else if(btn.dataset.act === "remove"){
-              state.watchlist = state.watchlist.filter(x => uniqKey(x) !== k);
-            }
-            scheduleRemoteSave();
-            renderAll();
-            return;
-          }
-
-          if(state.watched.some(x => uniqKey(x) === k)){
-            if(btn.dataset.act === "toWatchlist"){
-              state.watched = state.watched.filter(x => uniqKey(x) !== k);
-              state.watchlist.unshift({ id, media_type, title, year, poster_path, added_at: Date.now() });
-            } else if(btn.dataset.act === "remove"){
-              state.watched = state.watched.filter(x => uniqKey(x) !== k);
-            }
-            scheduleRemoteSave();
-            renderAll();
-            return;
+          if(state.watched.some(x=>uniqKey(x)===k)){
+            if(btn.dataset.act==="toWatchlist"){ state.watched=state.watched.filter(x=>uniqKey(x)!==k); state.watchlist.unshift({id,media_type:mt,title,year,poster_path,added_at:Date.now()}); showToast("Moved to Watchlist"); }
+            else if(btn.dataset.act==="remove"){ state.watched=state.watched.filter(x=>uniqKey(x)!==k); showToast("Removed"); }
+            scheduleRemoteSave(); renderAll(); return;
           }
         });
       });
     }
   });
-
-  document.addEventListener("click", closeAllMenus, { once:true });
+  document.addEventListener("click",closeAllMenus,{once:true});
 }
 
-function renderTotals(){
-  let movieMin = 0;
-  let tvMin = 0;
-
-  for(const item of state.watched){
-    if(item.media_type === "movie") movieMin += (item.runtime_minutes || 0);
-    else tvMin += totalWatchedEpisodes(item) * (item.avg_episode_minutes || 0);
-  }
-
-  elTimeMovies.textContent = minutesToHM(movieMin);
-  elTimeTV.textContent = minutesToHM(tvMin);
-  elTimeTotal.textContent = minutesToHM(movieMin + tvMin);
-}
-
+// ─────────────────────────────────────────────
+// DETAILS MODAL
+// ─────────────────────────────────────────────
 const detailsBackdrop = document.getElementById("detailsBackdrop");
-const detailsPoster = document.getElementById("detailsPoster");
-const detailsTitle = document.getElementById("detailsTitle");
-const detailsMeta = document.getElementById("detailsMeta");
+const detailsPoster   = document.getElementById("detailsPoster");
+const detailsTitle    = document.getElementById("detailsTitle");
+const detailsMeta     = document.getElementById("detailsMeta");
 const detailsOverview = document.getElementById("detailsOverview");
-const castCarousel = document.getElementById("castCarousel");
-const dirCarousel = document.getElementById("dirCarousel");
-const simCarousel = document.getElementById("simCarousel");
-
-const btnDetailsClose = document.getElementById("detailsClose");
+const castCarousel    = document.getElementById("castCarousel");
+const dirCarousel     = document.getElementById("dirCarousel");
+const simCarousel     = document.getElementById("simCarousel");
 const btnDetailsWatchlist = document.getElementById("detailsAddWatchlist");
-const btnDetailsWatched = document.getElementById("detailsAddWatched");
-const detailsRating = document.getElementById("detailsRating");
-
+const btnDetailsWatched   = document.getElementById("detailsAddWatched");
+const detailsRating       = document.getElementById("detailsRating");
 let currentDetails = null;
 
-btnDetailsClose.addEventListener("click", ()=>closeDetails());
-detailsBackdrop.addEventListener("click", (e)=>{
-  if(e.target === detailsBackdrop) closeDetails();
-});
+document.getElementById("detailsClose").addEventListener("click",closeDetails);
+detailsBackdrop.addEventListener("click",e=>{ if(e.target===detailsBackdrop) closeDetails(); });
+window.addEventListener("keydown",e=>{ if(e.key==="Escape"&&detailsBackdrop.style.display==="flex") closeDetails(); });
 
-window.addEventListener("keydown", (e)=>{
-  if(e.key === "Escape" && detailsBackdrop.style.display === "flex") closeDetails();
-});
-
-function closeDetails(){
-  detailsBackdrop.style.display = "none";
-  document.body.style.overflow = "";
-  currentDetails = null;
-}
+function closeDetails(){ detailsBackdrop.style.display="none"; document.body.style.overflow=""; currentDetails=null; }
 
 async function openDetailsModalFromCard(card){
-  const media_type = card.dataset.media;
-  const id = Number(card.dataset.id);
-  const title = card.dataset.name;
-  const year = card.dataset.year || "";
-  const poster_path = card.dataset.poster || "";
-
-  await openDetailsModal({ id, media_type, title, year, poster_path });
+  await openDetailsModal({id:Number(card.dataset.id),media_type:card.dataset.media,title:card.dataset.name,year:card.dataset.year||"",poster_path:card.dataset.poster||""});
 }
 
-function syncDetailsRatingUI(media_type, id){
-  const k = `${media_type}:${id}`;
-  const w = state.watched.find(x => uniqKey(x) === k);
-  detailsRating.disabled = !w;
-  detailsRating.value = w && w.rating ? String(w.rating) : "";
+function syncDetailsRatingUI(mt,id){
+  const k=`${mt}:${id}`;
+  const w=state.watched.find(x=>uniqKey(x)===k);
+  detailsRating.disabled=!w;
+  detailsRating.value=w&&w.rating?String(w.rating):"";
 }
 
 async function openDetailsModal(item){
-  currentDetails = { ...item };
-  document.body.style.overflow = "hidden";
-  detailsBackdrop.style.display = "flex";
-
-  detailsTitle.textContent = item.title || "—";
-  detailsMeta.textContent = `${item.media_type.toUpperCase()} • ${item.year || "—"}`;
-  detailsPoster.src = item.poster_path ? (IMG_POSTER + item.poster_path) : "";
-  detailsOverview.textContent = "Loading…";
-  castCarousel.innerHTML = "";
-  dirCarousel.innerHTML = "";
-  simCarousel.innerHTML = "";
-
-  const exists = isInAnyList(item.media_type, item.id);
-  btnDetailsWatchlist.disabled = exists;
-  btnDetailsWatched.disabled = exists;
-
-  syncDetailsRatingUI(item.media_type, item.id);
-
-  btnDetailsWatchlist.onclick = ()=>{
-    addToWatchlist(item);
-    btnDetailsWatchlist.disabled = true;
-    btnDetailsWatched.disabled = true;
-    renderAll();
-  };
-
-  btnDetailsWatched.onclick = async ()=>{
-    await addToWatchedFlow(item);
-    btnDetailsWatchlist.disabled = true;
-    btnDetailsWatched.disabled = true;
-    syncDetailsRatingUI(item.media_type, item.id);
-    renderAll();
-  };
-
-  detailsRating.onchange = ()=>{
-    const k = `${item.media_type}:${item.id}`;
-    const w = state.watched.find(x => uniqKey(x) === k);
+  currentDetails={...item};
+  document.body.style.overflow="hidden";
+  detailsBackdrop.style.display="flex";
+  detailsTitle.textContent=item.title||"—";
+  detailsMeta.textContent=`${item.media_type.toUpperCase()} · ${item.year||"—"}`;
+  detailsPoster.src=item.poster_path?(IMG_POSTER+item.poster_path):"";
+  detailsOverview.textContent="Loading…";
+  castCarousel.innerHTML=""; dirCarousel.innerHTML=""; simCarousel.innerHTML="";
+  const exists=isInAnyList(item.media_type,item.id);
+  btnDetailsWatchlist.disabled=exists; btnDetailsWatched.disabled=exists;
+  syncDetailsRatingUI(item.media_type,item.id);
+  btnDetailsWatchlist.onclick=()=>{ addToWatchlist(item); btnDetailsWatchlist.disabled=true; btnDetailsWatched.disabled=true; renderAll(); showToast(`Added "${item.title}" to Watchlist`); };
+  btnDetailsWatched.onclick=async()=>{ await addToWatchedFlow(item); btnDetailsWatchlist.disabled=true; btnDetailsWatched.disabled=true; syncDetailsRatingUI(item.media_type,item.id); renderAll(); showToast(`"${item.title}" marked as Watched`); };
+  detailsRating.onchange=()=>{
+    const k=`${item.media_type}:${item.id}`;
+    const w=state.watched.find(x=>uniqKey(x)===k);
     if(!w) return;
-    w.rating = detailsRating.value ? Number(detailsRating.value) : null;
-    scheduleRemoteSave();
-    renderAll();
+    w.rating=detailsRating.value?Number(detailsRating.value):null;
+    scheduleRemoteSave(); renderAll();
   };
-
   try{
-    const isMovie = item.media_type === "movie";
-    const details = await tmdbFetch(`/${isMovie ? "movie" : "tv"}/${item.id}?language=en-US`);
-    const credits = await tmdbFetch(`/${isMovie ? "movie" : "tv"}/${item.id}/credits?language=en-US`);
-    const similar = await tmdbFetch(`/${isMovie ? "movie" : "tv"}/${item.id}/similar?language=en-US&page=1`);
-
-    const runtime = isMovie
-      ? (details.runtime || 0)
-      : (Array.isArray(details.episode_run_time) && details.episode_run_time.length ? details.episode_run_time[0] : 0);
-
-    const genres = (details.genres || []).slice(0,4).map(g=>g.name).join(" • ");
-    const score = Number.isFinite(details.vote_average) ? details.vote_average.toFixed(1) : "—";
-
-    detailsMeta.textContent =
-      `${item.media_type.toUpperCase()} • ${item.year || "—"} • TMDB ${score}${runtime ? " • " + runtime + "m" : ""}${genres ? " • " + genres : ""}`;
-
-    detailsOverview.textContent = details.overview || "—";
-
-    const cast = (credits.cast || []).slice(0, 12);
-    castCarousel.innerHTML = cast.length
-      ? cast.map(p=>carPersonHtml(p)).join("")
-      : `<div class="muted">No cast found.</div>`;
-
-    const crew = credits.crew || [];
-    const directors = crew.filter(c=>c.job === "Director").slice(0, 10);
-    dirCarousel.innerHTML = directors.length
-      ? directors.map(p=>carPersonHtml(p, true)).join("")
-      : `<div class="muted">No directors found.</div>`;
-
-    const sim = (similar.results || []).filter(r => r.poster_path).slice(0, 12);
-    simCarousel.innerHTML = sim.length
-      ? sim.map(r=>{
-          const mt = isMovie ? "movie" : "tv";
-          const name = isMovie ? r.title : r.name;
-          const yr = isMovie ? (r.release_date || "").slice(0,4) : (r.first_air_date || "").slice(0,4);
-          return carTitleHtml({ id:r.id, media_type:mt, title:name, year:yr, poster_path:r.poster_path });
-        }).join("")
-      : `<div class="muted">No similar titles found.</div>`;
+    const isMovie=item.media_type==="movie";
+    const [details,credits,similar]=await Promise.all([
+      tmdbFetch(`/${isMovie?"movie":"tv"}/${item.id}?language=en-US`),
+      tmdbFetch(`/${isMovie?"movie":"tv"}/${item.id}/credits?language=en-US`),
+      tmdbFetch(`/${isMovie?"movie":"tv"}/${item.id}/similar?language=en-US&page=1`)
+    ]);
+    const runtime=isMovie?(details.runtime||0):(Array.isArray(details.episode_run_time)&&details.episode_run_time.length?details.episode_run_time[0]:0);
+    const genres=(details.genres||[]).slice(0,4).map(g=>g.name).join(" · ");
+    const score=Number.isFinite(details.vote_average)?details.vote_average.toFixed(1):"—";
+    detailsMeta.textContent=`${item.media_type.toUpperCase()} · ${item.year||"—"} · ⭐ ${score}${runtime?" · "+runtime+"m":""}${genres?" · "+genres:""}`;
+    detailsOverview.textContent=details.overview||"—";
+    const cast=(credits.cast||[]).slice(0,12);
+    castCarousel.innerHTML=cast.length?cast.map(p=>carPersonHtml(p)).join(""):`<div class="emptyState" style="padding:10px"><div class="emptyText">No cast found.</div></div>`;
+    const directors=(credits.crew||[]).filter(c=>c.job==="Director").slice(0,10);
+    dirCarousel.innerHTML=directors.length?directors.map(p=>carPersonHtml(p,true)).join(""):`<div class="emptyState" style="padding:10px"><div class="emptyText">No directors found.</div></div>`;
+    const sim=(similar.results||[]).filter(r=>r.poster_path).slice(0,12);
+    simCarousel.innerHTML=sim.length?sim.map(r=>{
+      const mt=isMovie?"movie":"tv"; const name=isMovie?r.title:r.name; const yr=isMovie?(r.release_date||"").slice(0,4):(r.first_air_date||"").slice(0,4);
+      return carTitleHtml({id:r.id,media_type:mt,title:name,year:yr,poster_path:r.poster_path});
+    }).join(""):`<div class="emptyState" style="padding:10px"><div class="emptyText">No similar titles.</div></div>`;
 
     castCarousel.querySelectorAll("[data-person]").forEach(btn=>{
-      btn.addEventListener("click", async ()=>{
-        const pid = Number(btn.dataset.person);
-        const pname = btn.dataset.name || "";
-        const pimg = btn.dataset.img || "";
-        await openPersonFilmography(pid, pname, pimg);
-      });
+      btn.addEventListener("click",async()=>{ await openPersonFilmography(Number(btn.dataset.person),btn.dataset.name||"",btn.dataset.img||""); });
     });
-
     dirCarousel.querySelectorAll("[data-person]").forEach(btn=>{
-      btn.addEventListener("click", async ()=>{
-        const pid = Number(btn.dataset.person);
-        const pname = btn.dataset.name || "";
-        const pimg = btn.dataset.img || "";
-        await openPersonFilmography(pid, pname, pimg);
-      });
+      btn.addEventListener("click",async()=>{ await openPersonFilmography(Number(btn.dataset.person),btn.dataset.name||"",btn.dataset.img||""); });
     });
-
     simCarousel.querySelectorAll("[data-title]").forEach(btn=>{
-      btn.addEventListener("click", async ()=>{
-        const tid = Number(btn.dataset.id);
-        const mt = btn.dataset.media;
-        const nm = btn.dataset.name || "";
-        const yr = btn.dataset.year || "";
-        const pp = btn.dataset.poster || "";
-        await openDetailsModal({ id:tid, media_type:mt, title:nm, year:yr, poster_path:pp });
-      });
+      btn.addEventListener("click",async()=>{ await openDetailsModal({id:Number(btn.dataset.id),media_type:btn.dataset.media,title:btn.dataset.name||"",year:btn.dataset.year||"",poster_path:btn.dataset.poster||""}); });
     });
-
   }catch(err){
-    console.error(err);
-    detailsOverview.textContent = "Failed to load details. " + (err?.message || String(err));
+    console.error(err); detailsOverview.textContent="Failed to load details. "+( err?.message||String(err));
   }
 }
 
-function carPersonHtml(p, isCrew=false){
-  const img = p.profile_path ? (IMG_SMALL + p.profile_path) : "";
-  const role = isCrew ? (p.job || "—") : (p.character || "—");
-
-  return `
-    <div class="carItem" data-person="${p.id}" data-name="${escapeHtml(p.name || "")}" data-img="${escapeHtml(p.profile_path || "")}" role="button" tabindex="0">
-      <img class="carImg" src="${img || ""}" alt="" onerror="this.style.display='none'">
-      <div class="carName">${escapeHtml(p.name || "—")}</div>
-      <div class="carRole">${escapeHtml(role)}</div>
-    </div>
-  `;
+function carPersonHtml(p,isCrew=false){
+  const img=p.profile_path?(IMG_SMALL+p.profile_path):""; const role=isCrew?(p.job||"—"):(p.character||"—");
+  return `<div class="carItem" data-person="${p.id}" data-name="${escapeHtml(p.name||"")}" data-img="${escapeHtml(p.profile_path||"")}" role="button" tabindex="0">
+    <img class="carImg" src="${img}" alt="" onerror="this.style.display='none'">
+    <div class="carName">${escapeHtml(p.name||"—")}</div>
+    <div class="carRole">${escapeHtml(role)}</div>
+  </div>`;
 }
 
 function carTitleHtml(item){
-  const img = item.poster_path ? (IMG_SMALL + item.poster_path) : "";
-
-  return `
-    <div class="carItem" data-title="1" data-id="${item.id}" data-media="${item.media_type}" data-name="${escapeHtml(item.title || "")}" data-year="${escapeHtml(item.year || "")}" data-poster="${escapeHtml(item.poster_path || "")}">
-      <img class="carImg" src="${img || ""}" alt="" onerror="this.style.display='none'">
-      <div class="carName">${escapeHtml(item.title || "—")}</div>
-      <div class="carRole">${escapeHtml(item.media_type.toUpperCase())} • ${escapeHtml(item.year || "—")}</div>
-    </div>
-  `;
+  const img=item.poster_path?(IMG_SMALL+item.poster_path):"";
+  return `<div class="carItem" data-title="1" data-id="${item.id}" data-media="${item.media_type}" data-name="${escapeHtml(item.title||"")}" data-year="${escapeHtml(item.year||"")}" data-poster="${escapeHtml(item.poster_path||"")}">
+    <img class="carImg" src="${img}" alt="" onerror="this.style.display='none'">
+    <div class="carName">${escapeHtml(item.title||"—")}</div>
+    <div class="carRole">${escapeHtml(item.media_type.toUpperCase())} · ${escapeHtml(item.year||"—")}</div>
+  </div>`;
 }
 
 async function openPersonModalFromCard(card){
-  const pid = Number(card.dataset.personId);
-  const name = card.dataset.personName || "";
-  const prof = card.dataset.profile || "";
-  await openPersonFilmography(pid, name, prof);
+  await openPersonFilmography(Number(card.dataset.personId),card.dataset.personName||"",card.dataset.profile||"");
 }
 
-async function openPersonFilmography(personId, name){
-  document.querySelectorAll(".topTab").forEach(t=>t.classList.toggle("active", t.dataset.section === "searchSec"));
-  document.querySelectorAll(".section").forEach(s=>s.classList.toggle("active", s.id === "searchSec"));
-
-  elResults.innerHTML = `<div class="muted">Loading filmography for <b>${escapeHtml(name || "Person")}</b>…</div>`;
-
+async function openPersonFilmography(personId,name){
+  document.querySelectorAll(".topTab,.mobileNavBtn").forEach(t=>t.classList.toggle("active",t.dataset.section==="searchSec"));
+  document.querySelectorAll(".section").forEach(s=>s.classList.toggle("active",s.id==="searchSec"));
+  elResults.innerHTML=`<div class="emptyState"><div class="emptyIcon">🎬</div><div class="emptyText">Loading filmography for <b>${escapeHtml(name||"Person")}</b>…</div></div>`;
+  if(detailsBackdrop.style.display==="flex") closeDetails();
   try{
-    const credits = await tmdbFetch(`/person/${personId}/combined_credits?language=en-US`);
-    const all = []
-      .concat((credits.cast || []).map(x=>({ ...x, creditType:"Cast" })))
-      .concat((credits.crew || []).map(x=>({ ...x, creditType:(x.job || "Crew") })));
-
-    const list = all
-      .filter(x => (x.media_type === "movie" || x.media_type === "tv"))
-      .filter(x => x.poster_path)
-      .sort((a,b)=>(b.popularity||0)-(a.popularity||0))
-      .slice(0, 30);
-
-    const header = `
-      <div class="card" style="margin-bottom:12px;">
-        <div class="row" style="justify-content:space-between;">
-          <div>
-            <div style="font-weight:950;font-size:20px;">${escapeHtml(name || "Person")}</div>
-            <div class="muted">Top filmography (tap ⋮ to add titles)</div>
-          </div>
-          <button id="backToSearch">Clear</button>
+    const credits=await tmdbFetch(`/person/${personId}/combined_credits?language=en-US`);
+    const all=[].concat((credits.cast||[]).map(x=>({...x,creditType:"Cast"}))).concat((credits.crew||[]).map(x=>({...x,creditType:x.job||"Crew"})));
+    const list=all.filter(x=>x.media_type==="movie"||x.media_type==="tv").filter(x=>x.poster_path).sort((a,b)=>(b.popularity||0)-(a.popularity||0)).slice(0,30);
+    const items=list.map(x=>{
+      const mt=x.media_type,title=mt==="movie"?x.title:x.name,year=mt==="movie"?(x.release_date||"").slice(0,4):(x.first_air_date||"").slice(0,4);
+      const exists=isInAnyList(mt,x.id);
+      return `<div class="item" data-kind="title" data-id="${x.id}" data-media="${mt}" data-name="${escapeHtml(title||"")}" data-year="${escapeHtml(year||"")}" data-poster="${escapeHtml(x.poster_path||"")}">
+        <button class="posterBtn" data-open="details"><img class="poster" src="${IMG_SMALL}${x.poster_path}" alt="" onerror="this.style.display='none'"></button>
+        <div>
+          <div class="itemTitle" data-open="details">${escapeHtml(title||"—")}</div>
+          <div class="meta"><span class="badge badge-${mt}">${mt.toUpperCase()}</span> ${escapeHtml(year||"—")} · ${escapeHtml(x.creditType||"")}</div>
         </div>
-      </div>
-    `;
-
-    const items = list.map(x=>{
-      const media_type = x.media_type;
-      const title = media_type === "movie" ? x.title : x.name;
-      const year = media_type === "movie" ? (x.release_date || "").slice(0,4) : (x.first_air_date || "").slice(0,4);
-      const exists = isInAnyList(media_type, x.id);
-
-      return `
-        <div class="item" data-kind="title" data-id="${x.id}" data-media="${media_type}" data-name="${escapeHtml(title || "")}" data-year="${escapeHtml(year || "")}" data-poster="${escapeHtml(x.poster_path || "")}">
-          <button class="posterBtn" data-open="details" aria-label="Open details">
-            <img class="poster" src="${IMG_SMALL}${x.poster_path}" alt="" onerror="this.style.display='none'">
-          </button>
-          <div>
-            <div class="title" data-open="details">${escapeHtml(title || "—")}</div>
-            <div class="meta">${media_type.toUpperCase()} • ${escapeHtml(year || "—")} • ${escapeHtml(x.creditType || "")}</div>
-          </div>
-
-          <button class="kebab" data-open="menu" aria-label="Menu">⋮</button>
-          <div class="menu" data-menu>
-            <button data-act="details">Details</button>
-            <button data-act="watchlist" ${exists ? "disabled":""}>+ Add to Watchlist</button>
-            <button data-act="watched" ${exists ? "disabled":""}>✓ Mark Watched</button>
-          </div>
+        <button class="kebab" data-open="menu">⋮</button>
+        <div class="menu" data-menu>
+          <button data-act="details">Details</button>
+          <button data-act="watchlist" ${exists?"disabled":""}>+ Add to Watchlist</button>
+          <button data-act="watched" ${exists?"disabled":""}>✓ Mark Watched</button>
         </div>
-      `;
+      </div>`;
     }).join("");
-
-    elResults.innerHTML = header + `<div class="results">${items}</div>`;
-    document.getElementById("backToSearch").addEventListener("click", ()=>{
-      elResults.innerHTML = "";
-    });
-
+    const header=`<div class="card" style="margin-bottom:12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+        <div><div class="cardTitle">${escapeHtml(name||"Person")}</div><div class="meta" style="margin-top:4px;">Top filmography</div></div>
+        <button id="backToSearch" style="background:var(--surface2);border:1px solid var(--border2);color:var(--muted2);border-radius:10px;padding:8px 14px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;">← Back</button>
+      </div>
+    </div>`;
+    elResults.innerHTML=header+`<div class="results">${items}</div>`;
+    document.getElementById("backToSearch").addEventListener("click",()=>{ elResults.innerHTML=""; });
     wireResultActions();
   }catch(err){
-    console.error(err);
-    elResults.innerHTML = `<div class="muted">Failed to load filmography: ${escapeHtml(err?.message || String(err))}</div>`;
+    elResults.innerHTML=`<div class="emptyState"><div class="emptyText">Failed to load filmography: ${escapeHtml(err?.message||String(err))}</div></div>`;
   }
 }
 
-function escapeHtml(s){
-  return String(s ?? "")
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
+// ─────────────────────────────────────────────
+// UTIL
+// ─────────────────────────────────────────────
+function escapeHtml(s){ return String(s??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;"); }
+
+// ─────────────────────────────────────────────
+// TAB WIRING
+// ─────────────────────────────────────────────
+function setupTabs(){
+  document.getElementById("watchlistTabs").addEventListener("click",e=>{
+    const tab=e.target.closest(".pillTab"); if(!tab) return;
+    watchlistTab=tab.dataset.tab;
+    document.querySelectorAll("#watchlistTabs .pillTab").forEach(t=>t.classList.toggle("active",t.dataset.tab===watchlistTab));
+    renderWatchlist();
+  });
+  document.getElementById("watchedTabs").addEventListener("click",e=>{
+    const tab=e.target.closest(".pillTab"); if(!tab) return;
+    watchedTab=tab.dataset.tab;
+    document.querySelectorAll("#watchedTabs .pillTab").forEach(t=>t.classList.toggle("active",t.dataset.tab===watchedTab));
+    renderWatched();
+  });
+  document.getElementById("peopleTabs").addEventListener("click",e=>{
+    const tab=e.target.closest(".pillTab"); if(!tab) return;
+    peopleTab=tab.dataset.tab;
+    document.querySelectorAll("#peopleTabs .pillTab").forEach(t=>t.classList.toggle("active",t.dataset.tab===peopleTab));
+    renderPeople();
+  });
+  document.getElementById("watchlistSort").addEventListener("change",e=>{ watchlistSort=e.target.value; renderWatchlist(); });
+  document.getElementById("watchedSort").addEventListener("change",e=>{ watchedSort=e.target.value; renderWatched(); });
+
+  // allow pressing Enter in auth forms
+  document.getElementById("siPass").addEventListener("keydown",e=>{ if(e.key==="Enter") doSignIn(); });
+  document.getElementById("suPass").addEventListener("keydown",e=>{ if(e.key==="Enter") doSignUp(); });
 }
 
-window.addEventListener("load", ()=>{
-  try{
-    initSync();
-  }catch(e){
-    console.error(e);
-    setSyncStatus("JS error");
-    debug("Startup error: " + (e?.message || String(e)));
+// ─────────────────────────────────────────────
+// THEME
+// ─────────────────────────────────────────────
+const THEME_KEY = "hyw_theme";
+
+function applyTheme(theme){
+  document.documentElement.setAttribute("data-theme", theme);
+  const icon = theme === "light" ? "🌙" : "☀️";
+  const authBtn = document.getElementById("authThemeToggle");
+  const appBtn  = document.getElementById("appThemeToggle");
+  if(authBtn) authBtn.textContent = icon;
+  if(appBtn)  appBtn.textContent  = icon;
+}
+
+function toggleTheme(){
+  const current = document.documentElement.getAttribute("data-theme") || "dark";
+  const next = current === "dark" ? "light" : "dark";
+  localStorage.setItem(THEME_KEY, next);
+  applyTheme(next);
+}
+
+// Load saved theme immediately
+(function(){
+  const saved = localStorage.getItem(THEME_KEY) || "dark";
+  applyTheme(saved);
+})();
+
+// ─────────────────────────────────────────────
+// BOOT
+// ─────────────────────────────────────────────
+window.addEventListener("load",async()=>{
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  setupNav();
+  setupSearch();
+  setupTabs();
+
+  // Check for existing session
+  const { data: { session } } = await sb.auth.getSession();
+  if(session?.user){
+    await onSignedIn(session.user);
   }
+
+  // Listen for auth changes
+  sb.auth.onAuthStateChange(async(_event, session)=>{
+    if(session?.user && !currentUser){
+      await onSignedIn(session.user);
+    }
+  });
 });
 </script>
 </body>
