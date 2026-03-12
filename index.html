@@ -1057,6 +1057,43 @@
 
     .tabDot{ display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--accent); margin-left:5px; vertical-align:middle; }
 
+    /* ── SEASON TRACKER ── */
+    .seasonTracker{
+      margin-top:10px;
+      padding:10px 12px;
+      background:var(--surface);
+      border:1px solid var(--border);
+      border-radius:12px;
+      display:grid;
+      gap:8px;
+    }
+    .seasonRow{
+      display:grid;
+      grid-template-columns:1fr auto auto;
+      align-items:center;
+      gap:10px;
+      font-size:13px;
+    }
+    .seasonLabel{ font-weight:600; color:var(--text); }
+    .seasonEpInfo{ font-size:11px; color:var(--muted2); }
+    .seasonCheck{
+      width:28px; height:28px;
+      border-radius:8px;
+      border:2px solid var(--border2);
+      background:var(--surface2);
+      display:grid; place-items:center;
+      cursor:pointer;
+      font-size:14px;
+      transition:all .15s;
+      flex-shrink:0;
+    }
+    .seasonCheck.watched{
+      border-color:var(--green);
+      background:var(--green-dim);
+      color:var(--green);
+    }
+    .seasonCheck:hover{ border-color:var(--accent); }
+
     /* ── THEME TOGGLE ── */
     .themeToggle{
       width:38px;
@@ -1155,13 +1192,9 @@
 
     <nav class="topNav" id="topTabsDesktop">
       <button class="topTab active" data-section="homeSec">Home</button>
-      <button class="topTab" data-section="searchSec">Search</button>
-      <button class="topTab" data-section="watchlistSec">Watchlist</button>
-      <button class="topTab" data-section="watchedSec">Watched</button>
-      <button class="topTab" data-section="peopleSec">People</button>
+      <button class="topTab" data-section="librarySec">My Library</button>
+      <button class="topTab" data-section="socialSec" id="tabSocial">Social</button>
       <button class="topTab" data-section="statsSec">Stats</button>
-      <button class="topTab" data-section="friendsSec" id="tabFriends">Friends</button>
-      <button class="topTab" data-section="recsSec" id="tabRecs">Recs</button>
     </nav>
 
     <div style="display:flex;align-items:center;gap:8px;">
@@ -1177,29 +1210,17 @@
   <!-- Mobile nav -->
   <div class="mobileNav" id="topTabsMobile">
     <button class="mobileNavBtn active" data-section="homeSec">Home</button>
-    <button class="mobileNavBtn" data-section="searchSec">Search</button>
-    <button class="mobileNavBtn" data-section="watchlistSec">Watchlist</button>
-    <button class="mobileNavBtn" data-section="watchedSec">Watched</button>
-    <button class="mobileNavBtn" data-section="peopleSec">People</button>
+    <button class="mobileNavBtn" data-section="librarySec">My Library</button>
+    <button class="mobileNavBtn" data-section="socialSec" id="mTabSocial">Social</button>
     <button class="mobileNavBtn" data-section="statsSec">Stats</button>
-    <button class="mobileNavBtn" data-section="friendsSec" id="mTabFriends">Friends</button>
-    <button class="mobileNavBtn" data-section="recsSec" id="mTabRecs">Recs</button>
   </div>
 
   <div class="wrap">
 
     <!-- HOME -->
     <div class="section active" id="homeSec">
-      <div class="card">
-        <div class="cardTitle">Recently Added</div>
-        <div style="color:var(--muted2);font-size:13px;margin-top:4px;">Your last 5 items across Watchlist & Watched</div>
-        <div id="homeRecent" class="homeGrid"></div>
-      </div>
-    </div>
-
-    <!-- SEARCH -->
-    <div class="section" id="searchSec">
-      <div class="card">
+      <div class="card" style="margin-bottom:14px;">
+        <div class="cardTitle" style="margin-bottom:12px;">Search</div>
         <div class="searchRow">
           <div class="searchWrap">
             <input class="searchInput" id="searchInput" placeholder="Search titles, actors, directors…" />
@@ -1220,66 +1241,119 @@
         <div style="color:var(--muted);font-size:12px;margin-top:8px;">Tap a poster or title for full details</div>
         <div id="results" class="results"></div>
       </div>
-    </div>
-
-    <!-- WATCHLIST -->
-    <div class="section" id="watchlistSec">
       <div class="card">
-        <div class="listHeader">
-          <div style="display:flex;align-items:center;gap:12px;">
-            <div class="cardTitle">Watchlist</div>
-            <div class="countBadges">
-              <div class="countBadge" id="watchlistMoviesCount">0 Movies</div>
-              <div class="countBadge" id="watchlistTVCount">0 TV</div>
-            </div>
-          </div>
-          <select id="watchlistSort">
-            <option value="recent">Recently added</option>
-            <option value="title">Title A–Z</option>
-          </select>
-        </div>
-        <div class="pillTabs" id="watchlistTabs">
-          <button class="pillTab active" data-tab="movie">Movies</button>
-          <button class="pillTab" data-tab="tv">TV Shows</button>
-        </div>
-        <div id="watchlistList" class="list"></div>
+        <div class="cardTitle">Recently Added</div>
+        <div style="color:var(--muted2);font-size:13px;margin-top:4px;">Your last 5 items across Watchlist & Watched</div>
+        <div id="homeRecent" class="homeGrid"></div>
       </div>
     </div>
 
-    <!-- WATCHED -->
-    <div class="section" id="watchedSec">
+    <!-- MY LIBRARY -->
+    <div class="section" id="librarySec">
       <div class="card">
-        <div class="listHeader">
-          <div style="display:flex;align-items:center;gap:12px;">
-            <div class="cardTitle">Watched</div>
-            <div class="countBadges">
-              <div class="countBadge" id="watchedMoviesCount">0 Movies</div>
-              <div class="countBadge" id="watchedTVCount">0 TV</div>
+        <div class="pillTabs" id="libraryTabs" style="margin-bottom:16px;">
+          <button class="pillTab active" data-ltab="watchlist">Watchlist</button>
+          <button class="pillTab" data-ltab="watched">Watched</button>
+          <button class="pillTab" data-ltab="people">People</button>
+        </div>
+
+        <!-- Watchlist sub-section -->
+        <div id="libWatchlist">
+          <div class="listHeader">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div class="cardTitle" style="font-size:18px;">Watchlist</div>
+              <div class="countBadges">
+                <div class="countBadge" id="watchlistMoviesCount">0 Movies</div>
+                <div class="countBadge" id="watchlistTVCount">0 TV</div>
+              </div>
             </div>
+            <select id="watchlistSort">
+              <option value="recent">Recently added</option>
+              <option value="title">Title A–Z</option>
+            </select>
           </div>
-          <select id="watchedSort">
-            <option value="recent">Recently added</option>
-            <option value="title">Title A–Z</option>
-          </select>
+          <div class="pillTabs" id="watchlistTabs" style="margin-top:12px;">
+            <button class="pillTab active" data-tab="movie">Movies</button>
+            <button class="pillTab" data-tab="tv">TV Shows</button>
+          </div>
+          <div id="watchlistList" class="list"></div>
         </div>
-        <div class="pillTabs" id="watchedTabs">
-          <button class="pillTab active" data-tab="movie">Movies</button>
-          <button class="pillTab" data-tab="tv">TV Shows</button>
+
+        <!-- Watched sub-section -->
+        <div id="libWatched" style="display:none;">
+          <div class="listHeader">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div class="cardTitle" style="font-size:18px;">Watched</div>
+              <div class="countBadges">
+                <div class="countBadge" id="watchedMoviesCount">0 Movies</div>
+                <div class="countBadge" id="watchedTVCount">0 TV</div>
+              </div>
+            </div>
+            <select id="watchedSort">
+              <option value="recent">Recently added</option>
+              <option value="title">Title A–Z</option>
+            </select>
+          </div>
+          <div class="pillTabs" id="watchedTabs" style="margin-top:12px;">
+            <button class="pillTab active" data-tab="movie">Movies</button>
+            <button class="pillTab" data-tab="tv">TV Shows</button>
+          </div>
+          <div id="watchedList" class="list"></div>
         </div>
-        <div id="watchedList" class="list"></div>
+
+        <!-- People sub-section -->
+        <div id="libPeople" style="display:none;">
+          <div class="cardTitle" style="font-size:18px;margin-bottom:4px;">People</div>
+          <div style="color:var(--muted2);font-size:13px;margin-bottom:12px;">Actors & Directors you follow</div>
+          <div class="pillTabs" id="peopleTabs">
+            <button class="pillTab active" data-tab="actors">Actors</button>
+            <button class="pillTab" data-tab="directors">Directors</button>
+          </div>
+          <div id="peopleList" class="list"></div>
+        </div>
       </div>
     </div>
 
-    <!-- PEOPLE -->
-    <div class="section" id="peopleSec">
+    <!-- SOCIAL -->
+    <div class="section" id="socialSec">
       <div class="card">
-        <div class="cardTitle">People</div>
-        <div style="color:var(--muted2);font-size:13px;margin-top:4px;">Actors & Directors you follow</div>
-        <div class="pillTabs" id="peopleTabs">
-          <button class="pillTab active" data-tab="actors">Actors</button>
-          <button class="pillTab" data-tab="directors">Directors</button>
+        <div class="pillTabs" id="socialTabs" style="margin-bottom:16px;">
+          <button class="pillTab active" data-stab="friends" id="socialFriendsTab">Friends</button>
+          <button class="pillTab" data-stab="recs" id="socialRecsTab">Recommendations</button>
         </div>
-        <div id="peopleList" class="list"></div>
+
+        <!-- Friends sub-section -->
+        <div id="libFriends">
+          <div style="margin-bottom:14px;">
+            <div class="cardTitle" style="font-size:18px;margin-bottom:4px;">Friends</div>
+            <div style="color:var(--muted2);font-size:13px;margin-bottom:12px;">Find friends by email and share recommendations</div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <div class="searchWrap" style="flex:1;min-width:200px;">
+                <input class="searchInput" id="friendEmailInput" type="email" placeholder="Friend's email address…" style="padding-right:14px;" />
+              </div>
+              <button class="btnSearch" id="btnAddFriend">Send Request</button>
+            </div>
+            <div id="addFriendMsg" style="font-size:13px;font-weight:600;min-height:18px;margin-top:8px;"></div>
+          </div>
+          <div id="incomingCard" style="display:none;margin-bottom:14px;">
+            <div class="cardTitle" style="font-size:16px;margin-bottom:10px;">Incoming Requests</div>
+            <div id="incomingList" class="friendsGrid"></div>
+          </div>
+          <div>
+            <div class="cardTitle" style="font-size:16px;margin-bottom:10px;">Your Friends</div>
+            <div id="friendsList" class="friendsGrid"></div>
+          </div>
+        </div>
+
+        <!-- Recs sub-section -->
+        <div id="libRecs" style="display:none;">
+          <div class="cardTitle" style="font-size:18px;margin-bottom:12px;">Recommendations</div>
+          <div class="pillTabs" id="recsTabs">
+            <button class="pillTab active" data-rtab="received">Received</button>
+            <button class="pillTab" data-rtab="sent">Sent</button>
+          </div>
+          <div id="recsList" style="margin-top:14px;display:grid;gap:10px;"></div>
+        </div>
       </div>
     </div>
 
@@ -1288,75 +1362,14 @@
       <div class="card">
         <div class="cardTitle">Your Stats</div>
         <div class="statsGrid">
-          <div class="statBox">
-            <div class="statVal" id="statMovieCount">0</div>
-            <div class="statLabel">Movies Watched</div>
-          </div>
-          <div class="statBox">
-            <div class="statVal" id="statTVCount">0</div>
-            <div class="statLabel">TV Shows Watched</div>
-          </div>
-          <div class="statBox">
-            <div class="statVal" id="timeMovies">0h 0m</div>
-            <div class="statLabel">Movie Time</div>
-          </div>
-          <div class="statBox">
-            <div class="statVal" id="timeTV">0h 0m</div>
-            <div class="statLabel">TV Time</div>
-          </div>
-          <div class="statBox">
-            <div class="statVal" id="timeTotal">0h 0m</div>
-            <div class="statLabel">Total Watch Time</div>
-          </div>
-          <div class="statBox">
-            <div class="statVal" id="statWatchlistCount">0</div>
-            <div class="statLabel">On Watchlist</div>
-          </div>
+          <div class="statBox"><div class="statVal" id="statMovieCount">0</div><div class="statLabel">Movies Watched</div></div>
+          <div class="statBox"><div class="statVal" id="statTVCount">0</div><div class="statLabel">TV Shows Watched</div></div>
+          <div class="statBox"><div class="statVal" id="timeMovies">0h 0m</div><div class="statLabel">Movie Time</div></div>
+          <div class="statBox"><div class="statVal" id="timeTV">0h 0m</div><div class="statLabel">TV Time</div></div>
+          <div class="statBox"><div class="statVal" id="timeTotal">0h 0m</div><div class="statLabel">Total Watch Time</div></div>
+          <div class="statBox"><div class="statVal" id="statWatchlistCount">0</div><div class="statLabel">On Watchlist</div></div>
         </div>
         <div style="color:var(--muted);font-size:12px;margin-top:14px;">Movies = runtime · TV = watched episodes × avg episode runtime</div>
-      </div>
-    </div>
-
-    <!-- FRIENDS -->
-    <div class="section" id="friendsSec">
-      <div class="card" style="margin-bottom:14px;">
-        <div class="cardTitle">Friends</div>
-        <div style="color:var(--muted2);font-size:13px;margin-top:4px;">Find friends by email and share recommendations</div>
-
-        <!-- Add friend row -->
-        <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">
-          <div class="searchWrap" style="flex:1;min-width:200px;">
-            <input class="searchInput" id="friendEmailInput" type="email" placeholder="Friend's email address…" style="padding-right:14px;" />
-          </div>
-          <button class="btnSearch" id="btnAddFriend">Send Request</button>
-        </div>
-        <div id="addFriendMsg" style="font-size:13px;font-weight:600;min-height:18px;margin-top:8px;"></div>
-      </div>
-
-      <!-- Incoming requests -->
-      <div class="card" style="margin-bottom:14px;" id="incomingCard" style="display:none;">
-        <div class="cardTitle" style="font-size:18px;">Incoming Requests</div>
-        <div id="incomingList" class="friendsGrid"></div>
-      </div>
-
-      <!-- Friend list -->
-      <div class="card">
-        <div class="cardTitle" style="font-size:18px;">Your Friends</div>
-        <div id="friendsList" class="friendsGrid"></div>
-      </div>
-    </div>
-
-    <!-- RECOMMENDATIONS -->
-    <div class="section" id="recsSec">
-      <div class="card">
-        <div class="listHeader">
-          <div class="cardTitle">Recommendations</div>
-        </div>
-        <div class="pillTabs" id="recsTabs">
-          <button class="pillTab active" data-rtab="received">Received</button>
-          <button class="pillTab" data-rtab="sent">Sent</button>
-        </div>
-        <div id="recsList" style="margin-top:14px;display:grid;gap:10px;"></div>
       </div>
     </div>
 
@@ -2065,18 +2078,40 @@ function renderCounts(){
 function listCardHtml(item,listType){
   const poster=item.poster_path?(IMG_SMALL+item.poster_path):"";
   const year=item.year||"—";
+  const totalEp=totalWatchedEpisodes(item);
   const subtitle=item.media_type==="movie"
     ?`${year}${typeof item.runtime_minutes==="number"?" · "+item.runtime_minutes+" min":""}`
-    :`${year} · ${totalWatchedEpisodes(item)} ep × ${item.avg_episode_minutes||0}m`;
+    :`${year} · ${totalEp} ep watched`;
   const ratingLine=listType==="watched"?`<div class="meta">Your rating: <b>${ratingToText(item.rating)}</b></div>`:"";
   const mtBadge=`<span class="badge badge-${item.media_type}">${item.media_type.toUpperCase()}</span>`;
+
+  // Season tracker for TV shows in watched list
+  let seasonHtml="";
+  if(listType==="watched" && item.media_type==="tv" && item.seasons_meta && Object.keys(item.seasons_meta).length>0){
+    const rows=Object.entries(item.seasons_meta).sort((a,b)=>Number(a[0])-Number(b[0])).map(([sNum,epCount])=>{
+      const watched=!!(item.seasons_watched&&item.seasons_watched[sNum]>=1);
+      const epWatched=item.seasons_watched?.(item.seasons_watched[sNum]||0):0;
+      return `<div class="seasonRow">
+        <div>
+          <span class="seasonLabel">Season ${sNum}</span>
+          <span class="seasonEpInfo"> · ${epCount} ep</span>
+        </div>
+        <div class="seasonCheck ${watched?"watched":""}" data-season="${sNum}" data-id="${item.id}" data-media="tv" title="${watched?"Mark unwatched":"Mark watched"}">
+          ${watched?"✓":""}
+        </div>
+      </div>`;
+    }).join("");
+    seasonHtml=`<div class="seasonTracker">${rows}</div>`;
+  }
+
   return `
     <div class="item" data-kind="title" data-id="${item.id}" data-media="${item.media_type}" data-name="${escapeHtml(item.title||"")}" data-year="${escapeHtml(item.year||"")}" data-poster="${escapeHtml(item.poster_path||"")}">
       <button class="posterBtn" data-open="details"><img class="poster" src="${poster}" alt="" onerror="this.style.display='none'"></button>
-      <div>
+      <div style="flex:1;min-width:0;">
         <div class="itemTitle" data-open="details">${escapeHtml(item.title||"—")}</div>
         <div class="meta">${mtBadge} ${escapeHtml(subtitle)}</div>
         ${ratingLine}
+        ${seasonHtml}
       </div>
       <button class="kebab" data-open="menu">⋮</button>
       <div class="menu" data-menu>
@@ -2095,6 +2130,25 @@ function listCardHtml(item,listType){
     </div>`;
 }
 
+function injectRecOption(menu, item){
+  if(friends.length === 0) return;
+  if(menu.querySelector("[data-rec-injected]")) return;
+  const marker = document.createElement("span");
+  marker.setAttribute("data-rec-injected","1");
+  marker.style.display = "none";
+  menu.appendChild(marker);
+  const btn = document.createElement("button");
+  btn.textContent = "📨 Recommend to friend";
+  btn.addEventListener("click", e => {
+    e.stopPropagation();
+    menu.style.display = "none";
+    openSendRec(item);
+  });
+  const buttons = menu.querySelectorAll("button");
+  const last = buttons[buttons.length - 1];
+  menu.insertBefore(btn, last);
+}
+
 function wireListCards(container){
   container.querySelectorAll(".item").forEach(card=>{
     const kebab=card.querySelector('[data-open="menu"]');
@@ -2106,6 +2160,10 @@ function wireListCards(container){
       x.addEventListener("click",async e=>{e.stopPropagation();await openDetailsModalFromCard(card);});
     });
     if(menu){
+      if(card.dataset.kind==="title"){
+        const item={id:Number(card.dataset.id),media_type:card.dataset.media,title:card.dataset.name,year:card.dataset.year||"",poster_path:card.dataset.poster||""};
+        injectRecOption(menu, item);
+      }
       menu.querySelectorAll("button").forEach(btn=>{
         btn.addEventListener("click",async e=>{
           e.stopPropagation(); menu.style.display="none";
@@ -2130,6 +2188,31 @@ function wireListCards(container){
         });
       });
     }
+  });
+  // Season checkboxes
+  container.querySelectorAll(".seasonCheck").forEach(chk=>{
+    chk.addEventListener("click", e=>{
+      e.stopPropagation();
+      const sNum=chk.dataset.season;
+      const id=Number(chk.dataset.id);
+      const item=state.watched.find(x=>x.media_type==="tv"&&x.id===id);
+      if(!item) return;
+      if(!item.seasons_watched) item.seasons_watched={};
+      const currentlyWatched=!!(item.seasons_watched[sNum]>=1);
+      if(currentlyWatched){
+        item.seasons_watched[sNum]=0;
+        chk.classList.remove("watched");
+        chk.textContent="";
+        showToast(`Season ${sNum} marked unwatched`);
+      } else {
+        item.seasons_watched[sNum]=item.seasons_meta?.[sNum]||1;
+        chk.classList.add("watched");
+        chk.textContent="✓";
+        showToast(`Season ${sNum} marked watched ✓`);
+      }
+      scheduleRemoteSave();
+      renderStats();
+    });
   });
   document.addEventListener("click",closeAllMenus,{once:true});
 }
@@ -2247,8 +2330,8 @@ async function openPersonModalFromCard(card){
 }
 
 async function openPersonFilmography(personId,name){
-  document.querySelectorAll(".topTab,.mobileNavBtn").forEach(t=>t.classList.toggle("active",t.dataset.section==="searchSec"));
-  document.querySelectorAll(".section").forEach(s=>s.classList.toggle("active",s.id==="searchSec"));
+  document.querySelectorAll(".topTab,.mobileNavBtn").forEach(t=>t.classList.toggle("active",t.dataset.section==="homeSec"));
+  document.querySelectorAll(".section").forEach(s=>s.classList.toggle("active",s.id==="homeSec"));
   elResults.innerHTML=`<div class="emptyState"><div class="emptyIcon">🎬</div><div class="emptyText">Loading filmography for <b>${escapeHtml(name||"Person")}</b>…</div></div>`;
   if(detailsBackdrop.style.display==="flex") closeDetails();
   try{
@@ -2295,6 +2378,28 @@ function escapeHtml(s){ return String(s??"").replaceAll("&","&amp;").replaceAll(
 // TAB WIRING
 // ─────────────────────────────────────────────
 function setupTabs(){
+  // ── Library sub-tabs ──
+  let libraryTab = "watchlist";
+  document.getElementById("libraryTabs").addEventListener("click",e=>{
+    const tab=e.target.closest(".pillTab"); if(!tab) return;
+    libraryTab=tab.dataset.ltab;
+    document.querySelectorAll("#libraryTabs .pillTab").forEach(t=>t.classList.toggle("active",t.dataset.ltab===libraryTab));
+    document.getElementById("libWatchlist").style.display = libraryTab==="watchlist" ? "block" : "none";
+    document.getElementById("libWatched").style.display   = libraryTab==="watched"   ? "block" : "none";
+    document.getElementById("libPeople").style.display    = libraryTab==="people"    ? "block" : "none";
+  });
+
+  // ── Social sub-tabs ──
+  let socialTab = "friends";
+  document.getElementById("socialTabs").addEventListener("click",e=>{
+    const tab=e.target.closest(".pillTab"); if(!tab) return;
+    socialTab=tab.dataset.stab;
+    document.querySelectorAll("#socialTabs .pillTab").forEach(t=>t.classList.toggle("active",t.dataset.stab===socialTab));
+    document.getElementById("libFriends").style.display = socialTab==="friends" ? "block" : "none";
+    document.getElementById("libRecs").style.display    = socialTab==="recs"    ? "block" : "none";
+  });
+
+  // ── Watchlist inner tabs ──
   document.getElementById("watchlistTabs").addEventListener("click",e=>{
     const tab=e.target.closest(".pillTab"); if(!tab) return;
     watchlistTab=tab.dataset.tab;
@@ -2613,11 +2718,13 @@ function renderFriends(){
     friendsList.innerHTML = sentHtml + friendHtml;
   }
 
-  // Notification dot on tab for incoming requests
+  // Notification dot on Social tab for incoming requests
   const dot = pendingIn.length > 0 ? `<span class="tabDot"></span>` : "";
-  document.querySelectorAll("[data-section='friendsSec']").forEach(el => {
-    el.innerHTML = "Friends" + dot;
+  document.querySelectorAll("[data-section='socialSec']").forEach(el => {
+    el.innerHTML = "Social" + dot;
   });
+  const friendsSubTab = document.querySelector("[data-stab='friends']");
+  if(friendsSubTab) friendsSubTab.innerHTML = "Friends" + dot;
 }
 
 // ── Friend's watched list modal ──
@@ -2817,9 +2924,12 @@ async function markRecRead(recId){
 function updateRecBadge(){
   const unread = recsReceived.filter(r => !r.read).length;
   const dot    = unread > 0 ? `<span class="tabDot"></span>` : "";
-  document.querySelectorAll("[data-section='recsSec']").forEach(el => {
-    el.innerHTML = "Recs" + dot;
+  document.querySelectorAll("[data-section='socialSec']").forEach(el => {
+    el.innerHTML = "Social" + dot;
   });
+  // also dot on the recs sub-tab
+  const recsSubTab = document.querySelector("[data-stab='recs']");
+  if(recsSubTab) recsSubTab.innerHTML = "Recommendations" + dot;
 }
 
 // ── Wire up Friends & Recs in onSignedIn ──
@@ -2845,47 +2955,6 @@ function setupSocialUI(){
 }
 
 // ── Hook "Recommend to Friend" into the kebab menus ──
-// Patch wireResultActions and wireListCards to inject the rec option
-
-function injectRecOption(menu, item){
-  if(friends.length === 0) return; // no friends yet, don't clutter menu
-  const btn = document.createElement("button");
-  btn.textContent = "📨 Recommend to friend";
-  btn.addEventListener("click", e => {
-    e.stopPropagation();
-    menu.style.display = "none";
-    openSendRec(item);
-  });
-  // Insert before the last button (Remove / danger)
-  const buttons = menu.querySelectorAll("button");
-  const last = buttons[buttons.length - 1];
-  menu.insertBefore(btn, last);
-}
-
-// Patch wireListCards to also inject rec option
-const _origWireListCards = wireListCards;
-function wireListCards(container){
-  _origWireListCards(container);
-  container.querySelectorAll(".item[data-kind='title']").forEach(card => {
-    const menu = card.querySelector("[data-menu]");
-    if(!menu) return;
-    // Avoid double-injecting
-    if(menu.querySelector("[data-rec-injected]")) return;
-    const marker = document.createElement("span");
-    marker.setAttribute("data-rec-injected","1");
-    marker.style.display = "none";
-    menu.appendChild(marker);
-    const item = {
-      id: Number(card.dataset.id),
-      media_type: card.dataset.media,
-      title: card.dataset.name,
-      year: card.dataset.year || "",
-      poster_path: card.dataset.poster || ""
-    };
-    injectRecOption(menu, item);
-  });
-}
-
 // ─────────────────────────────────────────────
 // THEME
 // ─────────────────────────────────────────────
