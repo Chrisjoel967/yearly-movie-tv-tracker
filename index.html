@@ -1271,13 +1271,13 @@
     <div class="section" id="librarySec">
       <div class="card">
         <div class="pillTabs" id="libraryTabs" style="margin-bottom:16px;">
-          <button class="pillTab active" data-ltab="watchlist">Watchlist</button>
-          <button class="pillTab" data-ltab="watched">Watched</button>
+          <button class="pillTab active" data-ltab="watched">Watched</button>
+          <button class="pillTab" data-ltab="watchlist">Watchlist</button>
           <button class="pillTab" data-ltab="people">People</button>
         </div>
 
         <!-- Watchlist sub-section -->
-        <div id="libWatchlist">
+        <div id="libWatchlist" style="display:none;">
           <div class="listHeader">
             <div style="display:flex;align-items:center;gap:12px;">
               <div class="cardTitle" style="font-size:18px;">Watchlist</div>
@@ -1299,7 +1299,7 @@
         </div>
 
         <!-- Watched sub-section -->
-        <div id="libWatched" style="display:none;">
+        <div id="libWatched" 
           <div class="listHeader">
             <div style="display:flex;align-items:center;gap:12px;">
               <div class="cardTitle" style="font-size:18px;">Watched</div>
@@ -3035,3 +3035,4 @@ window.addEventListener("load",async()=>{
 </script>
 </body>
 </html>
+
