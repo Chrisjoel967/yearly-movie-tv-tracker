@@ -4,6 +4,17 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>HaveYouWatch</title>
+
+  <!-- PWA meta -->
+  <meta name="application-name" content="HaveYouWatch"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="HaveYouWatch"/>
+  <meta name="theme-color" content="#0a0b0f"/>
+  <meta name="description" content="Your personal movie & TV tracker"/>
+  <link rel="apple-touch-icon" href="https://image.tmdb.org/t/p/w45/wwemzKWzjKYJFfCeiB57q3r4Bcm.png"/>
+  <link rel="manifest" id="pwaManifest"/>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -974,9 +985,8 @@
 
     .friendCard{
       display:grid;
-      grid-template-columns:42px 1fr auto;
-      align-items:center;
-      gap:12px;
+      grid-template-columns:42px 1fr;
+      gap:10px 12px;
       background:var(--surface2);
       border:1px solid var(--border);
       border-radius:14px;
@@ -991,26 +1001,29 @@
       font-size:16px; font-weight:700; color:var(--accent); flex-shrink:0;
     }
 
-    .friendName{ font-weight:700; font-size:15px; color:var(--text); }
+    .friendName{ font-weight:700; font-size:14px; color:var(--text); word-break:break-all; }
     .friendMeta{ font-size:12px; color:var(--muted2); margin-top:2px; }
-    .friendActions{ display:flex; gap:8px; align-items:center; }
+    .friendActions{
+      grid-column: 1 / -1;
+      display:flex; gap:6px; align-items:center; flex-wrap:wrap;
+    }
 
     .btnSmall{
       background:var(--surface); border:1px solid var(--border2); color:var(--muted2);
-      border-radius:8px; padding:6px 12px; font-family:'DM Sans',sans-serif;
-      font-size:12px; font-weight:600; cursor:pointer; transition:all .15s; white-space:nowrap;
+      border-radius:8px; padding:6px 10px; font-family:'DM Sans',sans-serif;
+      font-size:11px; font-weight:600; cursor:pointer; transition:all .15s; white-space:nowrap;
     }
     .btnSmall:hover{ border-color:var(--accent); color:var(--accent); }
 
     .btnSmallGreen{
       background:var(--green-dim); border:1px solid var(--green); color:var(--green);
-      border-radius:8px; padding:6px 12px; font-family:'DM Sans',sans-serif;
-      font-size:12px; font-weight:600; cursor:pointer;
+      border-radius:8px; padding:6px 10px; font-family:'DM Sans',sans-serif;
+      font-size:11px; font-weight:600; cursor:pointer;
     }
     .btnSmallDanger{
       background:var(--danger-dim); border:1px solid rgba(220,38,38,.35); color:var(--danger);
-      border-radius:8px; padding:6px 12px; font-family:'DM Sans',sans-serif;
-      font-size:12px; font-weight:600; cursor:pointer;
+      border-radius:8px; padding:6px 10px; font-family:'DM Sans',sans-serif;
+      font-size:11px; font-weight:600; cursor:pointer;
     }
 
     .pendingBadge{
@@ -1037,11 +1050,11 @@
     .recActions{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
     .unreadDot{ width:8px; height:8px; border-radius:50%; background:var(--accent); position:absolute; top:12px; right:12px; }
 
-    .sendRecModal{ width:min(480px,100%); background:var(--surface); border:1px solid var(--border2); border-radius:20px; box-shadow:var(--shadow); overflow:hidden; }
-    .sendRecHeader{ padding:18px 20px 14px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
-    .sendRecBody{ padding:20px; display:grid; gap:14px; }
+    .sendRecModal{ width:min(480px,calc(100vw - 24px)); background:var(--surface); border:1px solid var(--border2); border-radius:20px; box-shadow:var(--shadow); overflow:hidden; }
+    .sendRecHeader{ padding:16px 16px 12px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+    .sendRecBody{ padding:16px; display:grid; gap:14px; }
     .sendRecPoster{ width:48px; height:72px; border-radius:8px; object-fit:cover; background:var(--surface2); border:1px solid var(--border2); }
-    .friendPickList{ display:grid; gap:8px; max-height:180px; overflow-y:auto; padding-right:4px; }
+    .friendPickList{ display:grid; gap:8px; max-height:160px; overflow-y:auto; padding-right:4px; }
     .friendPickItem{ display:flex; align-items:center; gap:10px; background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:10px 12px; cursor:pointer; transition:border-color .15s; }
     .friendPickItem:hover{ border-color:var(--accent); }
     .friendPickItem.selected{ border-color:var(--accent); background:var(--accent-dim); }
@@ -1051,9 +1064,9 @@
     .noteInput:focus{ border-color:var(--accent); }
     .noteInput::placeholder{ color:var(--muted); }
 
-    .friendWatchedModal{ width:min(700px,100%); background:var(--surface); border:1px solid var(--border2); border-radius:20px; box-shadow:var(--shadow); overflow:hidden; max-height:calc(100vh - 32px); display:flex; flex-direction:column; }
-    .friendWatchedHeader{ padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; background:var(--surface2); }
-    .friendWatchedBody{ padding:16px; overflow-y:auto; display:grid; gap:10px; }
+    .friendWatchedModal{ width:min(700px,calc(100vw - 16px)); background:var(--surface); border:1px solid var(--border2); border-radius:20px; box-shadow:var(--shadow); overflow:hidden; max-height:calc(100vh - 24px); display:flex; flex-direction:column; }
+    .friendWatchedHeader{ padding:14px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:10px; background:var(--surface2); flex-wrap:wrap; }
+    .friendWatchedBody{ padding:12px; overflow-y:auto; display:grid; gap:10px; }
 
     .tabDot{ display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--accent); margin-left:5px; vertical-align:middle; }
 
@@ -1271,13 +1284,13 @@
     <div class="section" id="librarySec">
       <div class="card">
         <div class="pillTabs" id="libraryTabs" style="margin-bottom:16px;">
-          <button class="pillTab active" data-ltab="watched">Watched</button>
-          <button class="pillTab" data-ltab="watchlist">Watchlist</button>
+          <button class="pillTab active" data-ltab="watchlist">Watchlist</button>
+          <button class="pillTab" data-ltab="watched">Watched</button>
           <button class="pillTab" data-ltab="people">People</button>
         </div>
 
         <!-- Watchlist sub-section -->
-        <div id="libWatchlist" style="display:none;">
+        <div id="libWatchlist">
           <div class="listHeader">
             <div style="display:flex;align-items:center;gap:12px;">
               <div class="cardTitle" style="font-size:18px;">Watchlist</div>
@@ -1299,7 +1312,7 @@
         </div>
 
         <!-- Watched sub-section -->
-        <div id="libWatched"> 
+        <div id="libWatched" style="display:none;">
           <div class="listHeader">
             <div style="display:flex;align-items:center;gap:12px;">
               <div class="cardTitle" style="font-size:18px;">Watched</div>
@@ -1347,10 +1360,10 @@
             <div class="cardTitle" style="font-size:18px;margin-bottom:4px;">Friends</div>
             <div style="color:var(--muted2);font-size:13px;margin-bottom:12px;">Find friends by email and share recommendations</div>
             <div style="display:flex;gap:10px;flex-wrap:wrap;">
-              <div class="searchWrap" style="flex:1;min-width:200px;">
+              <div class="searchWrap" style="flex:1;min-width:180px;">
                 <input class="searchInput" id="friendEmailInput" type="email" placeholder="Friend's email address…" style="padding-right:14px;" />
               </div>
-              <button class="btnSearch" id="btnAddFriend">Send Request</button>
+              <button class="btnSearch" id="btnAddFriend" style="width:100%;max-width:160px;">Send Request</button>
             </div>
             <div id="addFriendMsg" style="font-size:13px;font-weight:600;min-height:18px;margin-top:8px;"></div>
           </div>
@@ -2700,7 +2713,7 @@ function renderFriends(){
           <div class="friendMeta"><span class="incomingBadge">Wants to be friends</span></div>
         </div>
         <div class="friendActions">
-          <button class="btnSmallGreen" onclick="acceptFriendRequest('${f.friendship_id}')">Accept</button>
+          <button class="btnSmallGreen" onclick="acceptFriendRequest('${f.friendship_id}')">✓ Accept</button>
           <button class="btnSmallDanger" onclick="declineFriendRequest('${f.friendship_id}')">Decline</button>
         </div>
       </div>`).join("");
@@ -2727,13 +2740,11 @@ function renderFriends(){
       <div class="friendAvatar">${f.email[0].toUpperCase()}</div>
       <div>
         <div class="friendName">${escapeHtml(f.email)}</div>
-        <div class="friendMeta">
-          Watched list: <b>${f.list_visible ? "Visible to you" : "Hidden"}</b>
-        </div>
+        <div class="friendMeta">Watched list: <b>${f.list_visible ? "Visible to you" : "Hidden"}</b></div>
       </div>
       <div class="friendActions">
-        <button class="btnSmall" onclick="openFriendWatched('${f.id}','${escapeHtml(f.email)}')">View List</button>
-        <button class="btnSmall" onclick="toggleFriendVisibility('${f.friendship_id}', ${f.list_visible})">${f.list_visible ? "Hide my list" : "Show my list"}</button>
+        <button class="btnSmall" onclick="openFriendWatched('${f.id}','${escapeHtml(f.email)}')">👁 View List</button>
+        <button class="btnSmall" onclick="toggleFriendVisibility('${f.friendship_id}', ${f.list_visible})">${f.list_visible ? "🙈 Hide my list" : "👁 Show my list"}</button>
         <button class="btnSmallDanger" onclick="removeFriend('${f.friendship_id}')">Remove</button>
       </div>
     </div>`).join("");
@@ -3032,8 +3043,65 @@ window.addEventListener("load",async()=>{
     }
   });
 });
+
+// ─────────────────────────────────────────────
+// PWA — manifest + service worker (inline, no extra files needed)
+// ─────────────────────────────────────────────
+(function(){
+  const manifest = {
+    name: "HaveYouWatch",
+    short_name: "HaveYouWatch",
+    description: "Your personal movie & TV tracker",
+    start_url: "./",
+    display: "standalone",
+    orientation: "portrait",
+    background_color: "#0a0b0f",
+    theme_color: "#0a0b0f",
+    icons: [
+      { src: "https://image.tmdb.org/t/p/w185/wwemzKWzjKYJFfCeiB57q3r4Bcm.png", sizes: "185x185", type: "image/png" },
+      { src: "https://image.tmdb.org/t/p/w342/wwemzKWzjKYJFfCeiB57q3r4Bcm.png", sizes: "342x342", type: "image/png" }
+    ]
+  };
+  const blob = new Blob([JSON.stringify(manifest)], { type: "application/json" });
+  document.getElementById("pwaManifest").href = URL.createObjectURL(blob);
+
+  if("serviceWorker" in navigator){
+    const swCode = `
+const CACHE = "hyw-v1";
+self.addEventListener("install", e => {
+  self.skipWaiting();
+});
+self.addEventListener("activate", e => {
+  e.waitUntil(
+    caches.keys()
+      .then(keys => Promise.all(keys.filter(k => k !== "hyw-v1").map(k => caches.delete(k))))
+      .then(() => self.clients.claim())
+  );
+});
+self.addEventListener("fetch", e => {
+  if(e.request.method !== "GET") return;
+  const url = new URL(e.request.url);
+  if(url.origin !== self.location.origin) return;
+  e.respondWith(
+    caches.match(e.request).then(cached => {
+      if(cached) return cached;
+      return fetch(e.request).then(res => {
+        if(res && res.status === 200){
+          const clone = res.clone();
+          caches.open("hyw-v1").then(c => c.put(e.request, clone));
+        }
+        return res;
+      });
+    })
+  );
+});
+    `;
+    const swBlob = new Blob([swCode], { type: "application/javascript" });
+    const swUrl  = URL.createObjectURL(swBlob);
+    navigator.serviceWorker.register(swUrl, { scope: "./" })
+      .catch(e => console.warn("SW:", e.message));
+  }
+})();
 </script>
 </body>
 </html>
-
-
