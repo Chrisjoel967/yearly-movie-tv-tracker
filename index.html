@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Yearly Movie & TV Tracker</title>
 
-  <!-- Supabase JS (CDN) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
@@ -25,6 +24,7 @@
     }
 
     *{ box-sizing:border-box; }
+
     body{
       margin:0;
       font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
@@ -43,7 +43,21 @@
       box-shadow: var(--shadow);
     }
 
-    .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .subCard{
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:12px;
+      background:#fff;
+    }
+
+    .subTitle{ font-weight:900; margin:0 0 8px; }
+
+    .row{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
 
     input, select, button{
       background:#fff;
@@ -60,11 +74,13 @@
 
     .muted{ color:var(--muted); font-size:13px; }
 
-    /* Top tabs */
     .topTabs{
-      display:flex; gap:10px; flex-wrap:wrap;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
       margin:10px 0 14px;
     }
+
     .topTab{
       border:1px solid var(--border2);
       background:#fff;
@@ -74,6 +90,7 @@
       cursor:pointer;
       user-select:none;
     }
+
     .topTab.active{
       border-color:var(--accent);
       background:rgba(37,99,235,.08);
@@ -81,14 +98,18 @@
       font-weight:700;
     }
 
-    /* Search */
     .searchWrap{ position:relative; flex:1; min-width:240px; }
     .searchWrap input{ width:100%; padding-right:48px; }
+
     .clearX{
-      position:absolute; right:10px; top:50%;
+      position:absolute;
+      right:10px;
+      top:50%;
       transform:translateY(-50%);
-      border:none; background:transparent;
-      padding:6px 8px; font-size:20px;
+      border:none;
+      background:transparent;
+      padding:6px 8px;
+      font-size:20px;
       color:var(--muted);
       line-height:1;
     }
@@ -96,12 +117,16 @@
     .section{ display:none; }
     .section.active{ display:block; }
 
-    .results,.list{ display:grid; gap:12px; margin-top:12px; }
+    .results,.list{
+      display:grid;
+      gap:12px;
+      margin-top:12px;
+    }
 
     .item{
       position:relative;
       display:grid;
-      grid-template-columns: 64px 1fr;
+      grid-template-columns:64px 1fr;
       gap:12px;
       align-items:center;
       background:linear-gradient(180deg, #ffffff, #fbfcff);
@@ -118,8 +143,10 @@
       width:64px;
       height:96px;
     }
+
     .poster{
-      width:64px; height:96px;
+      width:64px;
+      height:96px;
       border-radius:14px;
       object-fit:cover;
       background:#e9eefc;
@@ -133,24 +160,36 @@
       margin:0;
       cursor:pointer;
     }
-    .title:hover{ color:var(--accent2); }
-    .meta{ color:var(--muted); font-size:13px; margin-top:4px; }
 
-    /* 3-dot menu */
+    .title:hover{ color:var(--accent2); }
+
+    .meta{
+      color:var(--muted);
+      font-size:13px;
+      margin-top:4px;
+    }
+
     .kebab{
-      position:absolute; top:10px; right:10px;
-      width:38px; height:38px;
+      position:absolute;
+      top:10px;
+      right:10px;
+      width:38px;
+      height:38px;
       border-radius:999px;
       border:1px solid var(--border2);
       background:#fff;
-      display:grid; place-items:center;
+      display:grid;
+      place-items:center;
       font-size:18px;
       cursor:pointer;
     }
+
     .kebab:hover{ border-color:var(--accent); }
 
     .menu{
-      position:absolute; top:52px; right:10px;
+      position:absolute;
+      top:52px;
+      right:10px;
       width:220px;
       background:#fff;
       border:1px solid var(--border);
@@ -160,6 +199,7 @@
       display:none;
       z-index:50;
     }
+
     .menu button{
       width:100%;
       border:none;
@@ -170,12 +210,18 @@
       border-radius:0;
       font-size:14px;
     }
+
     .menu button:last-child{ border-bottom:none; }
     .menu button:hover{ background:rgba(37,99,235,.07); }
     .menu .dangerItem{ color:var(--danger); }
 
-    /* Small tabs inside cards */
-    .tabs{ display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
+    .tabs{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:10px;
+    }
+
     .tab{
       border:1px solid var(--border2);
       background:#fff;
@@ -185,6 +231,7 @@
       cursor:pointer;
       user-select:none;
     }
+
     .tab.active{
       border-color:var(--accent);
       background:rgba(37,99,235,.08);
@@ -192,7 +239,6 @@
       font-weight:700;
     }
 
-    /* Stats pills */
     .statsRow{
       display:flex;
       gap:10px;
@@ -200,10 +246,14 @@
       justify-content:space-between;
       margin-top:10px;
     }
+
     .pill{
       flex:1;
       min-width:160px;
-      display:flex; justify-content:center; gap:10px; align-items:center;
+      display:flex;
+      justify-content:center;
+      gap:10px;
+      align-items:center;
       border:1px solid var(--border2);
       background:#fff;
       border-radius:999px;
@@ -212,15 +262,34 @@
       white-space:nowrap;
     }
 
-    /* Modal */
+    .countBadges{
+      display:flex;
+      gap:8px;
+      margin-left:10px;
+      flex-wrap:wrap;
+    }
+
+    .countBadge{
+      background:#eef2f7;
+      border:1px solid #d8dee9;
+      border-radius:14px;
+      padding:2px 10px;
+      font-size:12px;
+      font-weight:700;
+      color:#4a5568;
+    }
+
     .backdrop{
-      position:fixed; inset:0;
+      position:fixed;
+      inset:0;
       background:rgba(15,23,42,.55);
       display:none;
-      align-items:center; justify-content:center;
+      align-items:center;
+      justify-content:center;
       padding:16px;
       z-index:999;
     }
+
     .modal{
       width:min(920px, 100%);
       background:#fff;
@@ -228,13 +297,14 @@
       border-radius:18px;
       box-shadow: var(--shadow);
       overflow:hidden;
-      max-height: calc(100vh - 28px);
+      max-height:calc(100vh - 28px);
       display:flex;
       flex-direction:column;
     }
+
     .modalTop{
       display:grid;
-      grid-template-columns: 120px 1fr auto;
+      grid-template-columns:120px 1fr auto;
       gap:14px;
       padding:14px;
       border-bottom:1px solid var(--border);
@@ -243,26 +313,46 @@
       top:0;
       z-index:10;
     }
+
     .modalPoster{
-      width:120px; height:180px;
+      width:120px;
+      height:180px;
       border-radius:16px;
       object-fit:cover;
       background:#e9eefc;
       border:1px solid var(--border);
     }
-    .modalTitle{ font-weight:950; font-size:22px; margin:0; }
-    .modalMeta{ color:var(--muted); font-size:13px; margin-top:6px; }
-    .modalActions{ display:flex; flex-direction:column; gap:10px; }
+
+    .modalTitle{
+      font-weight:950;
+      font-size:22px;
+      margin:0;
+    }
+
+    .modalMeta{
+      color:var(--muted);
+      font-size:13px;
+      margin-top:6px;
+    }
+
+    .modalActions{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+
     .modalActions button{
       border-radius:14px;
       padding:10px 12px;
       font-weight:700;
     }
+
     .btnPrimary{
       border-color:var(--accent);
       background:rgba(37,99,235,.10);
       color:var(--accent2);
     }
+
     .btnDanger{
       border-color:rgba(220,38,38,.35);
       background:rgba(220,38,38,.07);
@@ -276,16 +366,13 @@
       overflow:auto;
       -webkit-overflow-scrolling: touch;
     }
-    .subCard{
-      border:1px solid var(--border);
-      border-radius:16px;
-      padding:12px;
-      background:#fff;
-    }
-    .subTitle{ font-weight:900; margin:0 0 8px; }
-    .overview{ color:var(--muted); line-height:1.45; margin:0; }
 
-    /* Horizontal carousel */
+    .overview{
+      color:var(--muted);
+      line-height:1.45;
+      margin:0;
+    }
+
     .carousel{
       display:flex;
       gap:12px;
@@ -293,6 +380,7 @@
       padding:6px 2px 10px;
       scroll-snap-type:x mandatory;
     }
+
     .carItem{
       min-width:120px;
       max-width:120px;
@@ -300,20 +388,24 @@
       cursor:pointer;
       user-select:none;
     }
+
     .carImg{
-      width:120px; height:170px;
+      width:120px;
+      height:170px;
       border-radius:18px;
       object-fit:cover;
       background:#e9eefc;
       border:1px solid var(--border);
       display:block;
     }
+
     .carName{
       font-size:13px;
       font-weight:800;
       margin-top:6px;
       line-height:1.2;
     }
+
     .carRole{
       font-size:12px;
       color:var(--muted);
@@ -321,20 +413,20 @@
       line-height:1.2;
     }
 
-    /* Home panel */
-    .homeGrid{ display:grid; gap:12px; margin-top:12px; }
-    .homeRowTitle{ font-weight:950; font-size:18px; margin:0 0 6px; }
-    .homeNote{ margin-top:6px; }
-
-    /* Footer sync card */
-    .footerCard{
-      margin-top:18px;
+    .homeGrid{
+      display:grid;
+      gap:12px;
+      margin-top:12px;
     }
 
-    /* Responsive */
+    .homeNote{ margin-top:6px; }
+
+    .footerCard{ margin-top:18px; }
+
     @media (max-width: 900px){
       h1{ font-size:32px; }
     }
+
     @media (max-width: 540px){
       .wrap{ padding:14px; }
       input,select,button{ font-size:15px; }
@@ -342,24 +434,37 @@
       .searchWrap{ width:100%; }
       .searchWrap input{ padding-right:54px; }
       .clearX{ right:10px; }
-      .modalTop{ grid-template-columns: 90px 1fr; }
-      .modalPoster{ width:90px; height:135px; }
+
+      .modalTop{
+        grid-template-columns:90px 1fr;
+      }
+
+      .modalPoster{
+        width:90px;
+        height:135px;
+      }
+
       .modalActions{
-        grid-column: 1 / -1;
+        grid-column:1 / -1;
         flex-direction:row;
         flex-wrap:wrap;
       }
-      .modalActions button{ flex:1; min-width:140px; }
-      .modalActions select{ width:100%; }
+
+      .modalActions button{
+        flex:1;
+        min-width:140px;
+      }
+
+      .modalActions select{
+        width:100%;
+      }
     }
   </style>
 </head>
-
 <body>
 <div class="wrap">
   <h1>Yearly Movie & TV Tracker</h1>
 
-  <!-- Top Tabs -->
   <div class="topTabs" id="topTabs">
     <div class="topTab active" data-section="homeSec">Home</div>
     <div class="topTab" data-section="searchSec">Search</div>
@@ -369,7 +474,6 @@
     <div class="topTab" data-section="statsSec">Stats</div>
   </div>
 
-  <!-- HOME -->
   <div class="section active" id="homeSec">
     <div class="card">
       <div class="row" style="justify-content:space-between;">
@@ -383,7 +487,6 @@
     </div>
   </div>
 
-  <!-- SEARCH -->
   <div class="section" id="searchSec">
     <div class="card">
       <div class="row">
@@ -415,11 +518,17 @@
     </div>
   </div>
 
-  <!-- WATCHLIST -->
   <div class="section" id="watchlistSec">
     <div class="card">
       <div class="row" style="justify-content:space-between;">
-        <div style="font-weight:950;font-size:22px;">Watchlist</div>
+        <div style="display:flex;align-items:center;">
+          <div style="font-weight:950;font-size:22px;">Watchlist</div>
+          <div class="countBadges">
+            <div class="countBadge" id="watchlistMoviesCount">0 Movies</div>
+            <div class="countBadge" id="watchlistTVCount">0 TV</div>
+          </div>
+        </div>
+
         <select id="watchlistSort" style="min-width:200px;">
           <option value="recent" selected>Recently added</option>
           <option value="title">Title (A–Z)</option>
@@ -435,11 +544,17 @@
     </div>
   </div>
 
-  <!-- WATCHED -->
   <div class="section" id="watchedSec">
     <div class="card">
       <div class="row" style="justify-content:space-between;">
-        <div style="font-weight:950;font-size:22px;">Watched</div>
+        <div style="display:flex;align-items:center;">
+          <div style="font-weight:950;font-size:22px;">Watched</div>
+          <div class="countBadges">
+            <div class="countBadge" id="watchedMoviesCount">0 Movies</div>
+            <div class="countBadge" id="watchedTVCount">0 TV</div>
+          </div>
+        </div>
+
         <select id="watchedSort" style="min-width:200px;">
           <option value="recent" selected>Recently added</option>
           <option value="title">Title (A–Z)</option>
@@ -455,7 +570,6 @@
     </div>
   </div>
 
-  <!-- PEOPLE -->
   <div class="section" id="peopleSec">
     <div class="card">
       <div class="row" style="justify-content:space-between;">
@@ -475,7 +589,6 @@
     </div>
   </div>
 
-  <!-- STATS -->
   <div class="section" id="statsSec">
     <div class="card">
       <div style="font-weight:950;font-size:22px;">Year Totals</div>
@@ -490,7 +603,6 @@
     </div>
   </div>
 
-  <!-- SYNC STATUS MOVED TO BOTTOM -->
   <div class="card footerCard">
     <div class="row" style="justify-content:space-between;">
       <div class="muted">
@@ -502,7 +614,6 @@
   </div>
 </div>
 
-<!-- DETAILS MODAL -->
 <div class="backdrop" id="detailsBackdrop">
   <div class="modal" role="dialog" aria-modal="true">
     <div class="modalTop">
@@ -553,7 +664,6 @@
 </div>
 
 <script>
-/* ===================== CONFIG ===================== */
 const TMDB_BEARER = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJlOWY5NGVkYTNjMzFmMmQ2NWFjM2Y1OWNmMTBhN2VlNiIsIm5iZiI6MTc3MDUxMTY4MS4wNDQsInN1YiI6IjY5ODdkZDQxNjM5ZGJlZWQwNjhjOGQzYiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.JjpO38-YZKSOX_PXz9zEYiW4zUDpTlFkwPf4XNIOB74";
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const IMG_POSTER = "https://image.tmdb.org/t/p/w342";
@@ -563,10 +673,8 @@ const SUPABASE_URL = "https://bgnvmzvrmavzztplzlcg.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJnbnZtenZybWF2enp0cGx6bGNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5NjA3MjEsImV4cCI6MjA4NDUzNjcyMX0.fBqfl2Mk8FX_epBwYJ7dBJl5SwyGQyjVfrfiKsrT-xc";
 const SUPA_TABLE = "tracker_state";
 const SUPA_ID = "main";
-
 const LOCAL_KEY = "yearly_tracker_synced_cache_v2";
 
-/* ===================== ELEMENTS ===================== */
 const elSyncStatus = document.getElementById("syncStatus");
 const elLastSaved  = document.getElementById("lastSaved");
 const elDebugBox   = document.getElementById("debugBox");
@@ -582,11 +690,15 @@ const elWatchlistList = document.getElementById("watchlistList");
 const elWatchedList = document.getElementById("watchedList");
 const elPeopleList = document.getElementById("peopleList");
 
+const elWatchlistMoviesCount = document.getElementById("watchlistMoviesCount");
+const elWatchlistTVCount = document.getElementById("watchlistTVCount");
+const elWatchedMoviesCount = document.getElementById("watchedMoviesCount");
+const elWatchedTVCount = document.getElementById("watchedTVCount");
+
 const elTimeMovies = document.getElementById("timeMovies");
 const elTimeTV = document.getElementById("timeTV");
 const elTimeTotal = document.getElementById("timeTotal");
 
-/* ===================== STATE ===================== */
 let state = loadLocalState();
 let watchlistTab = "movie";
 let watchedTab = "movie";
@@ -594,19 +706,28 @@ let peopleTab = "actors";
 let watchlistSort = "recent";
 let watchedSort = "recent";
 
-let sb = null; // do NOT name this "supabase"
+let sb = null;
 let saveTimer = null;
 
-function debug(msg){ if(elDebugBox) elDebugBox.textContent = "Debug: " + msg; }
-function setSyncStatus(msg){ if(elSyncStatus) elSyncStatus.textContent = msg; }
+function debug(msg){
+  if(elDebugBox) elDebugBox.textContent = "Debug: " + msg;
+}
+
+function setSyncStatus(msg){
+  if(elSyncStatus) elSyncStatus.textContent = msg;
+}
+
 function setLastSaved(ts){
-  if(!ts){ elLastSaved.textContent = "—"; return; }
+  if(!ts){
+    elLastSaved.textContent = "—";
+    return;
+  }
   const d = new Date(ts);
   elLastSaved.textContent = d.toLocaleString();
 }
 
 function closeAllMenus(){
-  document.querySelectorAll("[data-menu]").forEach(m=>m.style.display="none");
+  document.querySelectorAll("[data-menu]").forEach(m => m.style.display = "none");
 }
 
 function loadLocalState(){
@@ -617,6 +738,7 @@ function loadLocalState(){
     return baseState();
   }
 }
+
 function saveLocalState(){
   localStorage.setItem(LOCAL_KEY, JSON.stringify(state));
 }
@@ -643,6 +765,7 @@ function migrate(){
   for(const x of state.watchlist){
     if(typeof x.added_at !== "number") x.added_at = Date.now();
   }
+
   for(const x of state.watched){
     if(typeof x.added_at !== "number") x.added_at = Date.now();
     if(!("rating" in x)) x.rating = null;
@@ -656,29 +779,57 @@ function migrate(){
   saveLocalState();
 }
 
-function uniqKey(item){ return `${item.media_type}:${item.id}`; }
-function minutesToHM(total){ return `${Math.floor(total/60)}h ${total%60}m`; }
+function uniqKey(item){
+  return `${item.media_type}:${item.id}`;
+}
+
+function minutesToHM(total){
+  return `${Math.floor(total/60)}h ${total%60}m`;
+}
+
 function totalWatchedEpisodes(tvItem){
   const map = tvItem.seasons_watched || {};
   return Object.values(map).reduce((a,b)=>a+(Number(b)||0), 0);
 }
+
 function applySort(list, mode){
   const arr = [...list];
   if(mode === "title") arr.sort((a,b)=> (a.title||"").localeCompare(b.title||""));
   else arr.sort((a,b)=> (b.added_at||0) - (a.added_at||0));
   return arr;
 }
+
 function isInAnyList(media_type, id){
   const k = `${media_type}:${id}`;
   return state.watchlist.some(x=>uniqKey(x)===k) || state.watched.some(x=>uniqKey(x)===k);
 }
+
 function ratingToText(r){
   const n = Number(r);
   if(!Number.isFinite(n) || r === null) return "—";
   return "🍿".repeat(Math.max(1, Math.min(5, n)));
 }
 
-/* ===================== SUPABASE ===================== */
+function renderCounts(){
+  const watchlistMovies = state.watchlist.filter(x => x.media_type === "movie").length;
+  const watchlistTV = state.watchlist.filter(x => x.media_type === "tv").length;
+  const watchedMovies = state.watched.filter(x => x.media_type === "movie").length;
+  const watchedTV = state.watched.filter(x => x.media_type === "tv").length;
+
+  if(elWatchlistMoviesCount){
+    elWatchlistMoviesCount.textContent = watchlistMovies + (watchlistMovies === 1 ? " Movie" : " Movies");
+  }
+  if(elWatchlistTVCount){
+    elWatchlistTVCount.textContent = watchlistTV + " TV";
+  }
+  if(elWatchedMoviesCount){
+    elWatchedMoviesCount.textContent = watchedMovies + (watchedMovies === 1 ? " Movie" : " Movies");
+  }
+  if(elWatchedTVCount){
+    elWatchedTVCount.textContent = watchedTV + " TV";
+  }
+}
+
 function canUseSupabase(){
   return !!(SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase && window.supabase.createClient);
 }
@@ -718,6 +869,7 @@ async function initSync(){
       const { error: upErr } = await sb
         .from(SUPA_TABLE)
         .upsert({ id: SUPA_ID, state }, { onConflict: "id" });
+
       if(upErr) throw upErr;
       setSyncStatus("Synced (created)");
       debug("Created remote state");
@@ -749,6 +901,7 @@ function scheduleRemoteSave(){
         .single();
 
       if(error) throw error;
+
       setSyncStatus("Synced");
       debug("Saved to Supabase");
       setLastSaved(data.updated_at);
@@ -760,16 +913,17 @@ function scheduleRemoteSave(){
   }, 650);
 }
 
-/* ===================== TMDB ===================== */
 async function tmdbFetch(path){
   const res = await fetch(`${TMDB_BASE}${path}`, {
-    headers: { Authorization: `Bearer ${TMDB_BEARER}`, "Content-Type":"application/json;charset=utf-8" }
+    headers: {
+      Authorization: `Bearer ${TMDB_BEARER}`,
+      "Content-Type":"application/json;charset=utf-8"
+    }
   });
   if(!res.ok) throw new Error(`TMDB ${res.status}`);
   return res.json();
 }
 
-/* ===================== TOP TAB NAV ===================== */
 document.getElementById("topTabs").addEventListener("click", (e)=>{
   const t = e.target.closest(".topTab");
   if(!t) return;
@@ -778,19 +932,22 @@ document.getElementById("topTabs").addEventListener("click", (e)=>{
   document.getElementById(t.dataset.section).classList.add("active");
 });
 
-/* ===================== SEARCH UX ===================== */
 document.getElementById("searchBtn").addEventListener("click", runSearch);
-elSearchInput.addEventListener("keydown", (e)=>{ if(e.key==="Enter") runSearch(); });
+
+elSearchInput.addEventListener("keydown", (e)=>{
+  if(e.key === "Enter") runSearch();
+});
+
 document.getElementById("clearSearch").addEventListener("click", ()=>{
   elSearchInput.value = "";
   elResults.innerHTML = "";
   elSearchInput.focus();
 });
+
 elSearchInput.addEventListener("input", ()=>{
-  if(elSearchInput.value.trim()==="") elResults.innerHTML = "";
+  if(elSearchInput.value.trim() === "") elResults.innerHTML = "";
 });
 
-/* ===================== SEARCH (AUTO TITLES + PEOPLE) ===================== */
 async function runSearch(){
   const q = elSearchInput.value.trim();
   if(!q) return;
@@ -800,39 +957,41 @@ async function runSearch(){
   try{
     const mode = elSearchMode.value;
     const type = elTypeFilter.value;
-
     const blocks = [];
 
     if(mode === "auto" || mode === "titles"){
       const data = await tmdbFetch(`/search/${type}?query=${encodeURIComponent(q)}&include_adult=false&language=en-US&page=1`);
-      const results = (data.results||[])
-        .filter(r => (r.media_type ? (r.media_type==="movie" || r.media_type==="tv") : true))
+      const results = (data.results || [])
+        .filter(r => (r.media_type ? (r.media_type === "movie" || r.media_type === "tv") : true))
         .slice(0, 10);
+
       blocks.push(renderTitleResults(results, type));
     }
 
     if(mode === "auto" || mode === "people"){
       const p = await tmdbFetch(`/search/person?query=${encodeURIComponent(q)}&include_adult=false&language=en-US&page=1`);
-      const people = (p.results||[]).slice(0, 10);
+      const people = (p.results || []).slice(0, 10);
       blocks.push(renderPeopleResults(people));
     }
 
     elResults.innerHTML = blocks.filter(Boolean).join("");
     wireResultActions();
   }catch(err){
-    elResults.innerHTML = `<div class="muted">Error: ${String(err.message||err)}</div>`;
+    elResults.innerHTML = `<div class="muted">Error: ${String(err.message || err)}</div>`;
   }
 }
 
 function yearFrom(r, media_type){
   return media_type === "movie"
-    ? (r.release_date||"").slice(0,4)
-    : (r.first_air_date||"").slice(0,4);
+    ? (r.release_date || "").slice(0,4)
+    : (r.first_air_date || "").slice(0,4);
 }
 
 function renderTitleResults(results, type){
   const title = `<div class="muted" style="margin-top:4px;"><b>Titles</b></div>`;
-  if(!results || results.length === 0) return `${title}<div class="muted">No titles found.</div>`;
+  if(!results || results.length === 0){
+    return `${title}<div class="muted">No titles found.</div>`;
+  }
 
   const items = results.map(r=>{
     const media_type = r.media_type || type;
@@ -842,13 +1001,13 @@ function renderTitleResults(results, type){
     const exists = isInAnyList(media_type, r.id);
 
     return `
-      <div class="item" data-kind="title" data-id="${r.id}" data-media="${media_type}" data-name="${escapeHtml(name)}" data-year="${escapeHtml(year||"")}" data-poster="${escapeHtml(r.poster_path||"")}">
+      <div class="item" data-kind="title" data-id="${r.id}" data-media="${media_type}" data-name="${escapeHtml(name)}" data-year="${escapeHtml(year || "")}" data-poster="${escapeHtml(r.poster_path || "")}">
         <button class="posterBtn" data-open="details" aria-label="Open details">
           <img class="poster" src="${poster || ""}" alt="" onerror="this.style.display='none'">
         </button>
         <div>
           <div class="title" data-open="details">${escapeHtml(name)}</div>
-          <div class="meta">${media_type.toUpperCase()} • ${escapeHtml(year||"—")} • TMDB: ${Number.isFinite(r.vote_average) ? r.vote_average.toFixed(1) : "—"}</div>
+          <div class="meta">${media_type.toUpperCase()} • ${escapeHtml(year || "—")} • TMDB: ${Number.isFinite(r.vote_average) ? r.vote_average.toFixed(1) : "—"}</div>
         </div>
 
         <button class="kebab" data-open="menu" aria-label="Menu">⋮</button>
@@ -866,23 +1025,25 @@ function renderTitleResults(results, type){
 
 function renderPeopleResults(people){
   const title = `<div class="muted" style="margin-top:10px;"><b>People</b></div>`;
-  if(!people || people.length === 0) return `${title}<div class="muted">No people found.</div>`;
+  if(!people || people.length === 0){
+    return `${title}<div class="muted">No people found.</div>`;
+  }
 
   const items = people.map(p=>{
     const img = p.profile_path ? `${IMG_SMALL}${p.profile_path}` : "";
     const dept = p.known_for_department || "Person";
-    const known = (p.known_for||[]).slice(0,3).map(x=>x.title||x.name).filter(Boolean).join(" • ");
+    const known = (p.known_for || []).slice(0,3).map(x=>x.title || x.name).filter(Boolean).join(" • ");
 
     const isActor = state.people.actors.some(x=>x.id===p.id);
     const isDirector = state.people.directors.some(x=>x.id===p.id);
 
     return `
-      <div class="item" data-kind="person" data-person-id="${p.id}" data-person-name="${escapeHtml(p.name||"")}" data-profile="${escapeHtml(p.profile_path||"")}">
+      <div class="item" data-kind="person" data-person-id="${p.id}" data-person-name="${escapeHtml(p.name || "")}" data-profile="${escapeHtml(p.profile_path || "")}">
         <button class="posterBtn" data-open="person" aria-label="Open person">
           <img class="poster" src="${img || ""}" alt="" onerror="this.style.display='none'">
         </button>
         <div>
-          <div class="title" data-open="person">${escapeHtml(p.name||"—")}</div>
+          <div class="title" data-open="person">${escapeHtml(p.name || "—")}</div>
           <div class="meta">${escapeHtml(dept)}${known ? " • " + escapeHtml(known) : ""}</div>
         </div>
 
@@ -899,13 +1060,13 @@ function renderPeopleResults(people){
   return `${title}<div class="results">${items}</div>`;
 }
 
-/* ===================== RESULT EVENTS ===================== */
 function wireResultActions(){
   document.addEventListener("click", closeAllMenus, { once:true });
 
   document.querySelectorAll(".item").forEach(card=>{
     const kebab = card.querySelector('[data-open="menu"]');
     const menu = card.querySelector("[data-menu]");
+
     if(kebab && menu){
       kebab.addEventListener("click", (e)=>{
         e.stopPropagation();
@@ -915,23 +1076,27 @@ function wireResultActions(){
       });
     }
 
-    card.querySelectorAll('[data-open="details"]').forEach(x=>x.addEventListener("click", async (e)=>{
-      e.stopPropagation();
-      if(card.dataset.kind !== "title") return;
-      await openDetailsModalFromCard(card);
-    }));
+    card.querySelectorAll('[data-open="details"]').forEach(x=>{
+      x.addEventListener("click", async (e)=>{
+        e.stopPropagation();
+        if(card.dataset.kind !== "title") return;
+        await openDetailsModalFromCard(card);
+      });
+    });
 
-    card.querySelectorAll('[data-open="person"]').forEach(x=>x.addEventListener("click", async (e)=>{
-      e.stopPropagation();
-      if(card.dataset.kind !== "person") return;
-      await openPersonModalFromCard(card);
-    }));
+    card.querySelectorAll('[data-open="person"]').forEach(x=>{
+      x.addEventListener("click", async (e)=>{
+        e.stopPropagation();
+        if(card.dataset.kind !== "person") return;
+        await openPersonModalFromCard(card);
+      });
+    });
 
     if(menu){
       menu.querySelectorAll("button").forEach(btn=>{
         btn.addEventListener("click", async (e)=>{
           e.stopPropagation();
-          menu.style.display="none";
+          menu.style.display = "none";
 
           if(card.dataset.kind === "title"){
             const media_type = card.dataset.media;
@@ -978,7 +1143,6 @@ function wireResultActions(){
   });
 }
 
-/* ===================== LIST ACTIONS ===================== */
 function addToWatchlist(item){
   const k = uniqKey(item);
   if(state.watchlist.some(x=>uniqKey(x)===k) || state.watched.some(x=>uniqKey(x)===k)) return;
@@ -1027,28 +1191,39 @@ async function addToWatchedFlow(item){
   scheduleRemoteSave();
 }
 
-/* ===================== WATCHLIST/WATCHED UI ===================== */
 document.getElementById("watchlistTabs").addEventListener("click", (e)=>{
-  const tab = e.target.closest(".tab"); if(!tab) return;
+  const tab = e.target.closest(".tab");
+  if(!tab) return;
   watchlistTab = tab.dataset.tab;
   document.querySelectorAll("#watchlistTabs .tab").forEach(t=>t.classList.toggle("active", t.dataset.tab===watchlistTab));
   renderWatchlist();
 });
+
 document.getElementById("watchedTabs").addEventListener("click", (e)=>{
-  const tab = e.target.closest(".tab"); if(!tab) return;
+  const tab = e.target.closest(".tab");
+  if(!tab) return;
   watchedTab = tab.dataset.tab;
   document.querySelectorAll("#watchedTabs .tab").forEach(t=>t.classList.toggle("active", t.dataset.tab===watchedTab));
   renderWatched();
 });
+
 document.getElementById("peopleTabs").addEventListener("click", (e)=>{
-  const tab = e.target.closest(".tab"); if(!tab) return;
+  const tab = e.target.closest(".tab");
+  if(!tab) return;
   peopleTab = tab.dataset.tab;
   document.querySelectorAll("#peopleTabs .tab").forEach(t=>t.classList.toggle("active", t.dataset.tab===peopleTab));
   renderPeople();
 });
 
-document.getElementById("watchlistSort").addEventListener("change", (e)=>{ watchlistSort = e.target.value; renderWatchlist(); });
-document.getElementById("watchedSort").addEventListener("change", (e)=>{ watchedSort = e.target.value; renderWatched(); });
+document.getElementById("watchlistSort").addEventListener("change", (e)=>{
+  watchlistSort = e.target.value;
+  renderWatchlist();
+});
+
+document.getElementById("watchedSort").addEventListener("change", (e)=>{
+  watchedSort = e.target.value;
+  renderWatched();
+});
 
 function renderAll(){
   renderHome();
@@ -1056,6 +1231,7 @@ function renderAll(){
   renderWatched();
   renderPeople();
   renderTotals();
+  renderCounts();
 }
 
 function renderHome(){
@@ -1072,16 +1248,17 @@ function renderHome(){
 
   elHomeRecent.innerHTML = combined.map(item=>{
     const poster = item.poster_path ? (IMG_SMALL + item.poster_path) : "";
-    const badge = item.__list === "watched" ? `✓ Watched` : `+ Watchlist`;
-    const extra = item.__list === "watched" ? ` • Rating: ${ratingToText(item.rating)}` : ``;
+    const badge = item.__list === "watched" ? "✓ Watched" : "+ Watchlist";
+    const extra = item.__list === "watched" ? ` • Rating: ${ratingToText(item.rating)}` : "";
+
     return `
-      <div class="item" data-kind="title" data-id="${item.id}" data-media="${item.media_type}" data-name="${escapeHtml(item.title||"")}" data-year="${escapeHtml(item.year||"")}" data-poster="${escapeHtml(item.poster_path||"")}">
+      <div class="item" data-kind="title" data-id="${item.id}" data-media="${item.media_type}" data-name="${escapeHtml(item.title || "")}" data-year="${escapeHtml(item.year || "")}" data-poster="${escapeHtml(item.poster_path || "")}">
         <button class="posterBtn" data-open="details" aria-label="Open details">
           <img class="poster" src="${poster || ""}" alt="" onerror="this.style.display='none'">
         </button>
         <div>
-          <div class="title" data-open="details">${escapeHtml(item.title||"—")}</div>
-          <div class="meta">${badge} • ${escapeHtml(item.media_type.toUpperCase())} • ${escapeHtml(item.year||"—")}${extra}</div>
+          <div class="title" data-open="details">${escapeHtml(item.title || "—")}</div>
+          <div class="meta">${badge} • ${escapeHtml(item.media_type.toUpperCase())} • ${escapeHtml(item.year || "—")}${extra}</div>
         </div>
         <button class="kebab" data-open="menu" aria-label="Menu">⋮</button>
         <div class="menu" data-menu>
@@ -1109,37 +1286,43 @@ function renderHome(){
 
 function renderWatchlist(){
   const list = applySort(state.watchlist.filter(i => i.media_type === watchlistTab), watchlistSort);
+
   if(list.length === 0){
     elWatchlistList.innerHTML = `<div class="muted">No ${watchlistTab === "movie" ? "movies" : "TV shows"} in watchlist.</div>`;
     return;
   }
+
   elWatchlistList.innerHTML = list.map(item => listCardHtml(item, "watchlist")).join("");
   wireListCards(elWatchlistList, "watchlist");
 }
 
 function renderWatched(){
   const list = applySort(state.watched.filter(i => i.media_type === watchedTab), watchedSort);
+
   if(list.length === 0){
     elWatchedList.innerHTML = `<div class="muted">No watched ${watchedTab === "movie" ? "movies" : "TV shows"} yet.</div>`;
     return;
   }
+
   elWatchedList.innerHTML = list.map(item => listCardHtml(item, "watched")).join("");
   wireListCards(elWatchedList, "watched");
 }
 
 function renderPeople(){
   const list = (peopleTab === "actors") ? state.people.actors : state.people.directors;
+
   if(list.length === 0){
     elPeopleList.innerHTML = `<div class="muted">No ${peopleTab} followed yet. Search a person and follow them.</div>`;
     return;
   }
+
   elPeopleList.innerHTML = list.map(p => `
-    <div class="item" data-kind="followedPerson" data-person-id="${p.id}" data-person-name="${escapeHtml(p.name||"")}" data-profile="${escapeHtml(p.profile_path||"")}">
+    <div class="item" data-kind="followedPerson" data-person-id="${p.id}" data-person-name="${escapeHtml(p.name || "")}" data-profile="${escapeHtml(p.profile_path || "")}">
       <button class="posterBtn" data-open="person" aria-label="Open person">
         <img class="poster" src="${p.profile_path ? (IMG_SMALL + p.profile_path) : ""}" alt="" onerror="this.style.display='none'">
       </button>
       <div>
-        <div class="title" data-open="person">${escapeHtml(p.name||"—")}</div>
+        <div class="title" data-open="person">${escapeHtml(p.name || "—")}</div>
         <div class="meta">Followed as ${peopleTab === "actors" ? "Actor" : "Director"}</div>
       </div>
 
@@ -1162,15 +1345,17 @@ function renderPeople(){
       menu.style.display = open ? "none" : "block";
     });
 
-    card.querySelectorAll('[data-open="person"]').forEach(x=>x.addEventListener("click", async (e)=>{
-      e.stopPropagation();
-      await openPersonModalFromCard(card);
-    }));
+    card.querySelectorAll('[data-open="person"]').forEach(x=>{
+      x.addEventListener("click", async (e)=>{
+        e.stopPropagation();
+        await openPersonModalFromCard(card);
+      });
+    });
 
     menu.querySelectorAll("button").forEach(btn=>{
       btn.addEventListener("click", async (e)=>{
         e.stopPropagation();
-        menu.style.display="none";
+        menu.style.display = "none";
         const pid = Number(card.dataset.personId);
 
         if(btn.dataset.act === "openPerson"){
@@ -1194,22 +1379,22 @@ function renderPeople(){
 function listCardHtml(item, listType){
   const poster = item.poster_path ? (IMG_SMALL + item.poster_path) : "";
   const year = item.year || "—";
-  const subtitle =
-    item.media_type === "movie"
-      ? `${year}${typeof item.runtime_minutes === "number" ? " • " + item.runtime_minutes + " min" : ""}`
-      : `${year} • ${totalWatchedEpisodes(item)} ep × ${item.avg_episode_minutes || 0}m`;
+
+  const subtitle = item.media_type === "movie"
+    ? `${year}${typeof item.runtime_minutes === "number" ? " • " + item.runtime_minutes + " min" : ""}`
+    : `${year} • ${totalWatchedEpisodes(item)} ep × ${item.avg_episode_minutes || 0}m`;
 
   const ratingLine = (listType === "watched")
     ? `<div class="meta">Your rating: <b>${ratingToText(item.rating)}</b></div>`
     : ``;
 
   return `
-    <div class="item" data-kind="title" data-id="${item.id}" data-media="${item.media_type}" data-name="${escapeHtml(item.title||"")}" data-year="${escapeHtml(item.year||"")}" data-poster="${escapeHtml(item.poster_path||"")}">
+    <div class="item" data-kind="title" data-id="${item.id}" data-media="${item.media_type}" data-name="${escapeHtml(item.title || "")}" data-year="${escapeHtml(item.year || "")}" data-poster="${escapeHtml(item.poster_path || "")}">
       <button class="posterBtn" data-open="details" aria-label="Open details">
         <img class="poster" src="${poster || ""}" alt="" onerror="this.style.display='none'">
       </button>
       <div>
-        <div class="title" data-open="details">${escapeHtml(item.title||"—")}</div>
+        <div class="title" data-open="details">${escapeHtml(item.title || "—")}</div>
         <div class="meta">${subtitle}</div>
         ${ratingLine}
       </div>
@@ -1235,7 +1420,7 @@ function listCardHtml(item, listType){
   `;
 }
 
-function wireListCards(container, listType){
+function wireListCards(container){
   container.querySelectorAll(".item").forEach(card=>{
     const kebab = card.querySelector('[data-open="menu"]');
     const menu = card.querySelector("[data-menu]");
@@ -1249,16 +1434,18 @@ function wireListCards(container, listType){
       });
     }
 
-    card.querySelectorAll('[data-open="details"]').forEach(x=>x.addEventListener("click", async (e)=>{
-      e.stopPropagation();
-      await openDetailsModalFromCard(card);
-    }));
+    card.querySelectorAll('[data-open="details"]').forEach(x=>{
+      x.addEventListener("click", async (e)=>{
+        e.stopPropagation();
+        await openDetailsModalFromCard(card);
+      });
+    });
 
     if(menu){
       menu.querySelectorAll("button").forEach(btn=>{
         btn.addEventListener("click", async (e)=>{
           e.stopPropagation();
-          menu.style.display="none";
+          menu.style.display = "none";
 
           const media_type = card.dataset.media;
           const id = Number(card.dataset.id);
@@ -1272,7 +1459,6 @@ function wireListCards(container, listType){
             return;
           }
 
-          // ✅ rating actions MUST be handled before other branches
           if(btn.dataset.act && btn.dataset.act.startsWith("rate:")){
             const val = btn.dataset.act.split(":")[1];
             const w = state.watched.find(x => uniqKey(x) === k);
@@ -1284,25 +1470,23 @@ function wireListCards(container, listType){
             return;
           }
 
-          // watchlist actions
-          if(state.watchlist.some(x=>uniqKey(x)===k)){
+          if(state.watchlist.some(x => uniqKey(x) === k)){
             if(btn.dataset.act === "toWatched"){
               await addToWatchedFlow({ id, media_type, title, year, poster_path });
             } else if(btn.dataset.act === "remove"){
-              state.watchlist = state.watchlist.filter(x=>uniqKey(x)!==k);
+              state.watchlist = state.watchlist.filter(x => uniqKey(x) !== k);
             }
             scheduleRemoteSave();
             renderAll();
             return;
           }
 
-          // watched actions
-          if(state.watched.some(x=>uniqKey(x)===k)){
+          if(state.watched.some(x => uniqKey(x) === k)){
             if(btn.dataset.act === "toWatchlist"){
-              state.watched = state.watched.filter(x=>uniqKey(x)!==k);
+              state.watched = state.watched.filter(x => uniqKey(x) !== k);
               state.watchlist.unshift({ id, media_type, title, year, poster_path, added_at: Date.now() });
             } else if(btn.dataset.act === "remove"){
-              state.watched = state.watched.filter(x=>uniqKey(x)!==k);
+              state.watched = state.watched.filter(x => uniqKey(x) !== k);
             }
             scheduleRemoteSave();
             renderAll();
@@ -1317,17 +1501,19 @@ function wireListCards(container, listType){
 }
 
 function renderTotals(){
-  let movieMin = 0, tvMin = 0;
+  let movieMin = 0;
+  let tvMin = 0;
+
   for(const item of state.watched){
     if(item.media_type === "movie") movieMin += (item.runtime_minutes || 0);
     else tvMin += totalWatchedEpisodes(item) * (item.avg_episode_minutes || 0);
   }
+
   elTimeMovies.textContent = minutesToHM(movieMin);
   elTimeTV.textContent = minutesToHM(tvMin);
   elTimeTotal.textContent = minutesToHM(movieMin + tvMin);
 }
 
-/* ===================== DETAILS MODAL ===================== */
 const detailsBackdrop = document.getElementById("detailsBackdrop");
 const detailsPoster = document.getElementById("detailsPoster");
 const detailsTitle = document.getElementById("detailsTitle");
@@ -1345,8 +1531,13 @@ const detailsRating = document.getElementById("detailsRating");
 let currentDetails = null;
 
 btnDetailsClose.addEventListener("click", ()=>closeDetails());
-detailsBackdrop.addEventListener("click", (e)=>{ if(e.target===detailsBackdrop) closeDetails(); });
-window.addEventListener("keydown", (e)=>{ if(e.key==="Escape" && detailsBackdrop.style.display==="flex") closeDetails(); });
+detailsBackdrop.addEventListener("click", (e)=>{
+  if(e.target === detailsBackdrop) closeDetails();
+});
+
+window.addEventListener("keydown", (e)=>{
+  if(e.key === "Escape" && detailsBackdrop.style.display === "flex") closeDetails();
+});
 
 function closeDetails(){
   detailsBackdrop.style.display = "none";
@@ -1360,12 +1551,13 @@ async function openDetailsModalFromCard(card){
   const title = card.dataset.name;
   const year = card.dataset.year || "";
   const poster_path = card.dataset.poster || "";
+
   await openDetailsModal({ id, media_type, title, year, poster_path });
 }
 
 function syncDetailsRatingUI(media_type, id){
   const k = `${media_type}:${id}`;
-  const w = state.watched.find(x=>uniqKey(x)===k);
+  const w = state.watched.find(x => uniqKey(x) === k);
   detailsRating.disabled = !w;
   detailsRating.value = w && w.rating ? String(w.rating) : "";
 }
@@ -1387,7 +1579,6 @@ async function openDetailsModal(item){
   btnDetailsWatchlist.disabled = exists;
   btnDetailsWatched.disabled = exists;
 
-  // rating dropdown: enabled only if already in watched
   syncDetailsRatingUI(item.media_type, item.id);
 
   btnDetailsWatchlist.onclick = ()=>{
@@ -1396,18 +1587,18 @@ async function openDetailsModal(item){
     btnDetailsWatched.disabled = true;
     renderAll();
   };
+
   btnDetailsWatched.onclick = async ()=>{
     await addToWatchedFlow(item);
     btnDetailsWatchlist.disabled = true;
     btnDetailsWatched.disabled = true;
-    // now rating becomes enabled (it exists in watched)
     syncDetailsRatingUI(item.media_type, item.id);
     renderAll();
   };
 
   detailsRating.onchange = ()=>{
     const k = `${item.media_type}:${item.id}`;
-    const w = state.watched.find(x=>uniqKey(x)===k);
+    const w = state.watched.find(x => uniqKey(x) === k);
     if(!w) return;
     w.rating = detailsRating.value ? Number(detailsRating.value) : null;
     scheduleRemoteSave();
@@ -1420,8 +1611,11 @@ async function openDetailsModal(item){
     const credits = await tmdbFetch(`/${isMovie ? "movie" : "tv"}/${item.id}/credits?language=en-US`);
     const similar = await tmdbFetch(`/${isMovie ? "movie" : "tv"}/${item.id}/similar?language=en-US&page=1`);
 
-    const runtime = isMovie ? (details.runtime || 0) : (Array.isArray(details.episode_run_time) && details.episode_run_time.length ? details.episode_run_time[0] : 0);
-    const genres = (details.genres||[]).slice(0,4).map(g=>g.name).join(" • ");
+    const runtime = isMovie
+      ? (details.runtime || 0)
+      : (Array.isArray(details.episode_run_time) && details.episode_run_time.length ? details.episode_run_time[0] : 0);
+
+    const genres = (details.genres || []).slice(0,4).map(g=>g.name).join(" • ");
     const score = Number.isFinite(details.vote_average) ? details.vote_average.toFixed(1) : "—";
 
     detailsMeta.textContent =
@@ -1429,7 +1623,7 @@ async function openDetailsModal(item){
 
     detailsOverview.textContent = details.overview || "—";
 
-    const cast = (credits.cast||[]).slice(0, 12);
+    const cast = (credits.cast || []).slice(0, 12);
     castCarousel.innerHTML = cast.length
       ? cast.map(p=>carPersonHtml(p)).join("")
       : `<div class="muted">No cast found.</div>`;
@@ -1440,13 +1634,13 @@ async function openDetailsModal(item){
       ? directors.map(p=>carPersonHtml(p, true)).join("")
       : `<div class="muted">No directors found.</div>`;
 
-    const sim = (similar.results||[]).filter(r => r.poster_path).slice(0, 12);
+    const sim = (similar.results || []).filter(r => r.poster_path).slice(0, 12);
     simCarousel.innerHTML = sim.length
       ? sim.map(r=>{
           const mt = isMovie ? "movie" : "tv";
           const name = isMovie ? r.title : r.name;
-          const yr = isMovie ? (r.release_date||"").slice(0,4) : (r.first_air_date||"").slice(0,4);
-          return carTitleHtml({ id:r.id, media_type: mt, title:name, year:yr, poster_path:r.poster_path });
+          const yr = isMovie ? (r.release_date || "").slice(0,4) : (r.first_air_date || "").slice(0,4);
+          return carTitleHtml({ id:r.id, media_type:mt, title:name, year:yr, poster_path:r.poster_path });
         }).join("")
       : `<div class="muted">No similar titles found.</div>`;
 
@@ -1488,10 +1682,11 @@ async function openDetailsModal(item){
 function carPersonHtml(p, isCrew=false){
   const img = p.profile_path ? (IMG_SMALL + p.profile_path) : "";
   const role = isCrew ? (p.job || "—") : (p.character || "—");
+
   return `
-    <div class="carItem" data-person="${p.id}" data-name="${escapeHtml(p.name||"")}" data-img="${escapeHtml(p.profile_path||"")}" role="button" tabindex="0">
+    <div class="carItem" data-person="${p.id}" data-name="${escapeHtml(p.name || "")}" data-img="${escapeHtml(p.profile_path || "")}" role="button" tabindex="0">
       <img class="carImg" src="${img || ""}" alt="" onerror="this.style.display='none'">
-      <div class="carName">${escapeHtml(p.name||"—")}</div>
+      <div class="carName">${escapeHtml(p.name || "—")}</div>
       <div class="carRole">${escapeHtml(role)}</div>
     </div>
   `;
@@ -1499,16 +1694,16 @@ function carPersonHtml(p, isCrew=false){
 
 function carTitleHtml(item){
   const img = item.poster_path ? (IMG_SMALL + item.poster_path) : "";
+
   return `
-    <div class="carItem" data-title="1" data-id="${item.id}" data-media="${item.media_type}" data-name="${escapeHtml(item.title||"")}" data-year="${escapeHtml(item.year||"")}" data-poster="${escapeHtml(item.poster_path||"")}">
+    <div class="carItem" data-title="1" data-id="${item.id}" data-media="${item.media_type}" data-name="${escapeHtml(item.title || "")}" data-year="${escapeHtml(item.year || "")}" data-poster="${escapeHtml(item.poster_path || "")}">
       <img class="carImg" src="${img || ""}" alt="" onerror="this.style.display='none'">
-      <div class="carName">${escapeHtml(item.title||"—")}</div>
-      <div class="carRole">${escapeHtml(item.media_type.toUpperCase())} • ${escapeHtml(item.year||"—")}</div>
+      <div class="carName">${escapeHtml(item.title || "—")}</div>
+      <div class="carRole">${escapeHtml(item.media_type.toUpperCase())} • ${escapeHtml(item.year || "—")}</div>
     </div>
   `;
 }
 
-/* ===================== PERSON FILMOGRAPHY ===================== */
 async function openPersonModalFromCard(card){
   const pid = Number(card.dataset.personId);
   const name = card.dataset.personName || "";
@@ -1516,20 +1711,20 @@ async function openPersonModalFromCard(card){
   await openPersonFilmography(pid, name, prof);
 }
 
-async function openPersonFilmography(personId, name, profile_path){
-  document.querySelectorAll(".topTab").forEach(t=>t.classList.toggle("active", t.dataset.section==="searchSec"));
-  document.querySelectorAll(".section").forEach(s=>s.classList.toggle("active", s.id==="searchSec"));
+async function openPersonFilmography(personId, name){
+  document.querySelectorAll(".topTab").forEach(t=>t.classList.toggle("active", t.dataset.section === "searchSec"));
+  document.querySelectorAll(".section").forEach(s=>s.classList.toggle("active", s.id === "searchSec"));
 
-  elResults.innerHTML = `<div class="muted">Loading filmography for <b>${escapeHtml(name||"Person")}</b>…</div>`;
+  elResults.innerHTML = `<div class="muted">Loading filmography for <b>${escapeHtml(name || "Person")}</b>…</div>`;
 
   try{
     const credits = await tmdbFetch(`/person/${personId}/combined_credits?language=en-US`);
     const all = []
-      .concat((credits.cast||[]).map(x=>({ ...x, creditType:"Cast" })))
-      .concat((credits.crew||[]).map(x=>({ ...x, creditType:(x.job||"Crew") })));
+      .concat((credits.cast || []).map(x=>({ ...x, creditType:"Cast" })))
+      .concat((credits.crew || []).map(x=>({ ...x, creditType:(x.job || "Crew") })));
 
     const list = all
-      .filter(x => (x.media_type==="movie" || x.media_type==="tv"))
+      .filter(x => (x.media_type === "movie" || x.media_type === "tv"))
       .filter(x => x.poster_path)
       .sort((a,b)=>(b.popularity||0)-(a.popularity||0))
       .slice(0, 30);
@@ -1538,7 +1733,7 @@ async function openPersonFilmography(personId, name, profile_path){
       <div class="card" style="margin-bottom:12px;">
         <div class="row" style="justify-content:space-between;">
           <div>
-            <div style="font-weight:950;font-size:20px;">${escapeHtml(name||"Person")}</div>
+            <div style="font-weight:950;font-size:20px;">${escapeHtml(name || "Person")}</div>
             <div class="muted">Top filmography (tap ⋮ to add titles)</div>
           </div>
           <button id="backToSearch">Clear</button>
@@ -1548,18 +1743,18 @@ async function openPersonFilmography(personId, name, profile_path){
 
     const items = list.map(x=>{
       const media_type = x.media_type;
-      const title = media_type==="movie" ? x.title : x.name;
-      const year = media_type==="movie" ? (x.release_date||"").slice(0,4) : (x.first_air_date||"").slice(0,4);
+      const title = media_type === "movie" ? x.title : x.name;
+      const year = media_type === "movie" ? (x.release_date || "").slice(0,4) : (x.first_air_date || "").slice(0,4);
       const exists = isInAnyList(media_type, x.id);
 
       return `
-        <div class="item" data-kind="title" data-id="${x.id}" data-media="${media_type}" data-name="${escapeHtml(title||"")}" data-year="${escapeHtml(year||"")}" data-poster="${escapeHtml(x.poster_path||"")}">
+        <div class="item" data-kind="title" data-id="${x.id}" data-media="${media_type}" data-name="${escapeHtml(title || "")}" data-year="${escapeHtml(year || "")}" data-poster="${escapeHtml(x.poster_path || "")}">
           <button class="posterBtn" data-open="details" aria-label="Open details">
             <img class="poster" src="${IMG_SMALL}${x.poster_path}" alt="" onerror="this.style.display='none'">
           </button>
           <div>
-            <div class="title" data-open="details">${escapeHtml(title||"—")}</div>
-            <div class="meta">${media_type.toUpperCase()} • ${escapeHtml(year||"—")} • ${escapeHtml(x.creditType||"")}</div>
+            <div class="title" data-open="details">${escapeHtml(title || "—")}</div>
+            <div class="meta">${media_type.toUpperCase()} • ${escapeHtml(year || "—")} • ${escapeHtml(x.creditType || "")}</div>
           </div>
 
           <button class="kebab" data-open="menu" aria-label="Menu">⋮</button>
@@ -1573,17 +1768,17 @@ async function openPersonFilmography(personId, name, profile_path){
     }).join("");
 
     elResults.innerHTML = header + `<div class="results">${items}</div>`;
-    document.getElementById("backToSearch").addEventListener("click", ()=>{ elResults.innerHTML=""; });
+    document.getElementById("backToSearch").addEventListener("click", ()=>{
+      elResults.innerHTML = "";
+    });
 
     wireResultActions();
-
   }catch(err){
     console.error(err);
     elResults.innerHTML = `<div class="muted">Failed to load filmography: ${escapeHtml(err?.message || String(err))}</div>`;
   }
 }
 
-/* ===================== HELPERS ===================== */
 function escapeHtml(s){
   return String(s ?? "")
     .replaceAll("&","&amp;")
@@ -1593,7 +1788,6 @@ function escapeHtml(s){
     .replaceAll("'","&#039;");
 }
 
-/* ===================== START ===================== */
 window.addEventListener("load", ()=>{
   try{
     initSync();
