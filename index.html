@@ -1094,6 +1094,25 @@
     }
     .seasonCheck:hover{ border-color:var(--accent); }
 
+    .seasonToggleBtn{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      width:100%;
+      background:var(--surface);
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:8px 12px;
+      font-family:'DM Sans',sans-serif;
+      font-size:13px;
+      font-weight:600;
+      color:var(--text);
+      cursor:pointer;
+      text-align:left;
+      transition:border-color .15s;
+    }
+    .seasonToggleBtn:hover{ border-color:var(--accent); }
+
     /* ── THEME TOGGLE ── */
     .themeToggle{
       width:38px;
@@ -1852,6 +1871,7 @@ function renderPeopleResults(people){
 function itemHtml(item,exists,_ctx){
   const poster=item.poster_path?`${IMG_SMALL}${item.poster_path}`:"";
   const mtBadge=`<span class="badge badge-${item.media_type}">${item.media_type.toUpperCase()}</span>`;
+  const recBtn = friends.length > 0 ? `<button data-act="recommend">📨 Recommend to friend</button>` : "";
   return `
     <div class="item" data-kind="title" data-id="${item.id}" data-media="${item.media_type}" data-name="${escapeHtml(item.title||"")}" data-year="${escapeHtml(item.year||"")}" data-poster="${escapeHtml(item.poster_path||"")}">
       <button class="posterBtn" data-open="details">
@@ -1866,6 +1886,7 @@ function itemHtml(item,exists,_ctx){
         <button data-act="details">Details</button>
         <button data-act="watchlist" ${exists?"disabled":""}>+ Add to Watchlist</button>
         <button data-act="watched"   ${exists?"disabled":""}>✓ Mark Watched</button>
+        ${recBtn}
       </div>
     </div>`;
 }
@@ -1903,6 +1924,7 @@ function wireResultActions(){
             if(btn.dataset.act==="details") await openDetailsModalFromCard(card);
             else if(btn.dataset.act==="watchlist"){ addToWatchlist({id,media_type:mt,title,year,poster_path}); renderAll(); showToast(`Added "${title}" to Watchlist`); }
             else if(btn.dataset.act==="watched"){ await addToWatchedFlow({id,media_type:mt,title,year,poster_path}); renderAll(); showToast(`"${title}" marked as Watched`); }
+            else if(btn.dataset.act==="recommend"){ openSendRec({id,media_type:mt,title,year,poster_path}); }
           }
           if(card.dataset.kind==="person"){
             const pid=Number(card.dataset.personId),name=card.dataset.personName||"",profile_path=card.dataset.profile||"";
@@ -2088,20 +2110,24 @@ function listCardHtml(item,listType){
   // Season tracker for TV shows in watched list
   let seasonHtml="";
   if(listType==="watched" && item.media_type==="tv" && item.seasons_meta && Object.keys(item.seasons_meta).length>0){
+    const seasonCount=Object.keys(item.seasons_meta).length;
+    const watchedCount=Object.keys(item.seasons_meta).filter(s=>item.seasons_watched&&item.seasons_watched[s]>=1).length;
+    const uid=`seasons-${item.id}`;
     const rows=Object.entries(item.seasons_meta).sort((a,b)=>Number(a[0])-Number(b[0])).map(([sNum,epCount])=>{
       const watched=!!(item.seasons_watched&&item.seasons_watched[sNum]>=1);
-      const epWatched=(item.seasons_watched && item.seasons_watched[sNum]) || 0;
       return `<div class="seasonRow">
-        <div>
-          <span class="seasonLabel">Season ${sNum}</span>
-          <span class="seasonEpInfo"> · ${epCount} ep</span>
-        </div>
-        <div class="seasonCheck ${watched?"watched":""}" data-season="${sNum}" data-id="${item.id}" data-media="tv" title="${watched?"Mark unwatched":"Mark watched"}">
-          ${watched?"✓":""}
-        </div>
+        <div><span class="seasonLabel">Season ${sNum}</span><span class="seasonEpInfo"> · ${epCount} ep</span></div>
+        <div class="seasonCheck ${watched?"watched":""}" data-season="${sNum}" data-id="${item.id}" data-media="tv" title="${watched?"Mark unwatched":"Mark watched"}">${watched?"✓":""}</div>
       </div>`;
     }).join("");
-    seasonHtml=`<div class="seasonTracker">${rows}</div>`;
+    seasonHtml=`
+      <div style="margin-top:8px;">
+        <button class="seasonToggleBtn" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('.seasonArrow').style.transform=this.nextElementSibling.style.display==='none'?'rotate(0deg)':'rotate(180deg)';">
+          <span>📺 Seasons <span style="color:var(--muted2);font-weight:400;">${watchedCount}/${seasonCount} watched</span></span>
+          <span class="seasonArrow" style="display:inline-block;transition:transform .2s;">▾</span>
+        </button>
+        <div class="seasonTracker" style="display:none;">${rows}</div>
+      </div>`;
   }
 
   return `
