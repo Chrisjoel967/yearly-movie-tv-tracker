@@ -876,6 +876,187 @@
       .mobileNav{ display:none; }
     }
 
+    /* ── BACKUP / RESTORE MODAL ── */
+    .backupModal{
+      width:min(500px,100%);
+      background:var(--surface);
+      border:1px solid var(--border2);
+      border-radius:20px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    .backupHeader{
+      padding:18px 20px 14px;
+      border-bottom:1px solid var(--border);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+    }
+
+    .backupBody{
+      padding:20px;
+      display:grid;
+      gap:12px;
+    }
+
+    .backupRow{
+      background:var(--surface2);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:16px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+
+    .backupRowTitle{
+      font-weight:700;
+      font-size:14px;
+      color:var(--text);
+    }
+
+    .backupRowDesc{
+      font-size:12px;
+      color:var(--muted2);
+      line-height:1.45;
+    }
+
+    .backupRowActions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top:2px;
+    }
+
+    .btnBackup{
+      background:var(--accent-dim);
+      border:1px solid var(--accent);
+      color:var(--accent);
+      border-radius:9px;
+      padding:8px 14px;
+      font-family:'DM Sans',sans-serif;
+      font-size:13px;
+      font-weight:700;
+      cursor:pointer;
+      transition:background .15s;
+    }
+
+    .btnBackup:hover{ background:rgba(232,160,32,.22); }
+
+    .btnBackupDanger{
+      background:var(--danger-dim);
+      border:1px solid rgba(220,38,38,.4);
+      color:var(--danger);
+      border-radius:9px;
+      padding:8px 14px;
+      font-family:'DM Sans',sans-serif;
+      font-size:13px;
+      font-weight:700;
+      cursor:pointer;
+    }
+
+    .backupMeta{
+      font-size:11px;
+      color:var(--muted);
+      margin-top:2px;
+    }
+
+    .backupStatusMsg{
+      font-size:13px;
+      font-weight:600;
+      min-height:18px;
+      color:var(--green);
+    }
+
+    /* ── FRIENDS & RECOMMENDATIONS ── */
+    .friendsGrid{ display:grid; gap:10px; margin-top:14px; }
+
+    .friendCard{
+      display:grid;
+      grid-template-columns:42px 1fr auto;
+      align-items:center;
+      gap:12px;
+      background:var(--surface2);
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:12px 14px;
+      position:relative;
+    }
+
+    .friendAvatar{
+      width:42px; height:42px; border-radius:50%;
+      background:var(--accent-dim); border:2px solid var(--accent);
+      display:grid; place-items:center;
+      font-size:16px; font-weight:700; color:var(--accent); flex-shrink:0;
+    }
+
+    .friendName{ font-weight:700; font-size:15px; color:var(--text); }
+    .friendMeta{ font-size:12px; color:var(--muted2); margin-top:2px; }
+    .friendActions{ display:flex; gap:8px; align-items:center; }
+
+    .btnSmall{
+      background:var(--surface); border:1px solid var(--border2); color:var(--muted2);
+      border-radius:8px; padding:6px 12px; font-family:'DM Sans',sans-serif;
+      font-size:12px; font-weight:600; cursor:pointer; transition:all .15s; white-space:nowrap;
+    }
+    .btnSmall:hover{ border-color:var(--accent); color:var(--accent); }
+
+    .btnSmallGreen{
+      background:var(--green-dim); border:1px solid var(--green); color:var(--green);
+      border-radius:8px; padding:6px 12px; font-family:'DM Sans',sans-serif;
+      font-size:12px; font-weight:600; cursor:pointer;
+    }
+    .btnSmallDanger{
+      background:var(--danger-dim); border:1px solid rgba(220,38,38,.35); color:var(--danger);
+      border-radius:8px; padding:6px 12px; font-family:'DM Sans',sans-serif;
+      font-size:12px; font-weight:600; cursor:pointer;
+    }
+
+    .pendingBadge{
+      display:inline-block; background:rgba(232,160,32,.15); border:1px solid var(--accent);
+      color:var(--accent); border-radius:6px; padding:2px 8px; font-size:11px; font-weight:700;
+    }
+    .incomingBadge{
+      display:inline-block; background:var(--green-dim); border:1px solid var(--green);
+      color:var(--green); border-radius:6px; padding:2px 8px; font-size:11px; font-weight:700;
+    }
+
+    .recCard{
+      background:var(--surface2); border:1px solid var(--border); border-radius:14px;
+      padding:14px; display:grid; grid-template-columns:56px 1fr; gap:12px;
+      align-items:start; position:relative;
+    }
+    .recCard.unread{ border-color:var(--accent); }
+    .recPoster{ width:56px; height:84px; border-radius:10px; object-fit:cover; background:var(--surface); border:1px solid var(--border2); display:block; }
+    .recTitle{ font-weight:700; font-size:15px; color:var(--text); cursor:pointer; }
+    .recTitle:hover{ color:var(--accent); }
+    .recMeta{ font-size:12px; color:var(--muted2); margin-top:3px; }
+    .recNote{ font-size:13px; color:var(--text); margin-top:8px; padding:8px 10px; background:var(--surface); border-left:3px solid var(--accent); border-radius:0 6px 6px 0; line-height:1.45; }
+    .recFrom{ font-size:11px; font-weight:700; color:var(--muted2); margin-top:6px; text-transform:uppercase; letter-spacing:.05em; }
+    .recActions{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+    .unreadDot{ width:8px; height:8px; border-radius:50%; background:var(--accent); position:absolute; top:12px; right:12px; }
+
+    .sendRecModal{ width:min(480px,100%); background:var(--surface); border:1px solid var(--border2); border-radius:20px; box-shadow:var(--shadow); overflow:hidden; }
+    .sendRecHeader{ padding:18px 20px 14px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+    .sendRecBody{ padding:20px; display:grid; gap:14px; }
+    .sendRecPoster{ width:48px; height:72px; border-radius:8px; object-fit:cover; background:var(--surface2); border:1px solid var(--border2); }
+    .friendPickList{ display:grid; gap:8px; max-height:180px; overflow-y:auto; padding-right:4px; }
+    .friendPickItem{ display:flex; align-items:center; gap:10px; background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:10px 12px; cursor:pointer; transition:border-color .15s; }
+    .friendPickItem:hover{ border-color:var(--accent); }
+    .friendPickItem.selected{ border-color:var(--accent); background:var(--accent-dim); }
+    .friendPickAvatar{ width:30px; height:30px; border-radius:50%; background:var(--accent-dim); border:1px solid var(--accent); display:grid; place-items:center; font-size:13px; font-weight:700; color:var(--accent); flex-shrink:0; }
+
+    .noteInput{ width:100%; background:var(--surface2); border:1px solid var(--border2); color:var(--text); border-radius:10px; padding:10px 12px; font-family:'DM Sans',sans-serif; font-size:14px; resize:vertical; min-height:70px; outline:none; }
+    .noteInput:focus{ border-color:var(--accent); }
+    .noteInput::placeholder{ color:var(--muted); }
+
+    .friendWatchedModal{ width:min(700px,100%); background:var(--surface); border:1px solid var(--border2); border-radius:20px; box-shadow:var(--shadow); overflow:hidden; max-height:calc(100vh - 32px); display:flex; flex-direction:column; }
+    .friendWatchedHeader{ padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; background:var(--surface2); }
+    .friendWatchedBody{ padding:16px; overflow-y:auto; display:grid; gap:10px; }
+
+    .tabDot{ display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--accent); margin-left:5px; vertical-align:middle; }
+
     /* ── THEME TOGGLE ── */
     .themeToggle{
       width:38px;
@@ -979,6 +1160,8 @@
       <button class="topTab" data-section="watchedSec">Watched</button>
       <button class="topTab" data-section="peopleSec">People</button>
       <button class="topTab" data-section="statsSec">Stats</button>
+      <button class="topTab" data-section="friendsSec" id="tabFriends">Friends</button>
+      <button class="topTab" data-section="recsSec" id="tabRecs">Recs</button>
     </nav>
 
     <div style="display:flex;align-items:center;gap:8px;">
@@ -999,6 +1182,8 @@
     <button class="mobileNavBtn" data-section="watchedSec">Watched</button>
     <button class="mobileNavBtn" data-section="peopleSec">People</button>
     <button class="mobileNavBtn" data-section="statsSec">Stats</button>
+    <button class="mobileNavBtn" data-section="friendsSec" id="mTabFriends">Friends</button>
+    <button class="mobileNavBtn" data-section="recsSec" id="mTabRecs">Recs</button>
   </div>
 
   <div class="wrap">
@@ -1132,15 +1317,145 @@
       </div>
     </div>
 
+    <!-- FRIENDS -->
+    <div class="section" id="friendsSec">
+      <div class="card" style="margin-bottom:14px;">
+        <div class="cardTitle">Friends</div>
+        <div style="color:var(--muted2);font-size:13px;margin-top:4px;">Find friends by email and share recommendations</div>
+
+        <!-- Add friend row -->
+        <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">
+          <div class="searchWrap" style="flex:1;min-width:200px;">
+            <input class="searchInput" id="friendEmailInput" type="email" placeholder="Friend's email address…" style="padding-right:14px;" />
+          </div>
+          <button class="btnSearch" id="btnAddFriend">Send Request</button>
+        </div>
+        <div id="addFriendMsg" style="font-size:13px;font-weight:600;min-height:18px;margin-top:8px;"></div>
+      </div>
+
+      <!-- Incoming requests -->
+      <div class="card" style="margin-bottom:14px;" id="incomingCard" style="display:none;">
+        <div class="cardTitle" style="font-size:18px;">Incoming Requests</div>
+        <div id="incomingList" class="friendsGrid"></div>
+      </div>
+
+      <!-- Friend list -->
+      <div class="card">
+        <div class="cardTitle" style="font-size:18px;">Your Friends</div>
+        <div id="friendsList" class="friendsGrid"></div>
+      </div>
+    </div>
+
+    <!-- RECOMMENDATIONS -->
+    <div class="section" id="recsSec">
+      <div class="card">
+        <div class="listHeader">
+          <div class="cardTitle">Recommendations</div>
+        </div>
+        <div class="pillTabs" id="recsTabs">
+          <button class="pillTab active" data-rtab="received">Received</button>
+          <button class="pillTab" data-rtab="sent">Sent</button>
+        </div>
+        <div id="recsList" style="margin-top:14px;display:grid;gap:10px;"></div>
+      </div>
+    </div>
+
   </div><!-- /wrap -->
 
   <!-- Status bar -->
   <div class="statusBar">
     <span>Sync: <span id="syncStatus">—</span></span>
-    <span>Last saved: <span id="lastSaved">—</span></span>
+    <span style="display:flex;align-items:center;gap:12px;">
+      <button onclick="openBackupModal()" style="background:none;border:none;color:var(--muted2);font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;padding:0;text-decoration:underline;text-underline-offset:2px;">Backup / Restore</button>
+      <span>Last saved: <span id="lastSaved">—</span></span>
+    </span>
   </div>
 
 </div><!-- /appScreen -->
+
+<!-- ══════════════ BACKUP / RESTORE MODAL ══════════════ -->
+<div class="backdrop" id="backupBackdrop" style="display:none;">
+  <div class="backupModal" role="dialog" aria-modal="true">
+    <div class="backupHeader">
+      <div class="cardTitle" style="font-size:20px;">Backup & Restore</div>
+      <button onclick="closeBackupModal()" class="btnDanger" style="padding:7px 14px;font-size:13px;">✕ Close</button>
+    </div>
+    <div class="backupBody">
+
+      <div class="backupRow">
+        <div class="backupRowTitle">📥 Export backup</div>
+        <div class="backupRowDesc">Downloads your entire library — watchlist, watched, ratings, and followed people — as a <code>.json</code> file. Keep it somewhere safe.</div>
+        <div id="exportMeta" class="backupMeta"></div>
+        <div class="backupRowActions">
+          <button class="btnBackup" onclick="doExport()">Download backup file</button>
+        </div>
+      </div>
+
+      <div class="backupRow">
+        <div class="backupRowTitle">📤 Import backup</div>
+        <div class="backupRowDesc">Restore from a previously exported <code>.json</code> file. This <strong>replaces</strong> your current data — it won't merge. Your Supabase data will be overwritten immediately.</div>
+        <div class="backupRowActions">
+          <label class="btnBackup" style="cursor:pointer;">
+            Choose file…
+            <input type="file" accept=".json" id="importFileInput" style="display:none;" onchange="doImport(event)">
+          </label>
+        </div>
+        <div id="importStatus" class="backupStatusMsg"></div>
+      </div>
+
+      <div class="backupRow">
+        <div class="backupRowTitle">☁️ About Supabase sync</div>
+        <div class="backupRowDesc">Your data is automatically saved to Supabase every time you make a change. Sign in on any device and it loads instantly — no manual steps needed. Exports are a safety net for migrating or local archiving.</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ SEND RECOMMENDATION MODAL ══════════════ -->
+<div class="backdrop" id="sendRecBackdrop" style="display:none;">
+  <div class="sendRecModal" role="dialog" aria-modal="true">
+    <div class="sendRecHeader">
+      <div class="cardTitle" style="font-size:18px;">Send Recommendation</div>
+      <button onclick="closeSendRec()" class="btnDanger" style="padding:7px 14px;font-size:13px;">✕</button>
+    </div>
+    <div class="sendRecBody">
+      <div style="display:flex;gap:12px;align-items:center;">
+        <img id="sendRecPoster" class="sendRecPoster" alt="" />
+        <div>
+          <div id="sendRecTitle" style="font-weight:700;font-size:16px;"></div>
+          <div id="sendRecMeta" style="font-size:12px;color:var(--muted2);margin-top:3px;"></div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Send to</div>
+        <div id="friendPickList" class="friendPickList">
+          <div style="color:var(--muted2);font-size:13px;">No friends yet. Add some first!</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Add a note <span style="font-weight:400;text-transform:none;">(optional)</span></div>
+        <textarea class="noteInput" id="sendRecNote" placeholder="Why do you think they'd love it?"></textarea>
+      </div>
+      <button class="btnAuth" id="btnSendRec" onclick="doSendRec()" style="margin-top:0;">Send Recommendation</button>
+      <div id="sendRecMsg" style="font-size:13px;font-weight:600;min-height:18px;text-align:center;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ FRIEND WATCHED MODAL ══════════════ -->
+<div class="backdrop" id="friendWatchedBackdrop" style="display:none;">
+  <div class="friendWatchedModal" role="dialog" aria-modal="true">
+    <div class="friendWatchedHeader">
+      <div>
+        <div class="cardTitle" style="font-size:20px;" id="friendWatchedName">Friend's List</div>
+        <div style="font-size:12px;color:var(--muted2);margin-top:3px;" id="friendWatchedSubtitle"></div>
+      </div>
+      <button onclick="closeFriendWatched()" class="btnDanger" style="padding:7px 14px;font-size:13px;">✕ Close</button>
+    </div>
+    <div class="friendWatchedBody" id="friendWatchedBody"></div>
+  </div>
+</div>
 
 <!-- ══════════════ DETAILS MODAL ══════════════ -->
 <div class="backdrop" id="detailsBackdrop">
@@ -1288,6 +1603,7 @@ async function doSignOut(){
   await sb.auth.signOut();
   currentUser = null;
   state = baseState();
+  friends=[]; pendingSent=[]; pendingIn=[]; recsReceived=[]; recsSent=[];
   authScreen.style.display = "flex";
   appScreen.style.display  = "none";
 }
@@ -1304,6 +1620,7 @@ async function onSignedIn(user){
 
   setSyncStatus("Loading…");
   await loadRemoteState();
+  await loadSocialData();
   renderAll();
 }
 
@@ -2005,6 +2322,571 @@ function setupTabs(){
 }
 
 // ─────────────────────────────────────────────
+// BACKUP / RESTORE
+// ─────────────────────────────────────────────
+function openBackupModal(){
+  // Update export meta
+  const wl = state.watchlist.length;
+  const w  = state.watched.length;
+  const a  = state.people.actors.length;
+  const d  = state.people.directors.length;
+  document.getElementById("exportMeta").textContent =
+    `Current data: ${w} watched · ${wl} on watchlist · ${a} actors · ${d} directors followed`;
+  document.getElementById("importStatus").textContent = "";
+  document.getElementById("importFileInput").value = "";
+  document.getElementById("backupBackdrop").style.display = "flex";
+  document.body.style.overflow = "hidden";
+}
+
+function closeBackupModal(){
+  document.getElementById("backupBackdrop").style.display = "none";
+  document.body.style.overflow = "";
+}
+
+function doExport(){
+  const payload = {
+    version: 1,
+    exported_at: new Date().toISOString(),
+    exported_by: currentUser?.email || "unknown",
+    state: state
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement("a");
+  const date = new Date().toISOString().slice(0, 10);
+  a.href     = url;
+  a.download = `haveyouwatch-backup-${date}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast("Backup downloaded ✓");
+}
+
+function doImport(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const statusEl = document.getElementById("importStatus");
+  statusEl.style.color = "var(--muted2)";
+  statusEl.textContent = "Reading file…";
+
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try{
+      const parsed = JSON.parse(e.target.result);
+
+      // Accept either a wrapped export { version, state } or a raw state object
+      const incoming = parsed.state || parsed;
+
+      // Basic validation
+      if(!Array.isArray(incoming.watchlist) || !Array.isArray(incoming.watched)){
+        throw new Error("File doesn't look like a HaveYouWatch backup.");
+      }
+
+      state = incoming;
+      migrate();
+      await saveRemote();
+      renderAll();
+
+      statusEl.style.color = "var(--green)";
+      statusEl.textContent = `✓ Imported: ${state.watched.length} watched, ${state.watchlist.length} on watchlist.`;
+      showToast("Backup restored ✓");
+
+      // Refresh export meta
+      const wl = state.watchlist.length;
+      const w  = state.watched.length;
+      const a  = state.people.actors.length;
+      const d  = state.people.directors.length;
+      document.getElementById("exportMeta").textContent =
+        `Current data: ${w} watched · ${wl} on watchlist · ${a} actors · ${d} directors followed`;
+
+    }catch(err){
+      statusEl.style.color = "var(--danger)";
+      statusEl.textContent = "Error: " + (err.message || String(err));
+    }
+  };
+  reader.readAsText(file);
+}
+
+// Close backup modal on backdrop click
+document.getElementById("backupBackdrop").addEventListener("click", e => {
+  if(e.target === document.getElementById("backupBackdrop")) closeBackupModal();
+});
+
+// ─────────────────────────────────────────────
+// FRIENDS & RECOMMENDATIONS
+// ─────────────────────────────────────────────
+
+// Social state (not persisted in tracker_state, lives in Supabase tables)
+let friends      = [];   // accepted friends [{id, email, list_visible}]
+let pendingSent  = [];   // requests I sent
+let pendingIn    = [];   // requests I received
+let recsReceived = [];   // recs sent to me
+let recsSent     = [];   // recs I sent
+let recsTab      = "received";
+let sendRecItem  = null; // item being recommended
+let sendRecFriend= null; // selected friend id
+
+// ── Supabase social helpers ──
+
+async function loadSocialData(){
+  if(!sb || !currentUser) return;
+  try{
+    // Load friendships where I am either requester or receiver
+    const { data: fs } = await sb
+      .from("friendships")
+      .select("*")
+      .or(`requester_id.eq.${currentUser.id},receiver_id.eq.${currentUser.id}`);
+
+    friends     = [];
+    pendingSent = [];
+    pendingIn   = [];
+
+    for(const f of (fs||[])){
+      if(f.status === "accepted"){
+        const otherId    = f.requester_id === currentUser.id ? f.receiver_id : f.requester_id;
+        const otherEmail = f.requester_id === currentUser.id ? f.receiver_email : f.requester_email;
+        friends.push({ friendship_id: f.id, id: otherId, email: otherEmail, list_visible: f.list_visible ?? true });
+      } else if(f.status === "pending"){
+        if(f.requester_id === currentUser.id){
+          pendingSent.push({ friendship_id: f.id, id: f.receiver_id, email: f.receiver_email });
+        } else {
+          pendingIn.push({ friendship_id: f.id, id: f.requester_id, email: f.requester_email });
+        }
+      }
+    }
+
+    // Load recommendations
+    const { data: recs } = await sb
+      .from("recommendations")
+      .select("*")
+      .or(`to_id.eq.${currentUser.id},from_id.eq.${currentUser.id}`)
+      .order("created_at", { ascending: false });
+
+    recsReceived = (recs||[]).filter(r => r.to_id   === currentUser.id);
+    recsSent     = (recs||[]).filter(r => r.from_id === currentUser.id);
+
+    renderFriends();
+    renderRecs();
+    updateRecBadge();
+  }catch(err){
+    console.error("loadSocialData error", err);
+  }
+}
+
+async function sendFriendRequest(){
+  const emailInput = document.getElementById("friendEmailInput");
+  const msgEl      = document.getElementById("addFriendMsg");
+  const email      = emailInput.value.trim().toLowerCase();
+  msgEl.style.color = "var(--muted2)";
+
+  if(!email){ msgEl.style.color="var(--danger)"; msgEl.textContent="Enter an email address."; return; }
+  if(email === currentUser.email){ msgEl.style.color="var(--danger)"; msgEl.textContent="That's your own email!"; return; }
+
+  msgEl.textContent = "Looking up user…";
+
+  try{
+    // Look up the profile by email
+    const { data: profile, error: pErr } = await sb
+      .from("profiles")
+      .select("id, email")
+      .eq("email", email)
+      .maybeSingle();
+
+    if(pErr) throw pErr;
+    if(!profile){ msgEl.style.color="var(--danger)"; msgEl.textContent="No account found with that email."; return; }
+
+    // Check not already friends or pending
+    const alreadyFriend = friends.some(f => f.id === profile.id);
+    const alreadySent   = pendingSent.some(f => f.id === profile.id);
+    if(alreadyFriend){ msgEl.style.color="var(--danger)"; msgEl.textContent="Already friends!"; return; }
+    if(alreadySent){   msgEl.style.color="var(--danger)"; msgEl.textContent="Request already sent."; return; }
+
+    const { error: fErr } = await sb.from("friendships").insert({
+      requester_id:    currentUser.id,
+      requester_email: currentUser.email,
+      receiver_id:     profile.id,
+      receiver_email:  profile.email,
+      status:          "pending",
+      list_visible:    true
+    });
+    if(fErr) throw fErr;
+
+    emailInput.value = "";
+    msgEl.style.color = "var(--green)";
+    msgEl.textContent = `Friend request sent to ${email} ✓`;
+    await loadSocialData();
+  }catch(err){
+    msgEl.style.color = "var(--danger)";
+    msgEl.textContent = "Error: " + (err.message || String(err));
+  }
+}
+
+async function acceptFriendRequest(friendshipId){
+  try{
+    await sb.from("friendships").update({ status:"accepted" }).eq("id", friendshipId);
+    await loadSocialData();
+    showToast("Friend request accepted ✓");
+  }catch(err){ showToast("Error: " + err.message); }
+}
+
+async function declineFriendRequest(friendshipId){
+  try{
+    await sb.from("friendships").delete().eq("id", friendshipId);
+    await loadSocialData();
+  }catch(err){ showToast("Error: " + err.message); }
+}
+
+async function removeFriend(friendshipId){
+  if(!confirm("Remove this friend?")) return;
+  try{
+    await sb.from("friendships").delete().eq("id", friendshipId);
+    await loadSocialData();
+    showToast("Friend removed");
+  }catch(err){ showToast("Error: " + err.message); }
+}
+
+async function toggleFriendVisibility(friendshipId, currentVal){
+  try{
+    await sb.from("friendships").update({ list_visible: !currentVal }).eq("id", friendshipId);
+    await loadSocialData();
+  }catch(err){ showToast("Error: " + err.message); }
+}
+
+// ── Render Friends tab ──
+
+function renderFriends(){
+  const incomingCard = document.getElementById("incomingCard");
+  const incomingList = document.getElementById("incomingList");
+  const friendsList  = document.getElementById("friendsList");
+
+  // Incoming requests
+  if(pendingIn.length > 0){
+    incomingCard.style.display = "block";
+    incomingList.innerHTML = pendingIn.map(f => `
+      <div class="friendCard">
+        <div class="friendAvatar">${f.email[0].toUpperCase()}</div>
+        <div>
+          <div class="friendName">${escapeHtml(f.email)}</div>
+          <div class="friendMeta"><span class="incomingBadge">Wants to be friends</span></div>
+        </div>
+        <div class="friendActions">
+          <button class="btnSmallGreen" onclick="acceptFriendRequest('${f.friendship_id}')">Accept</button>
+          <button class="btnSmallDanger" onclick="declineFriendRequest('${f.friendship_id}')">Decline</button>
+        </div>
+      </div>`).join("");
+  } else {
+    incomingCard.style.display = "none";
+  }
+
+  // Pending sent
+  const sentHtml = pendingSent.map(f => `
+    <div class="friendCard">
+      <div class="friendAvatar" style="opacity:.5;">${f.email[0].toUpperCase()}</div>
+      <div>
+        <div class="friendName">${escapeHtml(f.email)}</div>
+        <div class="friendMeta"><span class="pendingBadge">Request pending</span></div>
+      </div>
+      <div class="friendActions">
+        <button class="btnSmallDanger" onclick="declineFriendRequest('${f.friendship_id}')">Cancel</button>
+      </div>
+    </div>`).join("");
+
+  // Accepted friends
+  const friendHtml = friends.map(f => `
+    <div class="friendCard">
+      <div class="friendAvatar">${f.email[0].toUpperCase()}</div>
+      <div>
+        <div class="friendName">${escapeHtml(f.email)}</div>
+        <div class="friendMeta">
+          Watched list: <b>${f.list_visible ? "Visible to you" : "Hidden"}</b>
+        </div>
+      </div>
+      <div class="friendActions">
+        <button class="btnSmall" onclick="openFriendWatched('${f.id}','${escapeHtml(f.email)}')">View List</button>
+        <button class="btnSmall" onclick="toggleFriendVisibility('${f.friendship_id}', ${f.list_visible})">${f.list_visible ? "Hide my list" : "Show my list"}</button>
+        <button class="btnSmallDanger" onclick="removeFriend('${f.friendship_id}')">Remove</button>
+      </div>
+    </div>`).join("");
+
+  if(!friends.length && !pendingSent.length){
+    friendsList.innerHTML = `<div class="emptyState"><div class="emptyIcon">👥</div><div class="emptyText">No friends yet — send a request above!</div></div>`;
+  } else {
+    friendsList.innerHTML = sentHtml + friendHtml;
+  }
+
+  // Notification dot on tab for incoming requests
+  const dot = pendingIn.length > 0 ? `<span class="tabDot"></span>` : "";
+  document.querySelectorAll("[data-section='friendsSec']").forEach(el => {
+    el.innerHTML = "Friends" + dot;
+  });
+}
+
+// ── Friend's watched list modal ──
+
+async function openFriendWatched(friendId, friendEmail){
+  document.getElementById("friendWatchedName").textContent = friendEmail;
+  document.getElementById("friendWatchedSubtitle").textContent = "Loading their watched list…";
+  document.getElementById("friendWatchedBody").innerHTML = `<div class="emptyState"><div class="emptyIcon">🎬</div><div class="emptyText">Loading…</div></div>`;
+  document.getElementById("friendWatchedBackdrop").style.display = "flex";
+  document.body.style.overflow = "hidden";
+
+  try{
+    // Check visibility — find the friendship
+    const friendship = friends.find(f => f.id === friendId);
+    if(!friendship){ throw new Error("Friendship not found."); }
+
+    // Fetch their tracker_state
+    const { data, error } = await sb
+      .from("tracker_state")
+      .select("state")
+      .eq("id", friendId)
+      .maybeSingle();
+
+    if(error) throw error;
+
+    const theirState = data?.state;
+    if(!theirState || !Array.isArray(theirState.watched) || theirState.watched.length === 0){
+      document.getElementById("friendWatchedSubtitle").textContent = "Their list is empty or private.";
+      document.getElementById("friendWatchedBody").innerHTML = `<div class="emptyState"><div class="emptyIcon">🔒</div><div class="emptyText">Nothing to show — their list may be empty or they've set it to private.</div></div>`;
+      return;
+    }
+
+    const watched = [...theirState.watched].sort((a,b)=>(b.added_at||0)-(a.added_at||0));
+    document.getElementById("friendWatchedSubtitle").textContent = `${watched.length} titles watched`;
+
+    document.getElementById("friendWatchedBody").innerHTML = watched.map(item => {
+      const poster = item.poster_path ? (IMG_SMALL + item.poster_path) : "";
+      const alreadyHave = isInAnyList(item.media_type, item.id);
+      return `
+        <div style="display:grid;grid-template-columns:48px 1fr auto;gap:10px;align-items:center;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:10px 12px;">
+          <img src="${poster}" style="width:48px;height:72px;border-radius:8px;object-fit:cover;background:var(--surface);border:1px solid var(--border2);" alt="" onerror="this.style.display='none'">
+          <div>
+            <div style="font-weight:700;font-size:14px;">${escapeHtml(item.title||"—")}</div>
+            <div style="font-size:12px;color:var(--muted2);margin-top:3px;">
+              <span class="badge badge-${item.media_type}">${item.media_type.toUpperCase()}</span>
+              ${escapeHtml(item.year||"—")}
+              ${item.rating ? " · " + ratingToText(item.rating) : ""}
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;flex-direction:column;">
+            <button class="btnSmall" onclick="openDetailsModal({id:${item.id},media_type:'${item.media_type}',title:'${escapeHtml(item.title||"")}',year:'${escapeHtml(item.year||"")}',poster_path:'${escapeHtml(item.poster_path||"")}'});closeFriendWatched();">Details</button>
+            ${!alreadyHave ? `<button class="btnSmall" onclick="addToWatchlist({id:${item.id},media_type:'${item.media_type}',title:'${escapeHtml(item.title||"")}',year:'${escapeHtml(item.year||"")}',poster_path:'${escapeHtml(item.poster_path||"")}'});renderAll();showToast('Added to Watchlist ✓');">+ Watchlist</button>` : `<span style="font-size:11px;color:var(--muted2);text-align:center;">In your list</span>`}
+          </div>
+        </div>`;
+    }).join("");
+
+  }catch(err){
+    document.getElementById("friendWatchedSubtitle").textContent = "";
+    document.getElementById("friendWatchedBody").innerHTML = `<div class="emptyState"><div class="emptyText">Error: ${escapeHtml(err.message||String(err))}</div></div>`;
+  }
+}
+
+function closeFriendWatched(){
+  document.getElementById("friendWatchedBackdrop").style.display = "none";
+  document.body.style.overflow = "";
+}
+
+// ── Send Recommendation ──
+
+function openSendRec(item){
+  sendRecItem   = item;
+  sendRecFriend = null;
+  document.getElementById("sendRecNote").value = "";
+  document.getElementById("sendRecMsg").textContent = "";
+  document.getElementById("sendRecTitle").textContent = item.title || "—";
+  document.getElementById("sendRecMeta").textContent  = `${(item.media_type||"").toUpperCase()} · ${item.year||"—"}`;
+  document.getElementById("sendRecPoster").src = item.poster_path ? (IMG_SMALL + item.poster_path) : "";
+
+  const pickList = document.getElementById("friendPickList");
+  if(friends.length === 0){
+    pickList.innerHTML = `<div style="color:var(--muted2);font-size:13px;">No friends yet — add some on the Friends tab!</div>`;
+  } else {
+    pickList.innerHTML = friends.map(f => `
+      <div class="friendPickItem" data-fid="${f.id}" onclick="selectRecFriend(this,'${f.id}')">
+        <div class="friendPickAvatar">${f.email[0].toUpperCase()}</div>
+        <span style="font-size:14px;font-weight:600;">${escapeHtml(f.email)}</span>
+      </div>`).join("");
+  }
+
+  document.getElementById("sendRecBackdrop").style.display = "flex";
+  document.body.style.overflow = "hidden";
+}
+
+function selectRecFriend(el, fid){
+  sendRecFriend = fid;
+  document.querySelectorAll(".friendPickItem").forEach(x => x.classList.remove("selected"));
+  el.classList.add("selected");
+}
+
+function closeSendRec(){
+  document.getElementById("sendRecBackdrop").style.display = "none";
+  document.body.style.overflow = "";
+}
+
+async function doSendRec(){
+  const msgEl = document.getElementById("sendRecMsg");
+  if(!sendRecFriend){ msgEl.style.color="var(--danger)"; msgEl.textContent="Pick a friend first."; return; }
+  if(!sendRecItem)   { msgEl.style.color="var(--danger)"; msgEl.textContent="No item selected."; return; }
+
+  const note = document.getElementById("sendRecNote").value.trim();
+  const friend = friends.find(f => f.id === sendRecFriend);
+  msgEl.style.color = "var(--muted2)";
+  msgEl.textContent = "Sending…";
+  document.getElementById("btnSendRec").disabled = true;
+
+  try{
+    const { error } = await sb.from("recommendations").insert({
+      from_id:     currentUser.id,
+      from_email:  currentUser.email,
+      to_id:       sendRecFriend,
+      to_email:    friend.email,
+      media_id:    sendRecItem.id,
+      media_type:  sendRecItem.media_type,
+      title:       sendRecItem.title,
+      year:        sendRecItem.year || "",
+      poster_path: sendRecItem.poster_path || "",
+      note:        note || null,
+      read:        false
+    });
+    if(error) throw error;
+
+    msgEl.style.color = "var(--green)";
+    msgEl.textContent = `Sent to ${friend.email} ✓`;
+    document.getElementById("btnSendRec").disabled = false;
+    await loadSocialData();
+    setTimeout(closeSendRec, 1200);
+    showToast(`Recommendation sent to ${friend.email}`);
+  }catch(err){
+    msgEl.style.color = "var(--danger)";
+    msgEl.textContent = "Error: " + (err.message || String(err));
+    document.getElementById("btnSendRec").disabled = false;
+  }
+}
+
+// ── Render Recs tab ──
+
+function renderRecs(){
+  const list = recsTab === "received" ? recsReceived : recsSent;
+  const el   = document.getElementById("recsList");
+
+  if(list.length === 0){
+    el.innerHTML = `<div class="emptyState"><div class="emptyIcon">${recsTab==="received"?"🎁":"📨"}</div><div class="emptyText">${recsTab==="received"?"No recommendations received yet.":"You haven't sent any recommendations yet."}</div></div>`;
+    return;
+  }
+
+  el.innerHTML = list.map(r => {
+    const poster = r.poster_path ? (IMG_SMALL + r.poster_path) : "";
+    const alreadyHave = isInAnyList(r.media_type, r.media_id);
+    const isUnread = recsTab === "received" && !r.read;
+
+    return `
+      <div class="recCard ${isUnread?"unread":""}" id="rec-${r.id}">
+        ${isUnread ? `<div class="unreadDot"></div>` : ""}
+        <img class="recPoster" src="${poster}" alt="" onerror="this.style.display='none'">
+        <div>
+          <div class="recTitle" onclick="openDetailsModal({id:${r.media_id},media_type:'${r.media_type}',title:'${escapeHtml(r.title||"")}',year:'${escapeHtml(r.year||"")}',poster_path:'${escapeHtml(r.poster_path||"")}'});${isUnread?`markRecRead('${r.id}');`:""}">
+            ${escapeHtml(r.title||"—")}
+          </div>
+          <div class="recMeta">
+            <span class="badge badge-${r.media_type}">${r.media_type.toUpperCase()}</span>
+            ${escapeHtml(r.year||"—")}
+          </div>
+          ${r.note ? `<div class="recNote">${escapeHtml(r.note)}</div>` : ""}
+          <div class="recFrom">${recsTab==="received" ? `${escapeHtml(r.from_email)} asks: Have you watched <em style="color:var(--text);font-style:normal;font-weight:700;">${escapeHtml(r.title||"this")}?</em>` : `To ${escapeHtml(r.to_email)}`}</div>
+          ${recsTab==="received" ? `
+          <div class="recActions">
+            ${!alreadyHave
+              ? `<button class="btnSmall" onclick="addToWatchlist({id:${r.media_id},media_type:'${r.media_type}',title:'${escapeHtml(r.title||"")}',year:'${escapeHtml(r.year||"")}',poster_path:'${escapeHtml(r.poster_path||"")}'});renderAll();showToast('Added to Watchlist ✓');${isUnread?`markRecRead('${r.id}');`:""}">+ Add to Watchlist</button>`
+              : `<span style="font-size:12px;color:var(--green);font-weight:600;">✓ In your list</span>`}
+            ${isUnread ? `<button class="btnSmall" onclick="markRecRead('${r.id}')">Mark read</button>` : ""}
+          </div>` : ""}
+        </div>
+      </div>`;
+  }).join("");
+}
+
+async function markRecRead(recId){
+  try{
+    await sb.from("recommendations").update({ read: true }).eq("id", recId);
+    const rec = recsReceived.find(r => r.id === recId);
+    if(rec) rec.read = true;
+    renderRecs();
+    updateRecBadge();
+  }catch(err){ console.error(err); }
+}
+
+function updateRecBadge(){
+  const unread = recsReceived.filter(r => !r.read).length;
+  const dot    = unread > 0 ? `<span class="tabDot"></span>` : "";
+  document.querySelectorAll("[data-section='recsSec']").forEach(el => {
+    el.innerHTML = "Recs" + dot;
+  });
+}
+
+// ── Wire up Friends & Recs in onSignedIn ──
+// (called after loadSocialData)
+
+function setupSocialUI(){
+  document.getElementById("btnAddFriend").addEventListener("click", sendFriendRequest);
+  document.getElementById("friendEmailInput").addEventListener("keydown", e => { if(e.key==="Enter") sendFriendRequest(); });
+
+  document.getElementById("recsTabs").addEventListener("click", e => {
+    const t = e.target.closest(".pillTab"); if(!t) return;
+    recsTab = t.dataset.rtab;
+    document.querySelectorAll("#recsTabs .pillTab").forEach(x => x.classList.toggle("active", x.dataset.rtab === recsTab));
+    renderRecs();
+  });
+
+  document.getElementById("sendRecBackdrop").addEventListener("click", e => {
+    if(e.target === document.getElementById("sendRecBackdrop")) closeSendRec();
+  });
+  document.getElementById("friendWatchedBackdrop").addEventListener("click", e => {
+    if(e.target === document.getElementById("friendWatchedBackdrop")) closeFriendWatched();
+  });
+}
+
+// ── Hook "Recommend to Friend" into the kebab menus ──
+// Patch wireResultActions and wireListCards to inject the rec option
+
+function injectRecOption(menu, item){
+  if(friends.length === 0) return; // no friends yet, don't clutter menu
+  const btn = document.createElement("button");
+  btn.textContent = "📨 Recommend to friend";
+  btn.addEventListener("click", e => {
+    e.stopPropagation();
+    menu.style.display = "none";
+    openSendRec(item);
+  });
+  // Insert before the last button (Remove / danger)
+  const buttons = menu.querySelectorAll("button");
+  const last = buttons[buttons.length - 1];
+  menu.insertBefore(btn, last);
+}
+
+// Patch wireListCards to also inject rec option
+const _origWireListCards = wireListCards;
+function wireListCards(container){
+  _origWireListCards(container);
+  container.querySelectorAll(".item[data-kind='title']").forEach(card => {
+    const menu = card.querySelector("[data-menu]");
+    if(!menu) return;
+    // Avoid double-injecting
+    if(menu.querySelector("[data-rec-injected]")) return;
+    const marker = document.createElement("span");
+    marker.setAttribute("data-rec-injected","1");
+    marker.style.display = "none";
+    menu.appendChild(marker);
+    const item = {
+      id: Number(card.dataset.id),
+      media_type: card.dataset.media,
+      title: card.dataset.name,
+      year: card.dataset.year || "",
+      poster_path: card.dataset.poster || ""
+    };
+    injectRecOption(menu, item);
+  });
+}
+
+// ─────────────────────────────────────────────
 // THEME
 // ─────────────────────────────────────────────
 const THEME_KEY = "hyw_theme";
@@ -2040,6 +2922,7 @@ window.addEventListener("load",async()=>{
   setupNav();
   setupSearch();
   setupTabs();
+  setupSocialUI();
 
   // Check for existing session
   const { data: { session } } = await sb.auth.getSession();
