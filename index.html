@@ -2090,7 +2090,7 @@ function listCardHtml(item,listType){
   if(listType==="watched" && item.media_type==="tv" && item.seasons_meta && Object.keys(item.seasons_meta).length>0){
     const rows=Object.entries(item.seasons_meta).sort((a,b)=>Number(a[0])-Number(b[0])).map(([sNum,epCount])=>{
       const watched=!!(item.seasons_watched&&item.seasons_watched[sNum]>=1);
-      const epWatched=item.seasons_watched?.(item.seasons_watched[sNum]||0):0;
+      const epWatched=(item.seasons_watched && item.seasons_watched[sNum]) || 0;
       return `<div class="seasonRow">
         <div>
           <span class="seasonLabel">Season ${sNum}</span>
