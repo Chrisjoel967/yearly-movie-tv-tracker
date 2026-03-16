@@ -2952,7 +2952,6 @@ async function openFriendWatched(friendId, friendEmail){
   document.getElementById("friendWatchedSubtitle").textContent = "Loading…";
   document.getElementById("friendWatchedBody").innerHTML = `<div class="emptyState"><div class="emptyIcon">🎬</div><div class="emptyText">Loading…</div></div>`;
 
-  // Reset tabs
   document.querySelectorAll("#friendWatchedTabs .pillTab").forEach(t =>
     t.classList.toggle("active", t.dataset.fwtab === "movie")
   );
@@ -2961,35 +2960,40 @@ async function openFriendWatched(friendId, friendEmail){
   document.body.style.overflow = "hidden";
 
   try{
-    const friendship = friends.find(f => f.id === friendId);
-    if(!friendship) throw new Error("Friendship not found.");
-
+    // Query tracker_state — RLS policy handles access control
     const { data, error } = await sb
       .from("tracker_state")
       .select("state")
-      .eq("id", friendId)
+      .eq("id", String(friendId))
       .maybeSingle();
 
-    if(error) throw error;
+    if(error){
+      console.error("tracker_state fetch error:", error);
+      throw error;
+    }
 
     const theirState = data?.state;
-    if(!theirState || !Array.isArray(theirState.watched) || theirState.watched.length === 0){
-      document.getElementById("friendWatchedSubtitle").textContent = "Their list is empty or private.";
-      document.getElementById("friendWatchedBody").innerHTML = `<div class="emptyState"><div class="emptyIcon">🔒</div><div class="emptyText">Nothing to show — their list may be empty or they've set it to private.</div></div>`;
+    const watched = Array.isArray(theirState?.watched) ? theirState.watched : [];
+
+    if(watched.length === 0){
+      document.getElementById("friendWatchedSubtitle").textContent = "Nothing watched yet.";
+      document.getElementById("friendWatchedBody").innerHTML = `<div class="emptyState"><div class="emptyIcon">🎬</div><div class="emptyText">They haven't added anything to their watched list yet.</div></div>`;
       return;
     }
 
-    friendWatchedData = [...theirState.watched].sort((a,b) => (b.added_at||0) - (a.added_at||0));
+    friendWatchedData = [...watched].sort((a,b) => (b.added_at||0) - (a.added_at||0));
 
     const movieCount = friendWatchedData.filter(x => x.media_type === "movie").length;
     const tvCount    = friendWatchedData.filter(x => x.media_type === "tv").length;
-    document.getElementById("friendWatchedSubtitle").textContent = `${movieCount} movie${movieCount!==1?"s":""} · ${tvCount} TV show${tvCount!==1?"s":""}`;
+    document.getElementById("friendWatchedSubtitle").textContent =
+      `${movieCount} movie${movieCount!==1?"s":""} · ${tvCount} TV show${tvCount!==1?"s":""}`;
 
     renderFriendWatchedBody();
 
   }catch(err){
+    console.error("openFriendWatched error:", err);
     document.getElementById("friendWatchedSubtitle").textContent = "";
-    document.getElementById("friendWatchedBody").innerHTML = `<div class="emptyState"><div class="emptyText">Error: ${escapeHtml(err.message||String(err))}</div></div>`;
+    document.getElementById("friendWatchedBody").innerHTML = `<div class="emptyState"><div class="emptyText">Error loading list: ${escapeHtml(err.message||String(err))}</div></div>`;
   }
 }
 
