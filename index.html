@@ -2763,7 +2763,14 @@ async function loadSocialData(){
       if(f.status === "accepted"){
         const otherId    = f.requester_id === currentUser.id ? f.receiver_id : f.requester_id;
         const otherEmail = f.requester_id === currentUser.id ? f.receiver_email : f.requester_email;
-        friends.push({ friendship_id: f.id, id: otherId, email: otherEmail, list_visible: f.list_visible ?? true });
+        friends.push({
+          friendship_id:    f.id,
+          id:               otherId,
+          email:            otherEmail,
+          list_visible:     f.list_visible ?? true,
+          shared_list_type: f.shared_list_type || "watched",
+          shared_list_id:   f.shared_list_id || null
+        });
       } else if(f.status === "pending"){
         if(f.requester_id === currentUser.id){
           pendingSent.push({ friendship_id: f.id, id: f.receiver_id, email: f.receiver_email });
@@ -2863,9 +2870,18 @@ async function removeFriend(friendshipId){
   }catch(err){ showToast("Error: " + err.message); }
 }
 
-async function toggleFriendVisibility(friendshipId, currentVal){
+async function updateSharedList(friendshipId, selectEl){
+  const val = selectEl.value;
+  const isCustom = val.startsWith("custom:");
+  const listId = isCustom ? val.replace("custom:", "") : null;
+  const listType = isCustom ? "custom" : val; // "watched", "watchlist", "none"
   try{
-    await sb.from("friendships").update({ list_visible: !currentVal }).eq("id", friendshipId);
+    await sb.from("friendships").update({
+      shared_list_type: listType,
+      shared_list_id:   listId,
+      list_visible:     listType !== "none"
+    }).eq("id", friendshipId);
+    showToast("Sharing preference saved ✓");
     await loadSocialData();
   }catch(err){ showToast("Error: " + err.message); }
 }
@@ -2910,19 +2926,38 @@ function renderFriends(){
     </div>`).join("");
 
   // Accepted friends
-  const friendHtml = friends.map(f => `
+  const friendHtml = friends.map(f => {
+    const currentVal = f.shared_list_type === "custom"
+      ? `custom:${f.shared_list_id}`
+      : (f.shared_list_type || "watched");
+
+    // Build custom list options owned by current user
+    const myLists = customLists.filter(l => l.owner_id === currentUser.id);
+    const customOptions = myLists.map(l =>
+      `<option value="custom:${l.id}" ${currentVal===`custom:${l.id}`?"selected":""}>${escapeHtml(l.name)}</option>`
+    ).join("");
+
+    return `
     <div class="friendCard">
       <div class="friendAvatar">${f.email[0].toUpperCase()}</div>
       <div>
         <div class="friendName">${escapeHtml(f.email)}</div>
-        <div class="friendMeta">Watched list: <b>${f.list_visible ? "Visible to you" : "Hidden"}</b></div>
+        <div class="friendMeta" style="margin-top:6px;">
+          <label style="font-size:12px;color:var(--muted2);font-weight:600;">Share my:</label>
+          <select class="shareListSelect" onchange="updateSharedList('${f.friendship_id}', this)" style="margin-left:6px;background:var(--surface);border:1px solid var(--border2);color:var(--text);border-radius:8px;padding:4px 8px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;">
+            <option value="watched"   ${currentVal==="watched"  ?"selected":""}>Watched list</option>
+            <option value="watchlist" ${currentVal==="watchlist"?"selected":""}>Watchlist</option>
+            ${customOptions}
+            <option value="none"      ${currentVal==="none"     ?"selected":""}>Nothing (private)</option>
+          </select>
+        </div>
       </div>
       <div class="friendActions">
-        <button class="btnSmall" onclick="openFriendWatched('${f.id}','${escapeHtml(f.email)}')">👁 View List</button>
-        <button class="btnSmall" onclick="toggleFriendVisibility('${f.friendship_id}', ${f.list_visible})">${f.list_visible ? "🙈 Hide my list" : "👁 Show my list"}</button>
+        <button class="btnSmall" onclick="openFriendWatched('${f.id}','${escapeHtml(f.email)}','${f.friendship_id}')">👁 View List</button>
         <button class="btnSmallDanger" onclick="removeFriend('${f.friendship_id}')">Remove</button>
       </div>
-    </div>`).join("");
+    </div>`;
+  }).join("");
 
   if(!friends.length && !pendingSent.length){
     friendsList.innerHTML = `<div class="emptyState"><div class="emptyIcon">👥</div><div class="emptyText">No friends yet — send a request above!</div></div>`;
@@ -2944,7 +2979,7 @@ function renderFriends(){
 let friendWatchedData  = [];
 let friendWatchedTab   = "movie";
 
-async function openFriendWatched(friendId, friendEmail){
+async function openFriendWatched(friendId, friendEmail, friendshipId){
   friendWatchedTab = "movie";
   friendWatchedData = [];
 
@@ -2960,28 +2995,85 @@ async function openFriendWatched(friendId, friendEmail){
   document.body.style.overflow = "hidden";
 
   try{
-    // Query tracker_state — RLS policy handles access control
+    // Find the friendship to know what they're sharing
+    const friendship = friends.find(f => f.friendship_id === friendshipId);
+    const sharedType = friendship?.shared_list_type || "watched";
+    const sharedListId = friendship?.shared_list_id || null;
+
+    if(sharedType === "none"){
+      document.getElementById("friendWatchedSubtitle").textContent = "Private";
+      document.getElementById("friendWatchedBody").innerHTML = `<div class="emptyState"><div class="emptyIcon">🔒</div><div class="emptyText">This friend hasn't shared their list with you.</div></div>`;
+      return;
+    }
+
+    if(sharedType === "custom" && sharedListId){
+      // Load custom list items directly
+      const { data: items, error } = await sb
+        .from("custom_list_items")
+        .select("*")
+        .eq("list_id", sharedListId)
+        .order("created_at", { ascending: false });
+      if(error) throw error;
+
+      const { data: listMeta } = await sb
+        .from("custom_lists")
+        .select("name")
+        .eq("id", sharedListId)
+        .maybeSingle();
+
+      document.getElementById("friendWatchedName").textContent =
+        `${friendEmail} — ${listMeta?.name || "Custom List"}`;
+
+      if(!items || items.length === 0){
+        document.getElementById("friendWatchedSubtitle").textContent = "Empty list";
+        document.getElementById("friendWatchedBody").innerHTML = `<div class="emptyState"><div class="emptyIcon">📋</div><div class="emptyText">This list is empty.</div></div>`;
+        return;
+      }
+
+      document.getElementById("friendWatchedSubtitle").textContent = `${items.length} title${items.length!==1?"s":""}`;
+      // Show custom list items (no movie/tv filter needed, show all)
+      document.getElementById("friendWatchedBody").innerHTML = items.map(item => {
+        const poster = item.poster_path ? (IMG_SMALL + item.poster_path) : "";
+        const alreadyHave = isInAnyList(item.media_type, item.media_id);
+        return `
+          <div class="item" style="cursor:default;">
+            <button class="posterBtn" onclick="openDetailsModal({id:${item.media_id},media_type:'${item.media_type}',title:'${escapeHtml(item.title||"")}',year:'${escapeHtml(item.year||"")}',poster_path:'${escapeHtml(item.poster_path||"")}'});">
+              <img class="poster" src="${poster}" alt="" onerror="this.style.display='none'">
+            </button>
+            <div style="flex:1;min-width:0;">
+              <div class="itemTitle" style="cursor:pointer;" onclick="openDetailsModal({id:${item.media_id},media_type:'${item.media_type}',title:'${escapeHtml(item.title||"")}',year:'${escapeHtml(item.year||"")}',poster_path:'${escapeHtml(item.poster_path||"")}'});">${escapeHtml(item.title||"—")}</div>
+              <div class="meta"><span class="badge badge-${item.media_type}">${item.media_type.toUpperCase()}</span> ${escapeHtml(item.year||"—")}</div>
+            </div>
+            <div style="flex-shrink:0;">
+              ${!alreadyHave ? `<button class="btnSmall" onclick="addToWatchlist({id:${item.media_id},media_type:'${item.media_type}',title:'${escapeHtml(item.title||"")}',year:'${escapeHtml(item.year||"")}',poster_path:'${escapeHtml(item.poster_path||"")}'});renderAll();showToast('Added ✓');">+ Watchlist</button>`
+              : `<span style="font-size:11px;color:var(--green);font-weight:600;">✓ In list</span>`}
+            </div>
+          </div>`;
+      }).join("");
+      return;
+    }
+
+    // Load tracker_state for watched or watchlist
     const { data, error } = await sb
       .from("tracker_state")
       .select("state")
       .eq("id", String(friendId))
       .maybeSingle();
 
-    if(error){
-      console.error("tracker_state fetch error:", error);
-      throw error;
-    }
+    if(error) throw error;
 
     const theirState = data?.state;
-    const watched = Array.isArray(theirState?.watched) ? theirState.watched : [];
+    const sourceList = sharedType === "watchlist"
+      ? (theirState?.watchlist || [])
+      : (theirState?.watched   || []);
 
-    if(watched.length === 0){
-      document.getElementById("friendWatchedSubtitle").textContent = "Nothing watched yet.";
-      document.getElementById("friendWatchedBody").innerHTML = `<div class="emptyState"><div class="emptyIcon">🎬</div><div class="emptyText">They haven't added anything to their watched list yet.</div></div>`;
+    if(sourceList.length === 0){
+      document.getElementById("friendWatchedSubtitle").textContent = "Nothing here yet.";
+      document.getElementById("friendWatchedBody").innerHTML = `<div class="emptyState"><div class="emptyIcon">🎬</div><div class="emptyText">They haven't added anything yet.</div></div>`;
       return;
     }
 
-    friendWatchedData = [...watched].sort((a,b) => (b.added_at||0) - (a.added_at||0));
+    friendWatchedData = [...sourceList].sort((a,b) => (b.added_at||0) - (a.added_at||0));
 
     const movieCount = friendWatchedData.filter(x => x.media_type === "movie").length;
     const tvCount    = friendWatchedData.filter(x => x.media_type === "tv").length;
@@ -2993,7 +3085,7 @@ async function openFriendWatched(friendId, friendEmail){
   }catch(err){
     console.error("openFriendWatched error:", err);
     document.getElementById("friendWatchedSubtitle").textContent = "";
-    document.getElementById("friendWatchedBody").innerHTML = `<div class="emptyState"><div class="emptyText">Error loading list: ${escapeHtml(err.message||String(err))}</div></div>`;
+    document.getElementById("friendWatchedBody").innerHTML = `<div class="emptyState"><div class="emptyText">Error: ${escapeHtml(err.message||String(err))}</div></div>`;
   }
 }
 
