@@ -1070,6 +1070,71 @@
 
     .tabDot{ display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--accent); margin-left:5px; vertical-align:middle; }
 
+    /* ── CUSTOM LISTS ── */
+    .listCard{
+      background:var(--surface2);
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:14px 16px;
+      display:grid;
+      gap:8px;
+    }
+    .listCardHeader{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .listCardName{
+      font-weight:700;
+      font-size:16px;
+      color:var(--text);
+      cursor:pointer;
+    }
+    .listCardName:hover{ color:var(--accent); }
+    .listCardMeta{
+      font-size:12px;
+      color:var(--muted2);
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .listPrivacyBadge{
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+      border-radius:6px;
+      padding:2px 8px;
+      font-size:11px;
+      font-weight:700;
+    }
+    .listPrivacyBadge.private{
+      background:var(--surface);
+      border:1px solid var(--border2);
+      color:var(--muted2);
+    }
+    .listPrivacyBadge.shared{
+      background:var(--accent-dim);
+      border:1px solid var(--accent);
+      color:var(--accent);
+    }
+    .listPosterStrip{
+      display:flex;
+      gap:6px;
+      overflow:hidden;
+      margin-top:4px;
+    }
+    .listPosterThumb{
+      width:42px;
+      height:63px;
+      border-radius:6px;
+      object-fit:cover;
+      background:var(--surface);
+      border:1px solid var(--border2);
+      flex-shrink:0;
+    }
+
     /* ── SEASON TRACKER ── */
     .seasonTracker{
       margin-top:10px;
@@ -1284,13 +1349,14 @@
     <div class="section" id="librarySec">
       <div class="card">
         <div class="pillTabs" id="libraryTabs" style="margin-bottom:16px;">
-          <button class="pillTab active" data-ltab="watched">Watched</button>
-          <button class="pillTab" data-ltab="watchlist">Watchlist</button>
+          <button class="pillTab active" data-ltab="watchlist">Watchlist</button>
+          <button class="pillTab" data-ltab="watched">Watched</button>
           <button class="pillTab" data-ltab="people">People</button>
+          <button class="pillTab" data-ltab="lists">Lists</button>
         </div>
 
         <!-- Watchlist sub-section -->
-        <div id="libWatchlist" style="display:none;">
+        <div id="libWatchlist">
           <div class="listHeader">
             <div style="display:flex;align-items:center;gap:12px;">
               <div class="cardTitle" style="font-size:18px;">Watchlist</div>
@@ -1312,7 +1378,7 @@
         </div>
 
         <!-- Watched sub-section -->
-        <div id="libWatched">
+        <div id="libWatched" style="display:none;">
           <div class="listHeader">
             <div style="display:flex;align-items:center;gap:12px;">
               <div class="cardTitle" style="font-size:18px;">Watched</div>
@@ -1342,6 +1408,18 @@
             <button class="pillTab" data-tab="directors">Directors</button>
           </div>
           <div id="peopleList" class="list"></div>
+        </div>
+
+        <!-- Lists sub-section -->
+        <div id="libLists" style="display:none;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+            <div>
+              <div class="cardTitle" style="font-size:18px;">My Lists</div>
+              <div style="color:var(--muted2);font-size:13px;margin-top:2px;">Custom & shared watchlists</div>
+            </div>
+            <button class="btnSearch" id="btnNewList" style="font-size:13px;padding:9px 16px;">+ New List</button>
+          </div>
+          <div id="customListsGrid" style="display:grid;gap:12px;"></div>
         </div>
       </div>
     </div>
@@ -1502,6 +1580,77 @@
   </div>
 </div>
 
+<!-- ══════════════ CREATE / EDIT LIST MODAL ══════════════ -->
+<div class="backdrop" id="listEditBackdrop" style="display:none;">
+  <div class="sendRecModal" role="dialog" aria-modal="true">
+    <div class="sendRecHeader">
+      <div class="cardTitle" style="font-size:18px;" id="listEditTitle">New List</div>
+      <button onclick="closeListEdit()" class="btnDanger" style="padding:7px 14px;font-size:13px;">✕</button>
+    </div>
+    <div class="sendRecBody">
+      <div>
+        <div style="font-size:12px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">List name</div>
+        <input id="listNameInput" class="noteInput" style="min-height:unset;height:42px;resize:none;" placeholder="e.g. Date Night, Kids Movies…" />
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Privacy</div>
+        <div style="display:flex;gap:10px;">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;">
+            <input type="radio" name="listPrivacy" value="private" id="privacyPrivate" checked style="accent-color:var(--accent);width:16px;height:16px;"> 🔒 Private
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;">
+            <input type="radio" name="listPrivacy" value="shared" id="privacyShared" style="accent-color:var(--accent);width:16px;height:16px;"> 👥 Shared
+          </label>
+        </div>
+      </div>
+      <div id="listCollabSection" style="display:none;">
+        <div style="font-size:12px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Invite collaborators</div>
+        <div id="listCollabPicker" class="friendPickList"></div>
+      </div>
+      <button class="btnAuth" id="btnSaveList" style="margin-top:0;">Save List</button>
+      <div id="listEditMsg" style="font-size:13px;font-weight:600;min-height:18px;text-align:center;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ VIEW LIST MODAL ══════════════ -->
+<div class="backdrop" id="viewListBackdrop" style="display:none;">
+  <div class="friendWatchedModal" role="dialog" aria-modal="true">
+    <div class="friendWatchedHeader">
+      <div style="flex:1;min-width:0;">
+        <div class="cardTitle" style="font-size:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="viewListName">List</div>
+        <div style="font-size:12px;color:var(--muted2);margin-top:2px;" id="viewListMeta"></div>
+      </div>
+      <div style="display:flex;gap:8px;flex-shrink:0;">
+        <button id="btnEditListFromView" class="btnSmall" style="font-size:12px;">✏️ Edit</button>
+        <button onclick="closeViewList()" class="btnDanger" style="padding:7px 14px;font-size:13px;">✕</button>
+      </div>
+    </div>
+    <div class="friendWatchedBody" id="viewListBody"></div>
+  </div>
+</div>
+
+<!-- ══════════════ ADD TO LIST PICKER MODAL ══════════════ -->
+<div class="backdrop" id="addToListBackdrop" style="display:none;">
+  <div class="sendRecModal" role="dialog" aria-modal="true">
+    <div class="sendRecHeader">
+      <div class="cardTitle" style="font-size:18px;">Add to List</div>
+      <button onclick="closeAddToList()" class="btnDanger" style="padding:7px 14px;font-size:13px;">✕</button>
+    </div>
+    <div class="sendRecBody">
+      <div style="display:flex;gap:12px;align-items:center;">
+        <img id="addToListPoster" class="sendRecPoster" alt="" />
+        <div>
+          <div id="addToListTitle" style="font-weight:700;font-size:15px;"></div>
+          <div id="addToListMeta" style="font-size:12px;color:var(--muted2);margin-top:3px;"></div>
+        </div>
+      </div>
+      <div id="addToListPicker" class="friendPickList" style="max-height:220px;"></div>
+      <div id="addToListMsg" style="font-size:13px;font-weight:600;min-height:18px;text-align:center;"></div>
+    </div>
+  </div>
+</div>
+
 <!-- ══════════════ DETAILS MODAL ══════════════ -->
 <div class="backdrop" id="detailsBackdrop">
   <div class="modal" role="dialog" aria-modal="true">
@@ -1648,7 +1797,7 @@ async function doSignOut(){
   await sb.auth.signOut();
   currentUser = null;
   state = baseState();
-  friends=[]; pendingSent=[]; pendingIn=[]; recsReceived=[]; recsSent=[];
+  friends=[]; pendingSent=[]; pendingIn=[]; recsReceived=[]; recsSent=[]; customLists=[];
   authScreen.style.display = "flex";
   appScreen.style.display  = "none";
 }
@@ -1666,6 +1815,7 @@ async function onSignedIn(user){
   setSyncStatus("Loading…");
   await loadRemoteState();
   await loadSocialData();
+  await loadCustomLists();
   renderAll();
 }
 
@@ -1899,6 +2049,7 @@ function itemHtml(item,exists,_ctx){
         <button data-act="details">Details</button>
         <button data-act="watchlist" ${exists?"disabled":""}>+ Add to Watchlist</button>
         <button data-act="watched"   ${exists?"disabled":""}>✓ Mark Watched</button>
+        <button data-act="addtolist">📋 Add to list…</button>
         ${recBtn}
       </div>
     </div>`;
@@ -1938,6 +2089,7 @@ function wireResultActions(){
             else if(btn.dataset.act==="watchlist"){ addToWatchlist({id,media_type:mt,title,year,poster_path}); renderAll(); showToast(`Added "${title}" to Watchlist`); }
             else if(btn.dataset.act==="watched"){ await addToWatchedFlow({id,media_type:mt,title,year,poster_path}); renderAll(); showToast(`"${title}" marked as Watched`); }
             else if(btn.dataset.act==="recommend"){ openSendRec({id,media_type:mt,title,year,poster_path}); }
+            else if(btn.dataset.act==="addtolist"){ openAddToList({id,media_type:mt,title,year,poster_path}); }
           }
           if(card.dataset.kind==="person"){
             const pid=Number(card.dataset.personId),name=card.dataset.personName||"",profile_path=card.dataset.profile||"";
@@ -2164,6 +2316,7 @@ function listCardHtml(item,listType){
             <button data-act="rate:4">🍿🍿🍿🍿</button>
             <button data-act="rate:5">🍿🍿🍿🍿🍿</button>
             <button data-act="rate:clear">Clear rating</button>`}
+        <button data-act="addtolist">📋 Add to list…</button>
         <button class="dangerItem" data-act="remove">Remove</button>
       </div>
     </div>`;
@@ -2209,6 +2362,7 @@ function wireListCards(container){
           const mt=card.dataset.media,id=Number(card.dataset.id),title=card.dataset.name,year=card.dataset.year||"",poster_path=card.dataset.poster||"";
           const k=`${mt}:${id}`;
           if(btn.dataset.act==="details"){ await openDetailsModalFromCard(card); return; }
+          if(btn.dataset.act==="addtolist"){ openAddToList({id,media_type:mt,title,year,poster_path}); return; }
           if(btn.dataset.act&&btn.dataset.act.startsWith("rate:")){
             const val=btn.dataset.act.split(":")[1];
             const w=state.watched.find(x=>uniqKey(x)===k);
@@ -2376,7 +2530,21 @@ async function openPersonFilmography(personId,name){
   try{
     const credits=await tmdbFetch(`/person/${personId}/combined_credits?language=en-US`);
     const all=[].concat((credits.cast||[]).map(x=>({...x,creditType:"Cast"}))).concat((credits.crew||[]).map(x=>({...x,creditType:x.job||"Crew"})));
-    const list=all.filter(x=>x.media_type==="movie"||x.media_type==="tv").filter(x=>x.poster_path).sort((a,b)=>(b.popularity||0)-(a.popularity||0)).slice(0,30);
+
+    // Genre IDs to exclude: Talk (10767), News (10763), Reality (10764), Game Show (?)
+    const EXCLUDE_GENRES = new Set([10767, 10763, 10764, 10766]);
+    // Job titles to exclude for crew
+    const EXCLUDE_JOBS = new Set(["Thanks","Self","Archive Footage","Archive Sound"]);
+    // Exclude entries where the character name is "Self" (interviews, talk show appearances)
+    const list=all
+      .filter(x => x.media_type==="movie" || x.media_type==="tv")
+      .filter(x => x.poster_path)
+      .filter(x => !(x.genre_ids||[]).some(g => EXCLUDE_GENRES.has(g)))
+      .filter(x => x.character !== "Self" && x.character !== "Himself" && x.character !== "Herself")
+      .filter(x => !EXCLUDE_JOBS.has(x.job||""))
+      .filter(x => (x.vote_count||0) > 5 || x.media_type==="movie")
+      .sort((a,b)=>(b.popularity||0)-(a.popularity||0))
+      .slice(0,30);
     const items=list.map(x=>{
       const mt=x.media_type,title=mt==="movie"?x.title:x.name,year=mt==="movie"?(x.release_date||"").slice(0,4):(x.first_air_date||"").slice(0,4);
       const exists=isInAnyList(mt,x.id);
@@ -2426,6 +2594,7 @@ function setupTabs(){
     document.getElementById("libWatchlist").style.display = libraryTab==="watchlist" ? "block" : "none";
     document.getElementById("libWatched").style.display   = libraryTab==="watched"   ? "block" : "none";
     document.getElementById("libPeople").style.display    = libraryTab==="people"    ? "block" : "none";
+    document.getElementById("libLists").style.display     = libraryTab==="lists"     ? "block" : "none";
   });
 
   // ── Social sub-tabs ──
@@ -2993,6 +3162,389 @@ function setupSocialUI(){
 
 // ── Hook "Recommend to Friend" into the kebab menus ──
 // ─────────────────────────────────────────────
+// CUSTOM LISTS
+// ─────────────────────────────────────────────
+
+let customLists    = [];   // [{id, name, owner_id, is_shared, members:[email], items:[]}]
+let editingListId  = null; // null = new, string = editing existing
+let addToListItem  = null; // item being added to a list
+
+// ── Load ──
+
+async function loadCustomLists(){
+  if(!sb || !currentUser) return;
+  try{
+    // Lists I own or am a member of
+    const { data: owned } = await sb
+      .from("custom_lists")
+      .select("*, custom_list_items(*), list_members(*)")
+      .eq("owner_id", currentUser.id);
+
+    const { data: memberOf } = await sb
+      .from("list_members")
+      .select("list_id")
+      .eq("user_id", currentUser.id);
+
+    const memberListIds = (memberOf||[]).map(m => m.list_id);
+    let sharedLists = [];
+    if(memberListIds.length > 0){
+      const { data: shared } = await sb
+        .from("custom_lists")
+        .select("*, custom_list_items(*), list_members(*)")
+        .in("id", memberListIds);
+      sharedLists = shared || [];
+    }
+
+    // Merge, dedupe by id
+    const all = [...(owned||[]), ...sharedLists];
+    const seen = new Set();
+    customLists = all.filter(l => { if(seen.has(l.id)) return false; seen.add(l.id); return true; });
+    renderCustomLists();
+  }catch(err){
+    console.error("loadCustomLists", err);
+  }
+}
+
+// ── Render lists grid ──
+
+function renderCustomLists(){
+  const el = document.getElementById("customListsGrid");
+  if(!el) return;
+  if(customLists.length === 0){
+    el.innerHTML = `<div class="emptyState"><div class="emptyIcon">📋</div><div class="emptyText">No lists yet — create one to get started!</div></div>`;
+    return;
+  }
+  el.innerHTML = customLists.map(list => {
+    const isOwner = list.owner_id === currentUser.id;
+    const itemCount = (list.custom_list_items||[]).length;
+    const memberCount = (list.list_members||[]).length;
+    const posterThumbs = (list.custom_list_items||[])
+      .filter(i => i.poster_path)
+      .slice(0,5)
+      .map(i => `<img class="listPosterThumb" src="${IMG_SMALL}${i.poster_path}" alt="" onerror="this.style.display='none'">`)
+      .join("");
+
+    const privBadge = list.is_shared
+      ? `<span class="listPrivacyBadge shared">👥 Shared</span>`
+      : `<span class="listPrivacyBadge private">🔒 Private</span>`;
+
+    return `
+      <div class="listCard">
+        <div class="listCardHeader">
+          <div class="listCardName" onclick="openViewList('${list.id}')">${escapeHtml(list.name)}</div>
+          <div style="display:flex;gap:6px;">
+            ${isOwner ? `<button class="btnSmall" onclick="openListEdit('${list.id}')">✏️</button>` : ""}
+            ${isOwner ? `<button class="btnSmallDanger" onclick="deleteList('${list.id}')">🗑</button>` : ""}
+          </div>
+        </div>
+        <div class="listCardMeta">
+          ${privBadge}
+          <span>${itemCount} title${itemCount!==1?"s":""}</span>
+          ${list.is_shared && memberCount > 0 ? `<span>· ${memberCount} collaborator${memberCount!==1?"s":""}</span>` : ""}
+          ${!isOwner ? `<span>· by ${escapeHtml(list.owner_email||"someone")}</span>` : ""}
+        </div>
+        ${posterThumbs ? `<div class="listPosterStrip">${posterThumbs}</div>` : ""}
+      </div>`;
+  }).join("");
+}
+
+// ── Create / Edit modal ──
+
+function openListEdit(listId){
+  editingListId = listId || null;
+  const list = listId ? customLists.find(l => l.id === listId) : null;
+  document.getElementById("listEditTitle").textContent = list ? "Edit List" : "New List";
+  document.getElementById("listNameInput").value = list ? list.name : "";
+  document.getElementById("listEditMsg").textContent = "";
+  const isShared = list ? list.is_shared : false;
+  document.getElementById("privacyPrivate").checked = !isShared;
+  document.getElementById("privacyShared").checked  = isShared;
+  document.getElementById("listCollabSection").style.display = isShared ? "block" : "none";
+
+  // Build collaborator picker from friends
+  renderCollabPicker(list);
+
+  document.getElementById("listEditBackdrop").style.display = "flex";
+  document.body.style.overflow = "hidden";
+}
+
+function renderCollabPicker(list){
+  const existing = list ? (list.list_members||[]).map(m => m.user_id) : [];
+  const picker = document.getElementById("listCollabPicker");
+  if(friends.length === 0){
+    picker.innerHTML = `<div style="color:var(--muted2);font-size:13px;">Add friends first to invite collaborators.</div>`;
+    return;
+  }
+  picker.innerHTML = friends.map(f => {
+    const isMember = existing.includes(f.id);
+    return `<div class="friendPickItem ${isMember?"selected":""}" data-fid="${f.id}" onclick="toggleCollabPick(this)">
+      <div class="friendPickAvatar">${f.email[0].toUpperCase()}</div>
+      <span style="font-size:14px;font-weight:600;">${escapeHtml(f.email)}</span>
+      ${isMember ? `<span style="margin-left:auto;color:var(--green);font-size:12px;">✓</span>` : ""}
+    </div>`;
+  }).join("");
+}
+
+function toggleCollabPick(el){
+  el.classList.toggle("selected");
+}
+
+function closeListEdit(){
+  document.getElementById("listEditBackdrop").style.display = "none";
+  document.body.style.overflow = "";
+  editingListId = null;
+}
+
+// Wire privacy radio toggle
+document.addEventListener("change", e => {
+  if(e.target.name === "listPrivacy"){
+    document.getElementById("listCollabSection").style.display =
+      e.target.value === "shared" ? "block" : "none";
+  }
+});
+
+async function saveList(){
+  const name  = document.getElementById("listNameInput").value.trim();
+  const msgEl = document.getElementById("listEditMsg");
+  if(!name){ msgEl.style.color="var(--danger)"; msgEl.textContent="Please enter a list name."; return; }
+
+  const isShared = document.getElementById("privacyShared").checked;
+  const selectedFriends = [...document.querySelectorAll("#listCollabPicker .friendPickItem.selected")]
+    .map(el => el.dataset.fid);
+
+  msgEl.style.color = "var(--muted2)";
+  msgEl.textContent = "Saving…";
+  document.getElementById("btnSaveList").disabled = true;
+
+  try{
+    let listId = editingListId;
+
+    if(editingListId){
+      // Update existing
+      const { error } = await sb.from("custom_lists")
+        .update({ name, is_shared: isShared, owner_email: currentUser.email })
+        .eq("id", editingListId);
+      if(error) throw error;
+    } else {
+      // Create new
+      const { data, error } = await sb.from("custom_lists")
+        .insert({ name, is_shared: isShared, owner_id: currentUser.id, owner_email: currentUser.email })
+        .select("id").single();
+      if(error) throw error;
+      listId = data.id;
+    }
+
+    // Sync members for shared lists
+    if(isShared && listId){
+      // Remove all existing members then re-add selected
+      await sb.from("list_members").delete().eq("list_id", listId);
+      if(selectedFriends.length > 0){
+        const memberRows = selectedFriends.map(uid => ({
+          list_id: listId,
+          user_id: uid,
+          invited_by: currentUser.id
+        }));
+        await sb.from("list_members").insert(memberRows);
+      }
+    } else if(!isShared && listId){
+      // Clear all members if switched to private
+      await sb.from("list_members").delete().eq("list_id", listId);
+    }
+
+    msgEl.style.color = "var(--green)";
+    msgEl.textContent = "Saved ✓";
+    document.getElementById("btnSaveList").disabled = false;
+    await loadCustomLists();
+    setTimeout(closeListEdit, 800);
+    showToast(editingListId ? "List updated ✓" : `List "${name}" created ✓`);
+  }catch(err){
+    msgEl.style.color = "var(--danger)";
+    msgEl.textContent = "Error: " + (err.message || String(err));
+    document.getElementById("btnSaveList").disabled = false;
+  }
+}
+
+async function deleteList(listId){
+  const list = customLists.find(l => l.id === listId);
+  if(!list || list.owner_id !== currentUser.id) return;
+  if(!confirm(`Delete "${list.name}"? This cannot be undone.`)) return;
+  try{
+    await sb.from("custom_lists").delete().eq("id", listId);
+    await loadCustomLists();
+    showToast("List deleted");
+  }catch(err){ showToast("Error: " + err.message); }
+}
+
+// ── View list modal ──
+
+let viewingListId = null;
+
+async function openViewList(listId){
+  viewingListId = listId;
+  const list = customLists.find(l => l.id === listId);
+  if(!list) return;
+
+  const isOwner = list.owner_id === currentUser.id;
+  const itemCount = (list.custom_list_items||[]).length;
+  document.getElementById("viewListName").textContent = list.name;
+  document.getElementById("viewListMeta").textContent =
+    `${itemCount} title${itemCount!==1?"s":""} · ${list.is_shared ? "Shared list" : "Private list"}`;
+  document.getElementById("btnEditListFromView").style.display = isOwner ? "inline-flex" : "none";
+  document.getElementById("btnEditListFromView").onclick = () => { closeViewList(); openListEdit(listId); };
+
+  renderViewListBody(list);
+  document.getElementById("viewListBackdrop").style.display = "flex";
+  document.body.style.overflow = "hidden";
+}
+
+function renderViewListBody(list){
+  const body = document.getElementById("viewListBody");
+  const items = list.custom_list_items || [];
+  const isOwner = list.owner_id === currentUser.id;
+
+  if(items.length === 0){
+    body.innerHTML = `<div class="emptyState"><div class="emptyIcon">🎬</div><div class="emptyText">Nothing in this list yet — use the ⋮ menu on any title to add!</div></div>`;
+    return;
+  }
+
+  body.innerHTML = items.map(item => {
+    const poster = item.poster_path ? (IMG_SMALL + item.poster_path) : "";
+    const canRemove = isOwner || item.added_by === currentUser.id;
+    const alreadyHave = isInAnyList(item.media_type, item.media_id);
+    return `
+      <div style="display:grid;grid-template-columns:48px 1fr auto;gap:10px;align-items:center;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:10px 12px;">
+        <img src="${poster}" style="width:48px;height:72px;border-radius:8px;object-fit:cover;background:var(--surface);border:1px solid var(--border2);" alt="" onerror="this.style.display='none'">
+        <div>
+          <div style="font-weight:700;font-size:14px;cursor:pointer;" onclick="openDetailsModal({id:${item.media_id},media_type:'${item.media_type}',title:'${escapeHtml(item.title||"")}',year:'${escapeHtml(item.year||"")}',poster_path:'${escapeHtml(item.poster_path||"")}'});">${escapeHtml(item.title||"—")}</div>
+          <div style="font-size:12px;color:var(--muted2);margin-top:3px;">
+            <span class="badge badge-${item.media_type}">${item.media_type.toUpperCase()}</span>
+            ${escapeHtml(item.year||"—")}
+          </div>
+          <div style="font-size:11px;color:var(--muted);margin-top:3px;">Added by ${escapeHtml(item.added_by_email||"you")}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          ${!alreadyHave ? `<button class="btnSmall" onclick="addToWatchlist({id:${item.media_id},media_type:'${item.media_type}',title:'${escapeHtml(item.title||"")}',year:'${escapeHtml(item.year||"")}',poster_path:'${escapeHtml(item.poster_path||"")}'});renderAll();showToast('Added to Watchlist ✓');">+ Watchlist</button>` : `<span style="font-size:11px;color:var(--green);font-weight:600;text-align:center;">✓ In list</span>`}
+          ${canRemove ? `<button class="btnSmallDanger" onclick="removeFromList('${list.id}','${item.id}')">Remove</button>` : ""}
+        </div>
+      </div>`;
+  }).join("");
+}
+
+function closeViewList(){
+  document.getElementById("viewListBackdrop").style.display = "none";
+  document.body.style.overflow = "";
+  viewingListId = null;
+}
+
+async function removeFromList(listId, itemId){
+  try{
+    await sb.from("custom_list_items").delete().eq("id", itemId);
+    await loadCustomLists();
+    // Re-render the modal if still open
+    const list = customLists.find(l => l.id === listId);
+    if(list && viewingListId === listId) renderViewListBody(list);
+    showToast("Removed from list");
+  }catch(err){ showToast("Error: " + err.message); }
+}
+
+// ── Add to list picker ──
+
+function openAddToList(item){
+  addToListItem = item;
+  document.getElementById("addToListTitle").textContent = item.title || "—";
+  document.getElementById("addToListMeta").textContent  = `${(item.media_type||"").toUpperCase()} · ${item.year||"—"}`;
+  document.getElementById("addToListPoster").src = item.poster_path ? (IMG_SMALL + item.poster_path) : "";
+  document.getElementById("addToListMsg").textContent = "";
+
+  const myLists = customLists.filter(l =>
+    l.owner_id === currentUser.id ||
+    (l.list_members||[]).some(m => m.user_id === currentUser.id)
+  );
+
+  const picker = document.getElementById("addToListPicker");
+  if(myLists.length === 0){
+    picker.innerHTML = `<div style="color:var(--muted2);font-size:13px;">No lists yet — create one on the Lists tab first!</div>`;
+  } else {
+    picker.innerHTML = myLists.map(l => {
+      const alreadyIn = (l.custom_list_items||[]).some(i => i.media_id === item.id && i.media_type === item.media_type);
+      return `<div class="friendPickItem ${alreadyIn?"selected":""}" data-lid="${l.id}" onclick="pickListToAddTo(this,'${l.id}')">
+        <div class="friendPickAvatar" style="border-radius:8px;font-size:12px;">📋</div>
+        <div style="flex:1;">
+          <div style="font-weight:700;font-size:14px;">${escapeHtml(l.name)}</div>
+          <div style="font-size:11px;color:var(--muted2);">${(l.custom_list_items||[]).length} titles</div>
+        </div>
+        ${alreadyIn ? `<span style="color:var(--green);font-size:12px;font-weight:700;">✓ Added</span>` : ""}
+      </div>`;
+    }).join("");
+  }
+
+  document.getElementById("addToListBackdrop").style.display = "flex";
+  document.body.style.overflow = "hidden";
+}
+
+async function pickListToAddTo(el, listId){
+  if(!addToListItem) return;
+  const list = customLists.find(l => l.id === listId);
+  if(!list) return;
+
+  // Check if already in list
+  const alreadyIn = (list.custom_list_items||[]).some(i =>
+    i.media_id === addToListItem.id && i.media_type === addToListItem.media_type
+  );
+  if(alreadyIn){ showToast("Already in that list!"); return; }
+
+  const msgEl = document.getElementById("addToListMsg");
+  msgEl.style.color = "var(--muted2)";
+  msgEl.textContent = "Adding…";
+
+  try{
+    const { error } = await sb.from("custom_list_items").insert({
+      list_id:       listId,
+      media_id:      addToListItem.id,
+      media_type:    addToListItem.media_type,
+      title:         addToListItem.title,
+      year:          addToListItem.year || "",
+      poster_path:   addToListItem.poster_path || "",
+      added_by:      currentUser.id,
+      added_by_email: currentUser.email
+    });
+    if(error) throw error;
+    await loadCustomLists();
+    msgEl.style.color = "var(--green)";
+    msgEl.textContent = `Added to "${list.name}" ✓`;
+    showToast(`Added to "${list.name}" ✓`);
+    // Mark the item as added in the picker
+    el.classList.add("selected");
+    el.innerHTML += `<span style="color:var(--green);font-size:12px;font-weight:700;margin-left:auto;">✓ Added</span>`;
+    setTimeout(closeAddToList, 1000);
+  }catch(err){
+    msgEl.style.color = "var(--danger)";
+    msgEl.textContent = "Error: " + (err.message || String(err));
+  }
+}
+
+function closeAddToList(){
+  document.getElementById("addToListBackdrop").style.display = "none";
+  document.body.style.overflow = "";
+  addToListItem = null;
+}
+
+// ── Wire up list modals ──
+function setupListsUI(){
+  document.getElementById("btnNewList").addEventListener("click", () => openListEdit(null));
+  document.getElementById("btnSaveList").addEventListener("click", saveList);
+  document.getElementById("listEditBackdrop").addEventListener("click", e => {
+    if(e.target === document.getElementById("listEditBackdrop")) closeListEdit();
+  });
+  document.getElementById("viewListBackdrop").addEventListener("click", e => {
+    if(e.target === document.getElementById("viewListBackdrop")) closeViewList();
+  });
+  document.getElementById("addToListBackdrop").addEventListener("click", e => {
+    if(e.target === document.getElementById("addToListBackdrop")) closeAddToList();
+  });
+}
+
+// ─────────────────────────────────────────────
 // THEME
 // ─────────────────────────────────────────────
 const THEME_KEY = "hyw_theme";
@@ -3029,6 +3581,7 @@ window.addEventListener("load",async()=>{
   setupSearch();
   setupTabs();
   setupSocialUI();
+  setupListsUI();
 
   // Check for existing session
   const { data: { session } } = await sb.auth.getSession();
@@ -3105,4 +3658,3 @@ self.addEventListener("fetch", e => {
 </script>
 </body>
 </html>
-
