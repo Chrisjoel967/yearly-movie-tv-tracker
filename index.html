@@ -1135,6 +1135,146 @@
       flex-shrink:0;
     }
 
+    /* ── DISCOVERY SECTIONS ── */
+    .discoverSection{ margin-bottom:14px; }
+
+    .discoverHeader{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:12px;
+    }
+
+    .discoverTitle{
+      font-family:'Bebas Neue',sans-serif;
+      font-size:22px;
+      letter-spacing:.04em;
+      color:var(--text);
+    }
+
+    .discoverScroll{
+      display:flex;
+      gap:12px;
+      overflow-x:auto;
+      padding-bottom:8px;
+      scroll-snap-type:x mandatory;
+      -webkit-overflow-scrolling:touch;
+    }
+    .discoverScroll::-webkit-scrollbar{ height:4px; }
+    .discoverScroll::-webkit-scrollbar-thumb{ background:var(--border2); border-radius:2px; }
+
+    .discoverCard{
+      flex-shrink:0;
+      width:130px;
+      scroll-snap-align:start;
+      position:relative;
+      cursor:pointer;
+    }
+
+    .discoverPoster{
+      width:130px;
+      height:195px;
+      border-radius:12px;
+      object-fit:cover;
+      background:var(--surface2);
+      border:1px solid var(--border);
+      display:block;
+      transition:transform .15s, box-shadow .15s;
+    }
+
+    .discoverCard:hover .discoverPoster{
+      transform:translateY(-3px);
+      box-shadow:0 8px 24px rgba(0,0,0,.4);
+    }
+
+    .discoverCardTitle{
+      font-size:12px;
+      font-weight:700;
+      color:var(--text);
+      margin-top:6px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .discoverCardMeta{
+      font-size:11px;
+      color:var(--muted2);
+      margin-top:2px;
+    }
+
+    .discoverAddBtn{
+      position:absolute;
+      top:8px;
+      right:8px;
+      width:30px;
+      height:30px;
+      border-radius:50%;
+      background:rgba(10,11,15,.75);
+      border:2px solid rgba(255,255,255,.8);
+      color:#fff;
+      font-size:18px;
+      font-weight:300;
+      display:grid;
+      place-items:center;
+      cursor:pointer;
+      backdrop-filter:blur(4px);
+      transition:background .15s, border-color .15s, transform .1s;
+      line-height:1;
+    }
+
+    .discoverAddBtn:hover{
+      background:var(--accent);
+      border-color:var(--accent);
+      transform:scale(1.1);
+    }
+
+    .discoverAddBtn.inList{
+      background:var(--green);
+      border-color:var(--green);
+      font-size:14px;
+    }
+
+    /* Mini action popup */
+    .discoverPopup{
+      position:absolute;
+      top:44px;
+      right:4px;
+      background:var(--surface);
+      border:1px solid var(--border2);
+      border-radius:12px;
+      box-shadow:var(--shadow);
+      z-index:100;
+      overflow:hidden;
+      min-width:170px;
+    }
+
+    .discoverPopupBtn{
+      display:block;
+      width:100%;
+      padding:10px 14px;
+      background:none;
+      border:none;
+      border-bottom:1px solid var(--border);
+      color:var(--text);
+      font-family:'DM Sans',sans-serif;
+      font-size:13px;
+      font-weight:600;
+      text-align:left;
+      cursor:pointer;
+      transition:background .12s;
+    }
+
+    .discoverPopupBtn:last-child{ border-bottom:none; }
+    .discoverPopupBtn:hover{ background:var(--surface2); }
+
+    .discoverEmpty{
+      color:var(--muted2);
+      font-size:13px;
+      padding:20px 0;
+      text-align:center;
+    }
+
     /* ── SEASON TRACKER ── */
     .seasonTracker{
       margin-top:10px;
@@ -1403,6 +1543,39 @@
         <div class="cardTitle">Recently Added</div>
         <div style="color:var(--muted2);font-size:13px;margin-top:4px;">Your last 5 items across Watchlist & Watched</div>
         <div id="homeRecent" class="homeGrid"></div>
+      </div>
+
+      <!-- NOW PLAYING -->
+      <div class="card discoverSection">
+        <div class="discoverHeader">
+          <div class="discoverTitle">🎬 Now Playing</div>
+          <span style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;">In Theaters</span>
+        </div>
+        <div class="discoverScroll" id="nowPlayingRow">
+          <div class="discoverEmpty">Loading…</div>
+        </div>
+      </div>
+
+      <!-- COMING SOON -->
+      <div class="card discoverSection">
+        <div class="discoverHeader">
+          <div class="discoverTitle">🗓 Coming Soon</div>
+          <span style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;">Upcoming</span>
+        </div>
+        <div class="discoverScroll" id="comingSoonRow">
+          <div class="discoverEmpty">Loading…</div>
+        </div>
+      </div>
+
+      <!-- ON TV NOW -->
+      <div class="card discoverSection">
+        <div class="discoverHeader">
+          <div class="discoverTitle">📺 On TV Now</div>
+          <span style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;">Currently Airing</span>
+        </div>
+        <div class="discoverScroll" id="onTVRow">
+          <div class="discoverEmpty">Loading…</div>
+        </div>
       </div>
     </div>
 
@@ -1883,6 +2056,7 @@ async function onSignedIn(user){
   await loadRemoteState();
   await loadSocialData();
   await loadCustomLists();
+  loadDiscovery(); // non-blocking, loads in background
   renderAll();
 }
 
@@ -3830,6 +4004,145 @@ function setupListsUI(){
     if(e.target === document.getElementById("addToListBackdrop")) closeAddToList();
   });
 }
+
+// ─────────────────────────────────────────────
+// DISCOVERY — Now Playing / Coming Soon / On TV
+// ─────────────────────────────────────────────
+
+let activeDiscoverPopup = null;
+
+function closeDiscoverPopups(){
+  document.querySelectorAll(".discoverPopup").forEach(p => p.remove());
+  activeDiscoverPopup = null;
+}
+
+async function loadDiscovery(){
+  try{
+    const [nowPlaying, upcoming, onTV] = await Promise.all([
+      tmdbFetch("/movie/now_playing?language=en-US&page=1"),
+      tmdbFetch("/movie/upcoming?language=en-US&page=1"),
+      tmdbFetch("/tv/on_the_air?language=en-US&page=1")
+    ]);
+    renderDiscoverRow("nowPlayingRow",  (nowPlaying.results||[]).filter(r=>r.poster_path).slice(0,20), "movie");
+    renderDiscoverRow("comingSoonRow",  (upcoming.results||[]).filter(r=>r.poster_path).slice(0,20),   "movie");
+    renderDiscoverRow("onTVRow",        (onTV.results||[]).filter(r=>r.poster_path).slice(0,20),       "tv");
+  }catch(err){
+    console.error("loadDiscovery error:", err);
+  }
+}
+
+function renderDiscoverRow(containerId, items, defaultType){
+  const el = document.getElementById(containerId);
+  if(!el) return;
+  if(!items || items.length === 0){
+    el.innerHTML = `<div class="discoverEmpty">Nothing to show right now.</div>`;
+    return;
+  }
+  el.innerHTML = items.map(r => {
+    const mt    = r.media_type || defaultType;
+    const title = mt === "movie" ? (r.title||"") : (r.name||"");
+    const year  = mt === "movie"
+      ? (r.release_date||"").slice(0,4)
+      : (r.first_air_date||"").slice(0,4);
+    const poster = IMG_SMALL + r.poster_path;
+    const inList = isInAnyList(mt, r.id);
+    return `
+      <div class="discoverCard" data-id="${r.id}" data-media="${mt}" data-title="${escapeHtml(title)}" data-year="${escapeHtml(year)}" data-poster="${escapeHtml(r.poster_path||"")}">
+        <img class="discoverPoster" src="${poster}" alt="${escapeHtml(title)}" loading="lazy"
+          onerror="this.src=''" onclick="openDiscoverDetails(this.closest('.discoverCard'))">
+        <button class="discoverAddBtn ${inList?"inList":""}"
+          onclick="toggleDiscoverPopup(event, this)"
+          title="${inList ? "In your list" : "Add to…"}">
+          ${inList ? "✓" : "+"}
+        </button>
+        <div class="discoverCardTitle">${escapeHtml(title)}</div>
+        <div class="discoverCardMeta">${escapeHtml(year)} · ${mt==="movie"?"Movie":"TV"}</div>
+      </div>`;
+  }).join("");
+}
+
+function openDiscoverDetails(card){
+  closeDiscoverPopups();
+  openDetailsModal({
+    id:          Number(card.dataset.id),
+    media_type:  card.dataset.media,
+    title:       card.dataset.title,
+    year:        card.dataset.year,
+    poster_path: card.dataset.poster
+  });
+}
+
+function toggleDiscoverPopup(e, btn){
+  e.stopPropagation();
+  closeDiscoverPopups();
+
+  const card = btn.closest(".discoverCard");
+  const item = {
+    id:          Number(card.dataset.id),
+    media_type:  card.dataset.media,
+    title:       card.dataset.title,
+    year:        card.dataset.year,
+    poster_path: card.dataset.poster
+  };
+
+  const inList = isInAnyList(item.media_type, item.id);
+
+  const popup = document.createElement("div");
+  popup.className = "discoverPopup";
+
+  const actions = [];
+
+  if(!inList){
+    actions.push({ label: "＋ Add to Watchlist", fn: ()=>{
+      addToWatchlist(item); renderAll();
+      refreshDiscoverCard(card);
+      showToast(`"${item.title}" added to Watchlist ✓`);
+      closeDiscoverPopups();
+    }});
+    actions.push({ label: "✓ Mark as Watched", fn: async ()=>{
+      closeDiscoverPopups();
+      await addToWatchedFlow(item); renderAll();
+      refreshDiscoverCard(card);
+      showToast(`"${item.title}" marked as Watched ✓`);
+    }});
+  } else {
+    actions.push({ label: "✓ Already in your list", fn: ()=>{ closeDiscoverPopups(); }, disabled: true });
+  }
+
+  actions.push({ label: "📋 Add to list…", fn: ()=>{ closeDiscoverPopups(); openAddToList(item); }});
+
+  if(friends.length > 0){
+    actions.push({ label: "📨 Recommend to friend", fn: ()=>{ closeDiscoverPopups(); openSendRec(item); }});
+  }
+
+  actions.push({ label: "🔍 View Details", fn: ()=>{ closeDiscoverPopups(); openDiscoverDetails(card); }});
+
+  popup.innerHTML = actions.map(a =>
+    `<button class="discoverPopupBtn" ${a.disabled?"style='opacity:.5;cursor:default;'":""}>${a.label}</button>`
+  ).join("");
+
+  popup.querySelectorAll(".discoverPopupBtn").forEach((btn, i) => {
+    btn.addEventListener("click", e => { e.stopPropagation(); actions[i].fn(); });
+  });
+
+  card.appendChild(popup);
+  activeDiscoverPopup = popup;
+}
+
+function refreshDiscoverCard(card){
+  const mt = card.dataset.media;
+  const id = Number(card.dataset.id);
+  const inList = isInAnyList(mt, id);
+  const addBtn = card.querySelector(".discoverAddBtn");
+  if(addBtn){
+    addBtn.className = `discoverAddBtn ${inList?"inList":""}`;
+    addBtn.textContent = inList ? "✓" : "+";
+    addBtn.title = inList ? "In your list" : "Add to…";
+  }
+}
+
+// Close popups on outside click
+document.addEventListener("click", closeDiscoverPopups);
 
 // ─────────────────────────────────────────────
 // THEME
